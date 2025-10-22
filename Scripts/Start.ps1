@@ -1088,7 +1088,7 @@ try {
     Write-Host ""
     Write-Host "    PowerShell: " -NoNewline -ForegroundColor Gray
     Write-Host "$($PSVersionTable.PSVersion)" -ForegroundColor White
-    
+
     # Display script source appropriately
     if ($script:CommandPath) {
         if ($script:CommandPath -match '^Online:') {
