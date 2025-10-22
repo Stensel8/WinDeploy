@@ -1,33 +1,22 @@
-<#PSScriptInfo
-
-.AUTHOR Sten Tijhuis
-
-.COMPANYNAME WinDeploy
-
-.TAGS PowerShell Windows Deployment Intune FirstLogonAnimation Policy
-
-.PROJECTURI https://github.com/Stensel8/WinDeploy
-
-#>
+﻿# WinDeploy First Logon Animation Disabler
+# Part of the WinDeploy Automation Toolkit
+# See Releases for current version and CHANGELOG.md for changes
 
 #requires -Version 5.1
 #requires -RunAsAdministrator
 
 <#
 .SYNOPSIS
-    Disables the Windows first logon animation for all users.
+    Disables Windows first logon animation.
 
 .DESCRIPTION
-    Sets registry key to disable the animated first-sign-in experience.
+    Sets registry key to disable the animated first-sign-in experience for all users.
 
 .EXAMPLE
     .\DisableFirstLogonAnimation.ps1
 
 .NOTES
-    Version      : See VERSION file in repository root
-    Author       : Sten Tijhuis
-    Project      : WinDeploy
-    Requirements : Administrative privileges, Windows PowerShell 5.1+
+    Requires : Admin rights
 #>
 
 Set-StrictMode -Version Latest

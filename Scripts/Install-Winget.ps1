@@ -1,53 +1,25 @@
-<#PSScriptInfo
-
-.AUTHOR Sten Tijhuis
-
-.COMPANYNAME WinDeploy
-
-.TAGS PowerShell Windows WinGet Installation Deployment
-
-.PROJECTURI https://github.com/Stensel8/WinDeploy
-
-#>
+﻿# WinDeploy WinGet Installer
+# Part of the WinDeploy Automation Toolkit
+# See Releases for current version and CHANGELOG.md for changes
 
 #requires -Version 5.1
 #requires -RunAsAdministrator
 
 <#
 .SYNOPSIS
-    Ensures WinGet is installed and functional.
+    Installs and configures Windows Package Manager (WinGet).
 
 .DESCRIPTION
-    Standalone script that ensures Windows Package Manager (WinGet) is installed
-    and working properly. Uses a bootstrap approach inspired by asheroto/winget-install
-    to work reliably during OOBE and in environments where modules may not be available.
-
-    This script will:
-    - Check if WinGet is already working
-    - Install WinGet if missing
-    - Install dependencies (VCLibs, UI.Xaml, VCRedist)
-    - Register and configure WinGet properly
-    - Verify the installation succeeded
-
-    Key improvements:
-    - Self-contained bootstrap that doesn't rely on external modules initially
-    - Better error handling for common installation errors
-    - Works during Windows OOBE
-    - Proper SYSTEM account detection
-    - Version detection for existing libraries before installation
+    Ensures WinGet is installed and working properly. Handles dependencies
+    (VCLibs, UI.Xaml, VCRedist) and works reliably during OOBE and in 
+    environments where modules may not be available.
 
 .EXAMPLE
     .\Install-Winget.ps1
 
 .NOTES
-    Version      : See VERSION file in repository root
-    Created by   : Sten Tijhuis
-    Project      : WinDeploy
-    Requires     : Admin rights
-    Inspired by  : asheroto/winget-install (https://github.com/asheroto/winget-install)
-
-.LINK
-    Project Site: https://github.com/Stensel8/WinDeploy
+    Requires : Admin rights
+#>
 #>
 
 [CmdletBinding()]
@@ -89,7 +61,7 @@ function Write-BootstrapLog {
 # BOOTSTRAP HELPER FUNCTIONS
 # ============================================================================
 
-function Test-AdminPrivileges {
+function Test-AdminPrivilege {
     $identity = [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
     return $identity.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
@@ -178,7 +150,7 @@ function Install-LibIfRequired {
     Write-BootstrapLog "  $Lib_Name installed successfully" -Level SUCCESS
 }
 
-function Handle-InstallError {
+function Resolve-InstallError {
     param($ErrorRecord)
 
     $errorMessage = $ErrorRecord.Exception.Message
@@ -232,7 +204,7 @@ try {
     Write-BootstrapLog "" -Level INFO
 
     # Check admin privileges
-    if (-not (Test-AdminPrivileges)) {
+    if (-not (Test-AdminPrivilege)) {
         Write-BootstrapLog "ERROR: Administrator privileges required" -Level ERROR
         exit 1
     }
@@ -300,7 +272,7 @@ try {
         Remove-Item $depsPath -Force -ErrorAction SilentlyContinue
 
     } catch {
-        $shouldRethrow = Handle-InstallError $_
+        $shouldRethrow = Resolve-InstallError $_
         if ($shouldRethrow) { throw }
     }
 
@@ -361,7 +333,7 @@ try {
         Write-BootstrapLog "WinGet installed via Microsoft.WinGet.Client" -Level SUCCESS
 
     } catch {
-        $shouldRethrow = Handle-InstallError $_
+        $shouldRethrow = Resolve-InstallError $_
         if ($shouldRethrow) {
             # Method 2: Fallback to manual installation
             Write-BootstrapLog "Microsoft.WinGet.Client method failed, trying manual installation..." -Level WARNING
@@ -385,8 +357,8 @@ try {
 
                 Write-BootstrapLog "WinGet installed via manual installation" -Level SUCCESS
 
-            } catch {
-                $shouldRethrow2 = Handle-InstallError $_
+                } catch {
+                $shouldRethrow2 = Resolve-InstallError $_
                 if ($shouldRethrow2) { throw }
             }
         }
@@ -403,7 +375,7 @@ try {
         Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe -ErrorAction SilentlyContinue
         Write-BootstrapLog "WinGet registered successfully" -Level SUCCESS
     } catch {
-        $shouldRethrow = Handle-InstallError $_
+        $shouldRethrow = Resolve-InstallError $_
         if ($shouldRethrow) {
             Write-BootstrapLog "WinGet registration failed (may still work)" -Level WARNING
         }

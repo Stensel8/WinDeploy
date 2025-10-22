@@ -1,31 +1,23 @@
-# WinDeploy Bloatware Removal Utility
+﻿# WinDeploy Bloatware Removal Utility
 # Part of the WinDeploy Automation Toolkit
-# See RELEASES.md for current version and CHANGELOG.md for changes
+# See Releases for current version and CHANGELOG.md for changes
 
 #requires -Version 5.1
 #requires -RunAsAdministrator
 
 <#
 .SYNOPSIS
-    Removes bloatware applications and prevents their automatic reinstallation.
+    Removes bloatware and prevents automatic reinstallation.
 
 .DESCRIPTION
-    This script removes unwanted Windows applications (bloatware) from the system.
-    It removes both installed packages (for current users) and provisioned packages
-    (preventing installation for new users). Additionally, it configures registry
-    settings to prevent Windows from automatically reinstalling bloatware.
+    Removes unwanted Windows applications (bloatware) for current and new users.
+    Configures registry settings to prevent automatic reinstallation by Windows.
 
 .EXAMPLE
     .\Remove-Bloat.ps1
 
 .NOTES
-    Created by   : Sten Tijhuis
-    Project      : WinDeploy
-    Requires     : Admin rights
-    Version      : See VERSION file in repository root
-
-.LINK
-    Project Site: https://github.com/Stensel8/WinDeploy
+    Requires : Admin rights
 #>
 
 Set-StrictMode -Version Latest
@@ -422,10 +414,20 @@ try {
     $currentApp = 0
     foreach ($appName in $AppsToRemove) {
         $currentApp++
+
+        # Update progress so $totalApps is used and users see progress
+        if ($totalApps -gt 0) {
+            $percent = [int](($currentApp / $totalApps) * 100)
+            Write-Progress -Activity 'Removing bloatware' -Status "Processing $appName ($currentApp of $totalApps)" -PercentComplete $percent
+        }
+
         $pattern = "*$appName*"
         Remove-AppxByPattern -Pattern $pattern -Succeeded $succeededRemovals -Failed $failedRemovals
         Remove-ProvisionedByPattern -Pattern $pattern -Succeeded $succeededRemovals -Failed $failedRemovals
     }
+
+    # Clear progress indicator
+    Write-Progress -Activity 'Removing bloatware' -Completed
 
     $userRemovalCount = @($succeededRemovals | Where-Object { $_ -like 'Removed:*' }).Count
     if ($userRemovalCount -gt 0) {

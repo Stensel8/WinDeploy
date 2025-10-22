@@ -1,14 +1,6 @@
-<#PSScriptInfo
-
-.AUTHOR Sten Tijhuis
-
-.COMPANYNAME WinDeploy
-
-.TAGS PowerShell Windows MSI Installer Deployment
-
-.PROJECTURI https://github.com/Stensel8/WinDeploy
-
-#>
+﻿# WinDeploy MSI Installer
+# Part of the WinDeploy Automation Toolkit
+# See Releases for current version and CHANGELOG.md for changes
 
 #requires -Version 5.1
 #requires -RunAsAdministrator
@@ -18,20 +10,14 @@
     Installs MSI packages with detailed logging and error handling.
 
 .DESCRIPTION
-    Automated MSI installation script that extracts MSI properties, installs the package,
-    and provides detailed exit code interpretation.
+    Automates MSI installation by extracting properties, installing the package,
+    and providing detailed exit code interpretation.
 
 .EXAMPLE
     .\Install-MSI.ps1
 
 .NOTES
-    Version      : See VERSION file in repository root
-    Created by   : Sten Tijhuis (based on original by Jeffery Field)
-    Project      : WinDeploy
-    Requires     : Admin rights, MSI file
-
-.LINK
-    Project Site: https://github.com/Stensel8/WinDeploy
+    Requires : Admin rights, MSI file
 #>
 
 Set-StrictMode -Version Latest

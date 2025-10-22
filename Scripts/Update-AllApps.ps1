@@ -1,37 +1,23 @@
-<#PSScriptInfo
-
-.AUTHOR Sten Tijhuis
-
-.COMPANYNAME WinDeploy
-
-.TAGS PowerShell Windows WinGet Updates Applications Maintenance
-
-.PROJECTURI https://github.com/Stensel8/WinDeploy
-
-#>
+﻿# WinDeploy Application Updater
+# Part of the WinDeploy Automation Toolkit
+# See Releases for current version and CHANGELOG.md for changes
 
 #requires -Version 5.1
 #requires -RunAsAdministrator
 
 <#
 .SYNOPSIS
-    Updates all applications via WinGet package manager.
+    Updates all applications via Windows Package Manager (WinGet).
 
 .DESCRIPTION
-    Scans for available application updates using Windows Package Manager (WinGet)
-    and installs them automatically.
+    Scans for available application updates and installs them automatically
+    using Windows Package Manager.
 
 .EXAMPLE
     .\Update-AllApps.ps1
 
 .NOTES
-    Version      : See VERSION file in repository root
-    Created by   : Sten Tijhuis
-    Project      : WinDeploy
-    Requires     : Admin rights, WinGet installed
-
-.LINK
-    Project Site: https://github.com/Stensel8/WinDeploy
+    Requires : Admin rights, WinGet installed
 #>
 
 Set-StrictMode -Version Latest

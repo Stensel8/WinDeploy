@@ -1,4 +1,4 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 
 # Module-scoped configuration
 if (-not $script:Config) {

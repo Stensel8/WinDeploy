@@ -1,27 +1,23 @@
-# WinDeploy Device Deployment Script
+﻿# WinDeploy Device Deployment Script
 # Part of the WinDeploy Automation Toolkit
-# See RELEASES.md for current version and CHANGELOG.md for changes
+# See Releases for current version and CHANGELOG.md for changes
 
 #requires -Version 7.0
 #requires -RunAsAdministrator
 
 <#
 .SYNOPSIS
-    Orchestrates Windows device deployment by running child scripts in proper sequence.
+    Orchestrates Windows device deployment by running scripts in sequence.
 
 .DESCRIPTION
     Executes all deployment scripts in the correct order. Requires PowerShell 7.
     Use Start.ps1 to automatically install prerequisites and launch this script.
-    All logs are saved to C:\WinDeploy\Logs. All downloads go to C:\WinDeploy\Download.
 
 .EXAMPLE
     .\Deploy-Device.ps1
 
 .NOTES
-    Created by   : Sten Tijhuis
-    Project      : WinDeploy
-    Requires     : PowerShell 7+, Admin rights
-    Version      : See VERSION file in repository root
+    Requires : PowerShell 7+, Admin rights
 #>
 
 Set-StrictMode -Version Latest
@@ -164,7 +160,7 @@ exit `$exitCode
 
         return $result.ExitCode
     } catch {
-        Write-Log "Failed to execute $StepName: $_" -Level Error
+        Write-Log "Failed to execute $($StepName): $($_)" -Level Error
         return 1
     }
 }

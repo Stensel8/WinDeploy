@@ -1,14 +1,6 @@
-<#PSScriptInfo
-
-.AUTHOR Sten Tijhuis
-
-.COMPANYNAME WinDeploy
-
-.TAGS PowerShell Windows Software Inventory Registry AppX Reporting
-
-.PROJECTURI https://github.com/Stensel8/WinDeploy
-
-#>
+﻿# WinDeploy Software Inventory Tool
+# Part of the WinDeploy Automation Toolkit
+# See Releases for current version and CHANGELOG.md for changes
 
 #requires -Version 5.1
 
@@ -17,20 +9,14 @@
     Inventories all installed software on the system.
 
 .DESCRIPTION
-    Comprehensive software inventory tool that queries both traditional Win32
-    applications (via registry) and modern Store apps (via AppX packages).
+    Queries traditional Win32 applications (via registry) and modern Store apps
+    (via AppX packages) to provide a comprehensive software inventory.
 
 .EXAMPLE
     .\Get-InstalledSoftware.ps1
 
 .NOTES
-    Version      : See VERSION file in repository root
-    Created by   : Sten Tijhuis
-    Project      : WinDeploy
-    Requires     : PowerShell 5.1+
-
-.LINK
-    Project Site: https://github.com/Stensel8/WinDeploy
+    Requires : PowerShell 5.1+
 #>
 
 Set-StrictMode -Version Latest

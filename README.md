@@ -38,25 +38,55 @@ iex "& { $(irm 'https://raw.githubusercontent.com/Stensel8/WinDeploy/main/Script
 ```
 WinDeploy/
 ├── Scripts/
-│   ├── Start.ps1                    # Main entry point with auto-elevation
-│   ├── Deploy-Device.ps1            # Full deployment orchestrator
-│   ├── Install-Drivers.ps1          # Dell/HP driver automation
-│   ├── Install-Applications.ps1     # WinGet app installer
-│   ├── Install-WindowsUpdates.ps1   # Windows Update automation
-│   ├── Remove-Bloat.ps1             # Bloatware removal
-│   ├── Get-IntuneHash.ps1           # Autopilot hash generator
-│   ├── Set-Theme.ps1                # Desktop theme configuration
-│   └── Utilities/                   # Shared modules
-│       ├── Logging.psm1             # Logging framework
-│       ├── WinGet.psm1              # WinGet wrapper functions
-│       ├── System.psm1              # System utilities
-│       └── Download.psm1            # Download helpers
+│   ├── Start.ps1                         # [AUTO] Main entry point with Auto-Elevate
+│   ├── Deploy-Device.ps1                 # [AUTO] Full deployment orchestrator
+│   │
+│   ├── Install-Drivers.ps1               # [AUTO] Dell/HP driver automation
+│   ├── Install-Applications.ps1          # [AUTO] WinGet app installer
+│   ├── Install-WindowsUpdates.ps1        # [AUTO] Windows Update automation
+│   ├── Remove-Bloat.ps1                  # [AUTO] Bloatware removal
+│   ├── Get-IntuneHash.ps1                # [AUTO] Generates Autopilot device hash for Intune
+│   ├── Set-Theme.ps1                     # [AUTO] Desktop theme configuration
+│   ├── Install-PowerShell7.ps1           # [AUTO] PowerShell 7 installation (if needed)
+│   ├── Install-Winget.ps1                # [AUTO] WinGet installation (if needed)
+│   │
+│   ├── Disable-AutoRun.ps1               # [UTIL] Standalone utility (manual use)
+│   ├── DisableFirstLogonAnimation.ps1    # [UTIL] Standalone utility (manual use)
+│   ├── Export-Drivers.ps1                # [UTIL] Standalone utility (manual use)
+│   ├── Generate-Hostname.ps1             # [UTIL] Standalone utility (manual use)
+│   ├── Get-InstalledSoftware.ps1         # [UTIL] Standalone utility (manual use)
+│   ├── Import-Drivers.ps1                # [UTIL] Standalone utility (manual use)
+│   ├── Install-MSI.ps1                   # [UTIL] Standalone utility (manual use)
+│   ├── OOBE-Requirement.ps1              # [UTIL] Standalone utility (manual use)
+│   ├── Update-AllApps.ps1                # [UTIL] Standalone utility (manual use)
+│   │
+│   └── Utilities/                        # Shared PowerShell module files (*.psm1)
+│       ├── Logging.psm1                  # Logging framework
+│       ├── WinGet.psm1                   # WinGet wrapper functions
+│       ├── System.psm1                   # System utilities
+│       ├── Download.psm1                 # Download helpers
+│       ├── Deployment.psm1               # Deployment orchestration helpers
+│       ├── Driver.psm1                   # Driver detection & installation
+│       ├── Network.psm1                  # Network connectivity checks
+│       ├── Registry.psm1                 # Registry manipulation utilities
+│       ├── RMMAgent.psm1                 # RMM agent installation
+│       └── ScriptBootstrap.psm1          # Script initialization & setup (integrity checks)
+│
 ├── Docs/
-│   ├── SupportedDellDevices.json    # Dell device compatibility list
-│   └── SupportedHPDevices.json      # HP device compatibility list
-├── Config/                          # (Future) Configuration files
-└── README.md
+│   ├── SupportedDellDevices.json         # Dell device compatibility list
+│   └── SupportedHPDevices.json           # HP device compatibility list
+│
+├── autounattend.xml                      # [AUTO] Unattended Windows installation config (this will only ask the user to select their drive, the setup will handle the rest on its own)
+├── README.md                             # Main documentation
+├── CONTRIBUTING.md                       # Contribution guidelines
+├── CHANGELOG.md                          # Version history
+├── LICENSE                               # MIT License
+└── VERSION                               # Current version
 ```
+
+**Legend:**
+- [AUTO] **Auto-run during deployment** - Executed automatically by `Deploy-Device.ps1`
+- [UTIL] **Standalone utilities** - Available for manual execution as needed
 
 ---
 

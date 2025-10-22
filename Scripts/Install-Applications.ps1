@@ -1,35 +1,24 @@
-# WinDeploy Application Installer
+﻿# WinDeploy Application Installer
 # Part of the WinDeploy Automation Toolkit
-# See RELEASES.md for current version and CHANGELOG.md for changes
+# See Releases for current version and CHANGELOG.md for changes
 
 #requires -Version 5.1
 #requires -RunAsAdministrator
 
 <#
 .SYNOPSIS
-    Installs applications via WinGet package manager.
+    Installs applications via Windows Package Manager (WinGet).
 
 .DESCRIPTION
-    Automates application installation using Windows Package Manager (WinGet).
-    Supports ARM64 architecture detection, exit code interpretation, and detailed logging.
-
-    Features:
-    - Automatic architecture detection (x64/ARM64)
-    - Intelligent exit code handling
-    - Detailed installation logging with duration tracking
-    - Integration with Intune deployment tracking
+    Automates application installation with architecture detection (x64/ARM64),
+    intelligent exit code handling, and detailed logging. Integrates with Intune
+    deployment tracking.
 
 .EXAMPLE
     .\Install-Applications.ps1
 
 .NOTES
-    Created by   : Sten Tijhuis
-    Project      : WinDeploy
-    Requires     : Admin rights (WinGet will be auto-installed if missing)
-    Version      : See VERSION file in repository root
-
-.LINK
-    Project Site: https://github.com/Stensel8/WinDeploy
+    Requires : Admin rights (WinGet auto-installed if missing)
 #>
 
 #requires -Version 5.1

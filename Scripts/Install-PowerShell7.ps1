@@ -1,41 +1,23 @@
-<#PSScriptInfo
-
-.AUTHOR Sten Tijhuis
-
-.COMPANYNAME WinDeploy
-
-.TAGS PowerShell Installation WinGet
-
-.PROJECTURI https://github.com/Stensel8/WinDeploy
-
-#>
+﻿# WinDeploy PowerShell 7 Installer
+# Part of the WinDeploy Automation Toolkit
+# See Releases for current version and CHANGELOG.md for changes
 
 #requires -Version 5.1
 #requires -RunAsAdministrator
 
 <#
 .SYNOPSIS
-    Installs PowerShell 7 via WinGet.
+    Installs PowerShell 7 via Windows Package Manager (WinGet).
 
 .DESCRIPTION
-    Self-contained script that installs PowerShell 7 using WinGet.
-    Uses a bootstrap approach that doesn't rely on external modules initially.
-
-    The script will:
-    - Check if PowerShell 7 is already installed
-    - Ensure WinGet is available (install if needed)
-    - Install PowerShell 7 via WinGet
-    - Verify the installation succeeded
+    Self-contained installer for PowerShell 7. Ensures WinGet is available
+    and verifies installation succeeded.
 
 .EXAMPLE
     .\Install-PowerShell7.ps1
-    Installs PowerShell 7 if not present.
 
 .NOTES
-    Version      : See VERSION file in repository root
-    Created by   : Sten Tijhuis
-    Project      : WinDeploy
-    Requires     : PowerShell 5.1+, Admin rights
+    Requires : PowerShell 5.1+, Admin rights
 #>
 
 [CmdletBinding()]
@@ -76,7 +58,7 @@ function Write-BootstrapLog {
 # BOOTSTRAP HELPER FUNCTIONS
 # ============================================================================
 
-function Test-AdminPrivileges {
+function Test-AdminPrivilege {
     $identity = [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
     return $identity.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
@@ -96,7 +78,7 @@ function Test-PowerShell7Installed {
     return $false
 }
 
-function Ensure-WinGetAvailable {
+function Install-WinGetIfNeeded {
     # Check if WinGet is available
     $winget = Get-Command winget -ErrorAction SilentlyContinue
     if ($winget) {
@@ -126,7 +108,7 @@ function Ensure-WinGetAvailable {
         }
     }
 
-    throw "Unable to ensure WinGet is available"
+    throw "Unable to install or locate WinGet"
 }
 
 # ============================================================================
@@ -141,7 +123,7 @@ try {
     Write-BootstrapLog "" -Level INFO
 
     # Check admin privileges
-    if (-not (Test-AdminPrivileges)) {
+    if (-not (Test-AdminPrivilege)) {
         Write-BootstrapLog "ERROR: Administrator privileges required" -Level ERROR
         exit 1
     }
@@ -155,7 +137,7 @@ try {
 
     # Ensure WinGet is available
     Write-BootstrapLog "Ensuring WinGet is available..." -Level INFO
-    $wingetPath = Ensure-WinGetAvailable
+    $wingetPath = Install-WinGetIfNeeded
 
     # Install PowerShell 7 via WinGet
     Write-BootstrapLog "" -Level INFO

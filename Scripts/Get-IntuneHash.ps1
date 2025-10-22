@@ -1,61 +1,44 @@
-<#PSScriptInfo
-
-.AUTHOR Sten Tijhuis
-
-.COMPANYNAME WinDeploy
-
-.TAGS PowerShell Intune Autopilot Hardware Hash
-
-.PROJECTURI https://github.com/Stensel8/WinDeploy
-
-#>
+﻿# WinDeploy Intune Hardware Hash Collector
+# Part of the WinDeploy Automation Toolkit
+# See Releases for current version and CHANGELOG.md for changes
 
 #requires -Version 5.1
 
 <#
 .SYNOPSIS
-    Collects hardware hash for Intune/Autopilot enrollment and saves to Desktop.
+    Collects hardware hash for Intune/Autopilot enrollment.
 
 .DESCRIPTION
-    This script collects the device's hardware hash (Autopilot information) and saves it to a CSV file
-    on the user's desktop. Can be run during OOBE (Shift+F10) or on a deployed system.
-
-    The script automatically installs the required Get-WindowsAutopilotInfo module if not present.
+    Collects device hardware hash and saves to CSV on Desktop. Can run during
+    OOBE (Shift+F10) or on deployed systems. Installs required module if needed.
 
 .PARAMETER OutputPath
-    Optional. Specifies custom output path for the CSV file.
-    Default: Desktop\HardwareHash.csv
+    Custom output path for CSV file. Default: Desktop\HardwareHash.csv
 
 .PARAMETER Append
-    Appends to existing CSV file instead of overwriting.
+    Appends to existing CSV instead of overwriting.
 
 .PARAMETER GroupTag
-    Optional. Adds a group tag to the hardware hash for Autopilot profile assignment.
+    Group tag for Autopilot profile assignment.
 
 .PARAMETER Online
     Uploads hardware hash directly to Intune (requires authentication).
 
 .EXAMPLE
     .\Get-IntuneHash.ps1
-    Collects hardware hash and saves to Desktop\HardwareHash.csv
 
 .EXAMPLE
     .\Get-IntuneHash.ps1 -Append
-    Appends hardware hash to existing CSV file (useful for multiple devices)
 
 .EXAMPLE
     .\Get-IntuneHash.ps1 -GroupTag "CompanyName-Laptops"
-    Collects hardware hash with group tag for profile assignment
 
 .EXAMPLE
     .\Get-IntuneHash.ps1 -Online -GroupTag "CompanyName-Laptops"
-    Uploads hardware hash directly to Intune with group tag (requires sign-in)
 
 .NOTES
-    Version      : See VERSION file in repository root
-    Created by   : Sten Tijhuis
-    Project      : WinDeploy
-
+    Requires : PowerShell 5.1+
+    
     This script can be run:
     - During OOBE: Press Shift+F10, type 'powershell', then run script from USB (D:\)
     - On deployed system: Run from Desktop or any location
@@ -67,10 +50,6 @@
     4. Insert USB drive (usually D:)
     5. Run: D:\Get-IntuneHash.ps1
     6. For multiple devices: D:\Get-IntuneHash.ps1 -Append
-
-.LINK
-    Project Site: https://github.com/Stensel8/WinDeploy
-    Microsoft Docs: https://learn.microsoft.com/en-us/autopilot/add-devices
 #>
 
 [CmdletBinding()]

@@ -1,3 +1,7 @@
+﻿# WinDeploy Bootstrap and Deployment Entry Point
+# Part of the WinDeploy Automation Toolkit
+# See Releases for current version and CHANGELOG.md for changes
+
 #requires -Version 5.1
 
 <#
@@ -5,22 +9,16 @@
     Main deployment entry point with auto-elevation and PowerShell 7 upgrade.
 
 .DESCRIPTION
-    This script handles all prerequisites before running the main deployment:
-    - Checks for admin rights and elevates if needed
-    - Checks for PowerShell 7 and installs/relaunches if needed
-    - Sets up logging and utilities
-    - Runs the full deployment sequence
-
-    All logs saved to C:\WinDeploy\Logs\Start.log
+    Handles all deployment prerequisites: checks for admin rights and elevates
+    if needed, installs PowerShell 7 if required, sets up logging, and runs
+    the full deployment sequence.
 
 .EXAMPLE
     .\Start.ps1
 
 .NOTES
-    Created by   : Sten Tijhuis
-    Project      : WinDeploy
-    Version      : See VERSION file in repository root
-    Requires     : Windows 11, PowerShell 5.1+
+    Requires : Windows 11, PowerShell 5.1+
+#>
 #>
 
 [CmdletBinding()]
@@ -33,14 +31,21 @@ param(
 # When script is invoked via Invoke-RestMethod piped to Invoke-Expression (irm | iex),
 # PowerShell doesn't populate these automatic variables, breaking path resolution and script relaunching
 $script:ScriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { $PWD.Path }
-# Only use MyCommand.Definition if it's a valid file path (not script content)
-# When using Invoke-Expression, MyCommand.Definition contains the script content itself instead of a path
+
+# Determine script location for display
 $script:CommandPath = if ($PSCommandPath) {
     $PSCommandPath
 } elseif ($MyInvocation.MyCommand.Definition -and (Test-Path $MyInvocation.MyCommand.Definition -ErrorAction SilentlyContinue)) {
     $MyInvocation.MyCommand.Definition
 } else {
-    $null
+    # Detect if running from URL (online method)
+    if ($MyInvocation.InvocationName -match 'ScriptBlock' -or $MyInvocation.CommandOrigin -eq 'Runspace') {
+        # Build the URL that was likely used (will be updated after version resolution)
+        "Online: https://raw.githubusercontent.com/Stensel8/WinDeploy/main/Scripts/Start.ps1"
+    } else {
+        # Running from memory/unknown source
+        "Memory (no file path available)"
+    }
 }
 
 function Get-VersionReferenceUrl {
@@ -134,7 +139,7 @@ function Resolve-Version {
         try {
             $candidatePaths += (Join-Path (Split-Path $script:CommandPath -Parent) '..\VERSION')
         } catch {
-            # Ignore if path operations fail
+            Write-Warning "Failed to resolve VERSION path from command path: $_"
         }
     }
     if ($script:ScriptRoot) {
@@ -143,7 +148,7 @@ function Resolve-Version {
     try {
         $candidatePaths += (Join-Path (Get-Location).Path 'VERSION')
     } catch {
-        # Ignore errors reading current location
+        Write-Warning "Failed to resolve VERSION path from current location: $_"
     }
     $candidatePaths += 'C:\WinDeploy\VERSION'
     $candidatePaths += 'C:\WinDeploy\Download\VERSION'
@@ -221,6 +226,11 @@ $resolvedVersion = Resolve-Version -RequestedVersion $VersionTag
 $script:Version = $resolvedVersion.Tag
 $script:VersionSource = $resolvedVersion.Source
 $script:VersionReleaseUrl = $resolvedVersion.ReleaseUrl
+
+# Update CommandPath with resolved version if running online
+if ($script:CommandPath -match '^Online:') {
+    $script:CommandPath = "Online: https://raw.githubusercontent.com/Stensel8/WinDeploy/$($script:Version)/Scripts/Start.ps1"
+}
 
 # ============================================================================
 # AUTO-ELEVATION (Step 1: Ensure Admin)
@@ -809,7 +819,7 @@ exit `$exitCode
                         }
                     }
                 } catch {
-                    # File might be locked, skip this iteration
+                    Write-Verbose "Unable to read log file during monitoring: $_"
                 }
             }
         }
@@ -1004,8 +1014,8 @@ try {
     Initialize-LogDirectory -Path $script:LogDirectory
     Initialize-LogDirectory -Path $script:DownloadDirectory
 
-    # Original Denko ICT ASCII art logo created by Sten Tijhuis
-    # Preserved here as a tribute to the project's origins! Feel free to create your own ASCII art.
+    # ASCII art logo preserved for visual branding during deployment
+    # Feel free to create your own ASCII art.
     # To use it, uncomment the lines below:
     <#
     Write-Host ""
@@ -1078,8 +1088,20 @@ try {
     Write-Host ""
     Write-Host "    PowerShell: " -NoNewline -ForegroundColor Gray
     Write-Host "$($PSVersionTable.PSVersion)" -ForegroundColor White
-    Write-Host "    Script: " -NoNewline -ForegroundColor Gray
-    Write-Host "$($script:CommandPath)" -ForegroundColor White
+    
+    # Display script source appropriately
+    if ($script:CommandPath) {
+        if ($script:CommandPath -match '^Online:') {
+            Write-Host "    Source: " -NoNewline -ForegroundColor Gray
+            Write-Host ($script:CommandPath -replace '^Online:\s*', '') -ForegroundColor Cyan
+        } elseif ($script:CommandPath -eq "Memory (no file path available)") {
+            Write-Host "    Execution: " -NoNewline -ForegroundColor Gray
+            Write-Host "Remote (via Invoke-Expression)" -ForegroundColor Yellow
+        } else {
+            Write-Host "    Script: " -NoNewline -ForegroundColor Gray
+            Write-Host "$script:CommandPath" -ForegroundColor White
+        }
+    }
     Write-Host ""
 
     # Verify WinGet is installed

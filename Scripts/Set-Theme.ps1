@@ -1,32 +1,22 @@
-<#PSScriptInfo
-
-.AUTHOR Sten Tijhuis
-
-.COMPANYNAME WinDeploy
-
-.TAGS PowerShell Windows Wallpaper Desktop Theme Customization Deployment
-
-.PROJECTURI https://github.com/Stensel8/WinDeploy
-
-#>
+﻿# WinDeploy Theme and Wallpaper Manager
+# Part of the WinDeploy Automation Toolkit
+# See Releases for current version and CHANGELOG.md for changes
 
 #requires -Version 5.1
 #requires -RunAsAdministrator
 
 <#
 .SYNOPSIS
-    Sets Windows wallpaper and theme efficiently without opening Settings.
+    Sets Windows wallpaper and theme via registry and Windows API.
 
 .DESCRIPTION
-    Applies wallpaper and theme settings via direct registry manipulation and Windows API.
-    No Settings app will be opened during execution.
+    Applies wallpaper and theme settings directly without opening the Settings app.
 
 .PARAMETER WallpaperPath
     Path to wallpaper image. Default: Windows 11 dark wallpaper.
 
 .PARAMETER Theme
-    Theme preset: 'Dark', 'Light', 'Mixed' (light apps/dark system), 'Inverted' (dark apps/light system)
-    Default: 'Dark'
+    Theme preset: 'Dark', 'Light', 'Mixed', 'Inverted'. Default: 'Dark'
 
 .PARAMETER AppsTheme
     Apps theme override: 'light' or 'dark'
@@ -36,11 +26,12 @@
 
 .EXAMPLE
     .\Set-Theme.ps1
-    Sets default dark wallpaper and dark theme.
 
 .EXAMPLE
     .\Set-Theme.ps1 -WallpaperPath "C:\Custom\bg.jpg" -Theme Light
-    Sets custom wallpaper with light theme.
+
+.NOTES
+    Requires : Admin rights
 #>
 
 Set-StrictMode -Version Latest

@@ -1,43 +1,35 @@
-# Driver Exporter
-# Part of the Deployment Toolkit
-# See RELEASES.md for current version and CHANGELOG.md for changes
+﻿# WinDeploy Driver Export Utility
+# Part of the WinDeploy Automation Toolkit
+# See Releases for current version and CHANGELOG.md for changes
 
 #requires -Version 5.1
 #requires -RunAsAdministrator
 
 <#
 .SYNOPSIS
-    Exports all third-party drivers from the system to a specified folder.
+    Exports third-party drivers to a specified folder.
 
 .DESCRIPTION
-    This script exports all non-Microsoft signed drivers from your current Windows installation
-    to a target folder, which you specify as a command-line argument. Uses pnputil.exe
-    to export driver packages with proper error handling and detailed logging.
+    Exports all non-Microsoft signed drivers from the current Windows installation
+    using pnputil.exe with proper error handling and logging.
 
 .PARAMETER ExportPath
-    The folder path where the drivers will be exported. Required.
+    The folder path where drivers will be exported. Required.
 
 .EXAMPLE
     .\Export-Drivers.ps1 -ExportPath "C:\drivers\backup"
 
 .NOTES
-    Created by   : Sten Tijhuis
-    Project      : WinDeploy
-    Requires     : Admin rights, Windows 10/11
-    Version      : See VERSION file in repository root
-
-.LINK
-    Project Site: https://github.com/Stensel8/WinDeploy
+    Requires : Admin rights, Windows 11
 #>
 
-#requires -Version 5.1
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Continue'
-
 param(
-    [Parameter(Mandatory)]
+    [Parameter(Mandatory=$true, Position=0)]
     [string]$ExportPath
 )
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Continue'
 
 # Bootstrap initialization using consolidated function
 Import-Module (Join-Path $PSScriptRoot 'Utilities\ScriptBootstrap.psm1') -Force -Global

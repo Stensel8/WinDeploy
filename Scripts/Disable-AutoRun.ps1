@@ -1,27 +1,23 @@
+﻿# WinDeploy AutoRun Disabler
+# Part of the WinDeploy Automation Toolkit
+# See Releases for current version and CHANGELOG.md for changes
+
 #requires -Version 5.1
 #requires -RunAsAdministrator
 
 <#
 .SYNOPSIS
-    Disables all Windows AutoRun functionality for security hardening.
+    Disables Windows AutoRun functionality for security hardening.
 
 .DESCRIPTION
-    This script disables AutoRun and AutoPlay functionality across all drive types
-    to prevent automatic execution of potentially malicious code from external media.
-
-    The script:
-    - Disables AutoRun for all drive types (USB, CD-ROM, network drives, etc.)
-    - Blocks autorun.inf execution system-wide
-    - Configures registry settings to prevent automatic software installations
-    - Applies security hardening to protect against malware propagation
+    Disables AutoRun and AutoPlay across all drive types to prevent automatic
+    execution of potentially malicious code from external media.
 
 .EXAMPLE
     .\Disable-AutoRun.ps1
 
 .NOTES
-    Created by   : Sten Tijhuis
-    Project      : WinDeploy
-    Requires     : Administrator rights, PowerShell 5.1+
+    Requires : Admin rights
 #>
 
 [CmdletBinding()]

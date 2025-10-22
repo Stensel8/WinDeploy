@@ -1,33 +1,22 @@
-<#PSScriptInfo
-
-.AUTHOR Sten Tijhuis
-
-.COMPANYNAME WinDeploy
-
-.TAGS PowerShell Windows OOBE Autopilot Deployment
-
-.PROJECTURI https://github.com/Stensel8/WinDeploy
-
-#>
+﻿# WinDeploy OOBE Context Validator
+# Part of the WinDeploy Automation Toolkit
+# See Releases for current version and CHANGELOG.md for changes
 
 #requires -Version 5.1
 #requires -RunAsAdministrator
 
 <#
 .SYNOPSIS
-    Verifies the device is running in OOBE context.
+    Verifies device is running in OOBE context.
 
 .DESCRIPTION
-    Checks if the current user is defaultuser0 or SYSTEM, indicating OOBE/Autopilot context.
+    Checks if current user is defaultuser0 or SYSTEM, indicating OOBE/Autopilot context.
 
 .EXAMPLE
     .\OOBE-Requirement.ps1
 
 .NOTES
-    Version      : See VERSION file in repository root
-    Created by   : Sten Tijhuis
-    Project      : WinDeploy
-    Requires     : PowerShell 5.1+, Admin rights
+    Requires : PowerShell 5.1+, Admin rights
 #>
 
 Set-StrictMode -Version Latest

@@ -1,34 +1,23 @@
-<#PSScriptInfo
-
-.AUTHOR Sten Tijhuis
-
-.COMPANYNAME WinDeploy
-
-.TAGS PowerShell Windows WindowsUpdate PSWindowsUpdate
-
-.PROJECTURI https://github.com/Stensel8/WinDeploy
-
-#>
+﻿# WinDeploy Windows Update Installer
+# Part of the WinDeploy Automation Toolkit
+# See Releases for current version and CHANGELOG.md for changes
 
 #requires -Version 5.1
 #requires -RunAsAdministrator
 
 <#
 .SYNOPSIS
-    Installs all available Windows Updates automatically using PSWindowsUpdate module.
+    Installs all available Windows Updates using PSWindowsUpdate module.
 
 .DESCRIPTION
-    Downloads and installs all available Windows Updates. Designed for automated deployment after OOBE.
+    Downloads and installs all available Windows Updates. Designed for
+    automated deployment after OOBE.
 
 .EXAMPLE
     .\Install-WindowsUpdates.ps1
-    Installs all available updates.
 
 .NOTES
-    Version      : See VERSION file in repository root
-    Created by   : Sten Tijhuis
-    Project      : WinDeploy
-    Requires     : PowerShell 5.1+, Admin rights
+    Requires : PowerShell 5.1+, Admin rights
 #>
 
 Set-StrictMode -Version Latest
@@ -177,7 +166,7 @@ try {
 
     # Run updates in background job with timeout
     $updateJob = Start-Job -ScriptBlock {
-        param($Updates)
+        param($UpdatesParam)
 
         # Import PSWindowsUpdate module in the job context
         Import-Module PSWindowsUpdate -Force -ErrorAction Stop
@@ -186,12 +175,12 @@ try {
         $failedCount = 0
         $results = @()
 
-        foreach ($update in $Updates) {
+        foreach ($update in $UpdatesParam) {
             $updateTitle = if ($update.Title) { $update.Title } else { "Unknown Update ($($update.KBArticleID))" }
 
             try {
-                # Use Install-WindowsUpdate with the KB Article ID
-                $result = Install-WindowsUpdate -KBArticleID $update.KBArticleID -AcceptAll -IgnoreReboot -ErrorAction Stop
+                # Use Install-WindowsUpdate with the KB Article ID (discard output)
+                Install-WindowsUpdate -KBArticleID $update.KBArticleID -AcceptAll -IgnoreReboot -ErrorAction Stop | Out-Null
                 $results += [PSCustomObject]@{
                     Title = $updateTitle
                     Status = 'Success'

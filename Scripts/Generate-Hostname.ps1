@@ -1,14 +1,6 @@
-<#PSScriptInfo
-
-.AUTHOR Sten Tijhuis
-
-.COMPANYNAME WinDeploy
-
-.TAGS PowerShell Windows Serial ComputerName Hostname Naming Convention
-
-.PROJECTURI https://github.com/Stensel8/WinDeploy
-
-#>
+﻿# WinDeploy Hostname Generator
+# Part of the WinDeploy Automation Toolkit
+# See Releases for current version and CHANGELOG.md for changes
 
 #requires -Version 5.1
 
@@ -31,12 +23,8 @@
     String. Returns the formatted hostname (e.g., "PC-12345").
 
 .NOTES
-    Version      : See VERSION file in repository root
-    Created by   : Sten Tijhuis
-    Project      : WinDeploy
-
-.LINK
-    Project Site: https://github.com/Stensel8/WinDeploy
+    Requires : PowerShell 5.1+
+#>
 #>
 
 Set-StrictMode -Version Latest

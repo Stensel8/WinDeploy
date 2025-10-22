@@ -1,14 +1,6 @@
-<#PSScriptInfo
-
-.AUTHOR Sten Tijhuis
-
-.COMPANYNAME WinDeploy
-
-.TAGS PowerShell Windows Drivers Dell HP DCU HPIA Deployment
-
-.PROJECTURI https://github.com/Stensel8/WinDeploy
-
-#>
+﻿# WinDeploy Driver Installer
+# Part of the WinDeploy Automation Toolkit
+# See Releases for current version and CHANGELOG.md for changes
 
 #requires -Version 5.1
 #requires -RunAsAdministrator
@@ -18,32 +10,15 @@
     Installs vendor-specific driver update tools and updates drivers.
 
 .DESCRIPTION
-    Automatically detects system manufacturer (Dell or HP) and installs/runs
-    the appropriate driver update tool with vendor-specific optimizations.
-
-    Supported Vendors:
-    - Dell: Dell Command Update (DCU)
-    - HP: HP Image Assistant (HPIA)
-
-    Features:
-    - Automatic manufacturer detection
-    - Vendor-specific driver tool installation
-    - Automated driver updates
-    - Detailed logging and error handling
-    - Integration with Intune deployment tracking
+    Detects system manufacturer (Dell or HP) and installs the appropriate
+    driver update tool: Dell Command Update (DCU) or HP Image Assistant (HPIA).
+    Includes automated updates, detailed logging, and Intune integration.
 
 .EXAMPLE
     .\Install-Drivers.ps1
-    Automatically detects manufacturer and updates drivers.
 
 .NOTES
-    Version      : See VERSION file in repository root
-    Created by   : Sten Tijhuis
-    Project      : WinDeploy
-    Requires     : Admin rights, WinGet (for Dell), Internet connection
-
-.LINK
-    Project Site: https://github.com/Stensel8/WinDeploy
+    Requires : Admin rights, WinGet (for Dell), Internet connection
 #>
 
 #requires -Version 5.1
