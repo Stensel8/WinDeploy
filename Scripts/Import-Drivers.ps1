@@ -43,7 +43,7 @@ try {
     # Warning and confirmation prompt
     Write-Host "`nWARNING: Installing third-party drivers can affect system stability." -ForegroundColor Yellow
     Write-Host "You are doing this at your own risk. Ensure drivers are from trusted sources.`n" -ForegroundColor Yellow
-    
+
     $confirmation = Read-Host "Do you want to continue? (Y/N)"
     if ($confirmation -ne 'Y' -and $confirmation -ne 'y') {
         Write-Log "Driver import cancelled by user." -Level Warning
