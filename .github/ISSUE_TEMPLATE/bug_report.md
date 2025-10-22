@@ -1,11 +1,3 @@
----
-name: Bug report
-about: Report a problem with WinDeploy
-title: ''
-labels: 'type: bug'
-assignees: ''
----
-
 ## Description
 <!-- Clear description of the problem -->
 
