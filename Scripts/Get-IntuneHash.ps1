@@ -38,7 +38,7 @@
 
 .NOTES
     Requires : PowerShell 5.1+
-    
+
     This script can be run:
     - During OOBE: Press Shift+F10, type 'powershell', then run script from USB (D:\)
     - On deployed system: Run from Desktop or any location
