@@ -137,6 +137,13 @@ $script:Version          = $resolvedVersion.Tag
 $script:VersionSource    = $resolvedVersion.Source
 $script:VersionReleaseUrl = $resolvedVersion.ReleaseUrl
 
+# Write version to download dir for scripts to use
+$downloadDir = "C:\WinDeploy\Download"
+if (!(Test-Path $downloadDir)) {
+    New-Item -ItemType Directory -Path $downloadDir -Force | Out-Null
+}
+$script:Version | Out-File -FilePath (Join-Path $downloadDir "VERSION") -Force
+
 Write-DeployLog "Resolved version: $script:Version (source: $script:VersionSource)"
 
 # Helper to display script / execution source in the banner
@@ -361,17 +368,25 @@ Write-Output ""
 function Get-DeploymentScript {
     param([string]$ScriptName)
 
-    $localPath = Join-Path $PSScriptRoot "Deployment\$ScriptName"
-    if (Test-Path $localPath) { return $localPath }
-
-    $url = "https://raw.githubusercontent.com/Stensel8/WinDeploy/$script:Version/Scripts/Deployment/$ScriptName"
-    try {
-        Invoke-WebRequest -Uri $url -OutFile $localPath -UseBasicParsing -ErrorAction Stop
-        Write-DeployLog "Downloaded $ScriptName"
-    } catch {
-        Write-DeployLog "Failed to download $ScriptName" -IsError
+    $downloadDir = "C:\WinDeploy\Download"
+    if (!(Test-Path $downloadDir)) {
+        New-Item -ItemType Directory -Path $downloadDir -Force | Out-Null
     }
-    return $localPath
+
+    $downloadPath = Join-Path $downloadDir $ScriptName
+
+    if (!(Test-Path $downloadPath)) {
+        $url = "https://raw.githubusercontent.com/Stensel8/WinDeploy/testing/Scripts/Deployment/$ScriptName"
+        try {
+            Invoke-WebRequest -Uri $url -OutFile $downloadPath -UseBasicParsing -ErrorAction Stop
+            Write-DeployLog "Downloaded $ScriptName to $downloadPath"
+        } catch {
+            Write-DeployLog "Failed to download $ScriptName from $url" -IsError
+            return $null
+        }
+    }
+
+    return $downloadPath
 }
 
 # Define deployment steps
@@ -396,9 +411,15 @@ foreach ($step in $deploymentSteps) {
     Write-Output ""
 
     $scriptPath = Get-DeploymentScript -ScriptName $step.ScriptName
-    if (Test-Path $scriptPath) {
-        & $scriptPath
-        if ($LASTEXITCODE -ne 0) {
+    if ($scriptPath -and (Test-Path $scriptPath)) {
+        try {
+            $argumentList = "-ExecutionPolicy Bypass -File `"$scriptPath`""
+            $proc = Start-Process pwsh -ArgumentList $argumentList -Wait -NoNewWindow -PassThru
+            if ($proc.ExitCode -ne 0) {
+                $allSuccessful = $false
+            }
+        } catch {
+            Write-Warning "Failed to run $($step.ScriptName): $_"
             $allSuccessful = $false
         }
     } else {

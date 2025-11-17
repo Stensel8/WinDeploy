@@ -36,27 +36,47 @@ try {
     $supportedDellDevices = @()
     $supportedHPDevices = @()
 
-    $dellListPath = Join-Path $scriptDir "..\..\Docs\SupportedDellDevices.json"
-    $hpListPath = Join-Path $scriptDir "..\..\Docs\SupportedHPDevices.json"
+    $version = "testing"
 
-    if (Test-Path $dellListPath) {
+    $dellPath = "C:\WinDeploy\Download\SupportedDellDevices.json"
+    $hpPath = "C:\WinDeploy\Download\SupportedHPDevices.json"
+
+    if (!(Test-Path $dellPath)) {
+        $url = "https://raw.githubusercontent.com/Stensel8/WinDeploy/$version/Docs/SupportedDellDevices.json"
         try {
-            $supportedDellDevices = Get-Content $dellListPath -Raw | ConvertFrom-Json | Where-Object { -not $_.StartsWith("//") }
+            Invoke-WebRequest -Uri $url -OutFile $dellPath -UseBasicParsing -ErrorAction Stop
+            Write-DeployLog "Downloaded SupportedDellDevices.json"
+        } catch {
+            Write-Warning "Failed to download SupportedDellDevices.json"
+        }
+    }
+
+    if (!(Test-Path $hpPath)) {
+        $url = "https://raw.githubusercontent.com/Stensel8/WinDeploy/$version/Docs/SupportedHPDevices.json"
+        try {
+            Invoke-WebRequest -Uri $url -OutFile $hpPath -UseBasicParsing -ErrorAction Stop
+            Write-DeployLog "Downloaded SupportedHPDevices.json"
+        } catch {
+            Write-Warning "Failed to download SupportedHPDevices.json"
+        }
+    }
+
+    if (Test-Path $dellPath) {
+        try {
+            $supportedDellDevices = Get-Content $dellPath -Raw | ConvertFrom-Json | Where-Object { -not $_.StartsWith("//") }
+            Write-DeployLog "Loaded Dell list from $dellPath"
         } catch {
             Write-Warning "Failed to load Dell device list"
         }
-    } else {
-        Write-Warning "Dell list not found at $dellListPath"
     }
 
-    if (Test-Path $hpListPath) {
+    if (Test-Path $hpPath) {
         try {
-            $supportedHPDevices = Get-Content $hpListPath -Raw | ConvertFrom-Json | Where-Object { -not $_.StartsWith("//") }
+            $supportedHPDevices = Get-Content $hpPath -Raw | ConvertFrom-Json | Where-Object { -not $_.StartsWith("//") }
+            Write-DeployLog "Loaded HP list from $hpPath"
         } catch {
             Write-Warning "Failed to load HP device list"
         }
-    } else {
-        Write-Warning "HP list not found at $hpListPath"
     }
 
     # Check if supported
