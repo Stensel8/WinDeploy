@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.5.0] - 2025-11-14
+## [0.5.1] - 2025-11-17
+
+### Fixed
+- Fixed bloatware removal printing duplicate messages on screen by removing redundant Write-Output calls
+- Improved admin elevation handling in Start.ps1 and Deploy.ps1 to prevent script crashes when not run as administrator
+
+---
 
 ### Added
 - Added documentation for Intune Autopilot device preparation setup (`Docs/Intune-Autopilot-Setup.md`)
@@ -57,6 +63,7 @@ First open-source release of WinDeploy - Windows Deployment Automation Toolkit. 
 
 ---
 
+[0.5.1]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.1
 [0.5.0]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.0
 [0.1.2]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.1.2
 [0.1.1]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.1.1

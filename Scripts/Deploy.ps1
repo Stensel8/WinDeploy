@@ -50,6 +50,12 @@ Write-Output "    PowerShell: $($PSVersionTable.PSVersion)"
 Write-Output ("    {0}" -f (Get-ScriptDisplay))
 Write-Output ""
 
+# Check for admin rights
+if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Write-Output "ERROR: This script must be run as administrator."
+    exit 1
+}
+
 # Define deployment steps (customize as needed)
 $deploymentSteps = @(
     @{ Name = "Driver Installation";        ScriptName = "Install-Drivers.ps1" }
