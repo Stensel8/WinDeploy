@@ -65,7 +65,7 @@ WinDeploy/
 │   │   ├── Remove-Bloat.ps1              # [AUTO] Bloatware removal
 │   │   ├── Set-HostName.ps1              # [AUTO] Hostname configuration
 │   │   ├── Set-Theme.ps1                 # [AUTO] Desktop theme configuration
-│   │   └── README.md                     # Deployment scripts documentation
+│   │   └── README.md                     # [DOCS] Deployment scripts documentation
 │   │
 │   └── Intune/
 │       └── Company branding/
@@ -81,17 +81,16 @@ WinDeploy/
 │       └── intune-settings_catalog.md    # Intune settings catalog
 │
 ├── autounattend.xml                      # [AUTO] Unattended Windows installation config
-├── README.md                             # Main documentation
-├── CONTRIBUTING.md                       # Contribution guidelines
-├── CHANGELOG.md                          # Version history
-├── LICENSE                               # MIT License
-└── VERSION                               # Current version
+├── README.md                             # [DOCS] Main documentation
+├── CONTRIBUTING.md                       # [DOCS] Contribution guidelines
+├── CHANGELOG.md                          # [DOCS] Version history
+├── LICENSE                               # [DOCS] MIT License
+└── VERSION                               # [DOCS] Current version
 ```
 
 **Legend:**
 - [AUTO] **Auto-run during deployment** - Executed automatically by `Start.ps1`
 - [ARCHIVED] **Archived scripts** - No longer used in deployment
-- [UTIL] **Standalone utilities** - Available for manual execution as needed
 
 ---
 
