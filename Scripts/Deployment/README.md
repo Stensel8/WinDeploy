@@ -4,20 +4,26 @@ This folder contains PowerShell scripts used for automating various deployment t
 
 ## Scripts
 
-- `Install-Applications.ps1`: Installs required applications.
-- `Install-Drivers.ps1`: Installs device drivers.
+- `Disable-AutoRun.ps1`: Disables AutoRun for security hardening.
+- `Install-Applications.ps1`: Installs required applications via WinGet.
+- `Install-Drivers.ps1`: Installs device drivers for Dell/HP systems.
+- `Install-RMMAgent.ps1`: Installs RMM agent from USB or download.
 - `Install-WindowsUpdates.ps1`: Installs Windows updates.
-- `Remove-Bloat.ps1`: Removes bloatware.
-- `Set-HostName.ps1`: Sets the hostname.
-- `Set-Theme.ps1`: Configures the theme.
+- `Remove-Bloat.ps1`: Removes bloatware applications.
+- `Set-HostName.ps1`: Sets the device hostname (optional, not in automated sequence).
+- `Set-Theme.ps1`: Configures the system theme to dark mode.
 
 ## Usage
 
 ### Running Individually
 
-Each script can be run separately by executing it directly in PowerShell:
+Each script can be run separately. If you encounter execution policy restrictions, bypass it for the current session only (this does not permanently change security settings):
 
 ```powershell
+# Bypass execution policy for this session
+Set-ExecutionPolicy -ExecutionPolicy Bypass
+
+# Run the script
 .\Install-Applications.ps1
 ```
 
@@ -30,4 +36,4 @@ To run all deployment scripts in sequence, execute `Start.ps1` from the root of 
 .\Scripts\Start.ps1
 ```
 
-Note: `Start.ps1` runs the scripts in a specific order: Drivers, Applications, Bloatware Removal, Theme, Windows Updates. `Set-HostName.ps1` is not included in the automated sequence.
+Note: `Start.ps1` runs the scripts in this order: Drivers, RMM Agent, AutoRun Disable, Applications, Bloatware Removal, Theme, Hostname, Windows Updates.

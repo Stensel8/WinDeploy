@@ -20,20 +20,17 @@ Function Write-DeployLog {
     if ($IsError) { Write-Error $Message } else { Write-Output $Message }
 }
 
-Write-Output "Starting application installation."
-
 try {
-    Write-DeployLog "=== Application Installation ==="
 
     $Applications = @(
         "Microsoft.VCRedist.2015+.x64",
         "Microsoft.Office",
-        "Adobe.Acrobat.Reader.64-bit",
+        #"Adobe.Acrobat.Reader.64-bit",
         "Microsoft.Teams",
         "Microsoft.OneDrive",
         "7zip.7zip",
         "Microsoft.WindowsApp",
-        "9WZDNCRFJ3PZ"  # Company Portal
+        "Microsoft.CompanyPortal"
     )
 
     foreach ($app in $Applications) {
@@ -47,7 +44,6 @@ try {
     }
 
     Write-DeployLog "SUCCESS: Application installation done."
-    Write-Output "Application installation completed."
     exit 0
 } catch {
     Write-DeployLog "Error: $($_.Exception.Message)" -IsError

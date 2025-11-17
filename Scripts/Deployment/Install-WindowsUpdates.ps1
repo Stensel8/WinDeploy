@@ -20,10 +20,7 @@ Function Write-DeployLog {
     if ($IsError) { Write-Error $Message } else { Write-Output $Message }
 }
 
-Write-Output "Starting Windows Update installation..."
-
 try {
-    Write-DeployLog "=== Windows Update Installation ==="
 
     # Trust PSGallery to avoid prompts (best-effort)
     try { Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted -ErrorAction SilentlyContinue } catch { Write-Warning "Failed to trust PSGallery: $($_.Exception.Message)" }
@@ -94,7 +91,6 @@ try {
     }
 
     Write-DeployLog "SUCCESS: Windows Update installation done."
-    Write-Output "Windows Update installation completed."
     exit 0
 } catch {
     Write-DeployLog "Windows Update installation failed: $($_.Exception.Message)" -IsError

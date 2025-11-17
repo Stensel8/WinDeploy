@@ -121,13 +121,16 @@ Before creating Device Preparation Policies, ensure you have set up any required
 #### Create Policies for Each User Group
 Create two separate policies:
 
-- One for standard users targeting the `Autopilot Device Preparation - Users` group.  
+- One for standard users targeting the `Autopilot Device Preparation - Users` group.
+
   ![Device Preparation standard user policy](./Intune%20configuration/Device-Preparation-new_policy-standarduser_1.png)
-- One for local admins targeting the `Autopilot Device Preparation - Local Admins` group.  
+- One for local admins targeting the `Autopilot Device Preparation - Local Admins` group.
+
   ![Device Preparation local admin policy](./Intune%20configuration/Device-Preparation-new_policy-localadmin_1.png)
 
 #### Assign Devices to the Devices Group
-4. Assign the device to the `Autopilot Device Preparation - Devices` group created earlier.  
+4. Assign the device to the `Autopilot Device Preparation - Devices` group created earlier.
+
    ![Device Preparation device group assignment](./Intune%20configuration/Device-Preparation-new_policy-standarduser_2.png)
 
 #### Configure Deployment and OOBE Settings
@@ -137,17 +140,20 @@ Create two separate policies:
    - **Deployment type**: Single user
    - **Join type**: Microsoft Entra joined
    - **User account type**: Standard user (for users policy) or Administrator (for local admins policy)
-   - Additional options: Skip privacy settings, Skip OneDrive setup, etc.  
+   - Additional options: Skip privacy settings, Skip OneDrive setup, etc.
+
      ![Device Preparation](./Intune%20configuration/Device-Preparation-new_policy-standarduser_3.png)
 
 #### Configure Apps and Scripts
 6. Add **Apps and Scripts** for deployment.  
-   **Note:** These install during Autopilot provisioning (OOBE or ESPv2). Assign apps via **Home > Apps** in Intune or directly here. Non-assigned apps install after full enrollment.  
+   **Note:** These install during Autopilot provisioning (OOBE or ESPv2). Assign apps via **Home > Apps** in Intune or directly here. Non-assigned apps install after full enrollment.
+
    ![Device Preparation apps and scripts](./Intune%20configuration/Device-Preparation-new_policy-standarduser_4.png)
 
 #### Assign the Policy
 7. Assign the policy to the appropriate user group (`Autopilot Device Preparation - Users` or `Autopilot Device Preparation - Local Admins`).  
-   Scope tags can be added if needed, but are not covered in this guide.  
+   Scope tags can be added if needed, but are not covered in this guide.
+
    ![Device Preparation assignment](./Intune%20configuration/Device-Preparation-new_policy-standarduser_5.png)
 
 ### 9. Assigning Licenses to Groups
@@ -156,6 +162,7 @@ To simplify license management, assign Intune licenses to the user groups create
 2. Go to License - Subscriptions > Microsoft 365 Business Premium (or the license you use that includes Intune).
 3. Click on **Groups** tab.
 4. Click on **Assign licenses** and assign the `Autopilot Device Preparation - Users` and `Autopilot Device Preparation - Local Admins` groups to the license.
+
    ![Licenses and groups in Microsoft 365 Admin Center](./Intune%20configuration/M365-Admin_center-licenses-groups.png)
 
 ### 10. Assigning Groups to Users
@@ -165,6 +172,7 @@ Finally, ensure users are added to the appropriate groups created earlier. This 
 3. Go to the **Groups** tab and click on **+ Add memberships**.
 4. Search for and select either `Autopilot Device Preparation - Users` or `Autopilot Device Preparation - Local Admins` based on the user's role.
 5. Click **Save** to confirm the changes.
+
    ![Licenses and groups assigned to user in Microsoft 365 Admin Center](./Intune%20configuration/M365-Admin_center-licenses-groups-users.png)
 
 

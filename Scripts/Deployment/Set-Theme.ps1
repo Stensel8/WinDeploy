@@ -18,10 +18,7 @@ Function Write-DeployLog {
     if ($IsError) { Write-Error $Message } else { Write-Output $Message }
 }
 
-Write-Output "Starting dark mode setup."
-
 try {
-    Write-DeployLog "=== Dark Mode Setup ==="
 
     # System-wide (HKLM)
     Write-DeployLog "Setting HKLM keys..."
@@ -75,7 +72,6 @@ try {
     }
 
     Write-DeployLog "SUCCESS: Dark mode process done."
-    Write-Output "Dark mode setup completed."
     exit 0
 } catch {
     $CatchErr = $_.Exception.Message

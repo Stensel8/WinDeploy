@@ -20,10 +20,7 @@ Function Write-DeployLog {
     if ($IsError) { Write-Error $Message } else { Write-Output $Message }
 }
 
-Write-Output "Starting driver installation."
-
 try {
-    Write-DeployLog "=== Driver Installation ==="
 
     # Get script directory
     $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -104,27 +101,30 @@ try {
 
             if ($dcu) {
                 Write-DeployLog "Scanning for driver updates..."
-                $scanOutput = & $dcu /scan -silent 2>&1
+                $scanOutput = & $dcu /scan 2>&1
                 $scanExitCode = $LASTEXITCODE
                 if ($scanOutput) {
                     Write-DeployLog ($scanOutput -join "`n")
                 }
-                if ($scanExitCode -eq 0 -or $scanExitCode -eq 500) {
+                if ($scanExitCode -eq 0) {
                     Write-DeployLog "Installing driver updates..."
-                    $applyResult = Start-Process $dcu -ArgumentList "/applyUpdates", "-reboot=disable", "-silent" -Wait -PassThru -NoNewWindow -RedirectStandardOutput $null -RedirectStandardError $null
-                    if ($applyResult.ExitCode -eq 0 -or $applyResult.ExitCode -eq 1 -or $applyResult.ExitCode -eq 500) {
+                    $applyResult = Start-Process $dcu -ArgumentList "/applyUpdates", "/reboot=no", "/silent" -Wait -PassThru -NoNewWindow -RedirectStandardOutput $null -RedirectStandardError $null
+                    if ($applyResult.ExitCode -eq 0 -or $applyResult.ExitCode -eq 1 -or $applyResult.ExitCode -eq 2 -or $applyResult.ExitCode -eq 5 -or $applyResult.ExitCode -eq 500) {
                         Write-DeployLog "Driver updates completed."
                     } else {
-                        Write-DeployLog "Driver updates failed." -IsError
+                        Write-DeployLog "Driver updates failed with exit code $($applyResult.ExitCode)."
                     }
+                } elseif ($scanExitCode -eq 500) {
+                    Write-DeployLog "No driver updates available."
                 } else {
-                    Write-DeployLog "Scan failed." -IsError
+                    Write-DeployLog "Scan failed with exit code $scanExitCode."
                 }
             } else {
-                Write-DeployLog "DCU not found." -IsError
+                Write-DeployLog "DCU executable not found after installation."
             }
         } catch {
-            Write-DeployLog "Failed to install or run Dell Command Update" -IsError
+            Write-DeployLog "Failed to install or run Dell Command Update"
+            Write-Warning "Dell driver installation failed. Check logs for details."
         }
     } elseif ($manufacturer -like "*hewlett*" -or $manufacturer -like "*hp*") {
         Write-DeployLog "HP system detected. Installing HP Client Management Script Library..."
@@ -145,14 +145,14 @@ try {
                 Write-Warning "HP device updates failed or no updates available."
             }
         } catch {
-            Write-DeployLog "Failed to install or run HPCMSL updates: $_" -IsError
+            Write-DeployLog "Failed to install or run HPCMSL updates: $_"
+            Write-Warning "HP driver installation failed. Check logs for details."
         }
     } else {
         Write-Warning "Unsupported manufacturer for automatic driver installation."
     }
 
     Write-DeployLog "SUCCESS: Driver installation done."
-    Write-Output "Driver installation completed."
     exit 0
 } catch {
     Write-DeployLog "Error: $($_.Exception.Message)" -IsError

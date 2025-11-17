@@ -44,37 +44,35 @@ iex(irm windeploy.stensel.nl)
 WinDeploy/
 ├── Scripts/
 │   ├── Start.ps1                         # [AUTO] Main entry point with Auto-Elevate
-│   │
-│   ├── Install-Drivers.ps1               # [AUTO] Dell/HP driver automation
-│   ├── Install-Applications.ps1          # [AUTO] WinGet app installer
-│   ├── Install-WindowsUpdates.ps1        # [AUTO] Windows Update automation
-│   ├── Remove-Bloat.ps1                  # [AUTO] Bloatware removal
-│   ├── Set-Theme.ps1                     # [AUTO] Desktop theme configuration
+│   ├── autounattend.xml                  # [AUTO] Unattended Windows installation config
 │   │
 │   ├── Archived/
+│   │   ├── Get-InstalledSoftware.ps1      # [ARCHIVED] Lists installed software
 │   │   └── Get-IntuneHash.ps1            # [ARCHIVED] Generates Autopilot device hash for Intune
 │   │
 │   ├── Deployment/
+│   │   ├── Disable-AutoRun.ps1           # [AUTO] Disables AutoRun for security
 │   │   ├── Install-Applications.ps1      # [AUTO] WinGet app installer
 │   │   ├── Install-Drivers.ps1           # [AUTO] Dell/HP driver automation
+│   │   ├── Install-RMMAgent.ps1          # [AUTO] RMM agent installation
 │   │   ├── Install-WindowsUpdates.ps1    # [AUTO] Windows Update automation
 │   │   ├── Remove-Bloat.ps1              # [AUTO] Bloatware removal
 │   │   ├── Set-HostName.ps1              # [AUTO] Hostname configuration
-│   │   └── Set-Theme.ps1                 # [AUTO] Desktop theme configuration
+│   │   ├── Set-Theme.ps1                 # [AUTO] Desktop theme configuration
+│   │   └── README.md                     # Deployment scripts documentation
 │   │
-│   ├── Intune/
-│   │   └── Company branding/
-│   │       └── Platform scripts/
-│   │           ├── Install-DattoRMM-Intune.ps1
-│   │           └── Skip-OOBEPrivacy-Intune.ps1
-│   │
-│   └── autounattend.xml                  # [AUTO] Unattended Windows installation config
+│   └── Intune/
+│       └── Company branding/
+│           └── Platform scripts/
+│               ├── Install-DattoRMM-Intune.ps1
+│               └── Skip-OOBEPrivacy-Intune.ps1
 │
 ├── Docs/
+│   ├── Intune-Autopilot-Setup.md         # Intune Autopilot setup guide
 │   ├── SupportedDellDevices.json         # Dell device compatibility list
 │   ├── SupportedHPDevices.json           # HP device compatibility list
 │   └── Intune configuration/
-│       └── intune-configuration-baseline.md
+│       └── intune-settings_catalog.md    # Intune settings catalog
 │
 ├── autounattend.xml                      # [AUTO] Unattended Windows installation config
 ├── README.md                             # Main documentation
@@ -102,40 +100,54 @@ graph TD
     B -->|Yes| D
     D -->|No| E[Install PS7 + WinGet]
     E --> F[Relaunch in PS7]
-    D -->|Yes| G[Deploy-Device.ps1]
+    D -->|Yes| G[Run Deployment]
     F --> G
-    G --> H[Install RMM Agent]
-    H --> I[Update Drivers]
-    I --> J[Install Applications]
-    J --> K[Remove Bloatware]
-    K --> L[Generate Intune Hash]
+    G --> H[Update Drivers]
+    H --> I[Install RMM Agent]
+    I --> J[Disable AutoRun]
+    J --> K[Install Applications]
+    K --> L[Remove Bloatware]
     L --> M[Apply Theme]
-    M --> N[Install Windows Updates]
-    N --> O[Complete]
+    M --> N[Set Hostname]
+    N --> O[Install Windows Updates]
+    O --> P[Complete]
 ```
 
 
 ## Configuration
 
 ### Customize Application List
-Edit `Scripts/Install-Applications.ps1` (lines 80-100):
+Edit `Scripts/Deployment/Install-Applications.ps1` (lines 20-30):
 ```powershell
-$applications = @(
-    @{ Id = "Microsoft.VisualStudioCode"; Name = "VS Code" },
-    @{ Id = "Google.Chrome"; Name = "Chrome" },
+$Applications = @(
+    "Microsoft.VCRedist.2015+.x64",
+    "Microsoft.Office",
+    "Microsoft.Teams",
     # Add your apps here
 )
 ```
 
 ### Customize Bloatware List
-Edit `Scripts/Remove-Bloat.ps1` (lines 50-75):
+Edit `Scripts/Deployment/Remove-Bloat.ps1` (lines 15-40):
 ```powershell
-$bloatwareList = @(
+$BloatwareList = @(
     "Microsoft.BingNews",
     "Microsoft.GamingApp",
     # Add packages to remove
 )
 ```
+
+### Configure RMM Agent Installation
+The deployment includes automatic RMM agent installation for Datto RMM. It first checks if Datto RMM is already installed and running. If not:
+
+- Scans all USB drives for files matching `*agent*.exe` (case-insensitive) and installs the first match silently.
+- As a fallback, downloads the agent using a configurable Site ID from Datto's servers.
+
+To configure the Site ID:
+1. Edit `Scripts/Deployment/Install-RMMAgent.ps1` (line ~18).
+2. Replace `"EnterYourIDHere"` with your actual Datto RMM Site ID.
+
+**Security Note**: We do not include random or example Site IDs in the public repository to avoid accidental exposure of sensitive information. Always configure your Site ID manually after cloning the repository.
 
 ### Supported Devices (Drivers)
 - **Dell**: Latitude, OptiPlex, Precision, XPS series
@@ -148,13 +160,12 @@ To view all models, check [Supported Dell devices](Docs/SupportedDellDevices.jso
 ## Logging
 
 All operations are logged with timestamps:
-- **Main log**: `C:\WinDeploy\Logs\Deploy-Device.log`
-- **Individual scripts**: `C:\WinDeploy\Logs\Install-*.log`
-- **Bootstrap log**: `C:\WinDeploy\Logs\Start-Bootstrap.log`
+- **Main log**: `C:\WinDeploy\Logs\Start.log`
+- **Individual scripts**: `C:\WinDeploy\Logs\*.log` (e.g., Install-Drivers.log)
 
 View logs in real-time:
 ```powershell
-Get-Content "C:\WinDeploy\Logs\Deploy-Device.log" -Wait -Tail 20
+Get-Content "C:\WinDeploy\Logs\Start.log" -Wait -Tail 20
 ```
 
 ---

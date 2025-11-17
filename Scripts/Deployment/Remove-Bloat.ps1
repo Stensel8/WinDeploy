@@ -18,8 +18,6 @@ Function Write-DeployLog {
     if ($IsError) { Write-Error $Message } else { Write-Output $Message }
 }
 
-Write-Output "Starting bloatware removal."
-
 # Expanded list for common bloatware (inspired by WinDeploy Remove-Bloat.ps1, excluding Get Help)
 $BloatwareList = @(
     # Microsoft Communication and Social
@@ -133,13 +131,11 @@ try {
             Write-Error $RegErr
         } else {
             Write-DeployLog "Set policy: $($Reg.Value)"
-            Write-Output "Set policy: $($Reg.Value)"
         }
     }
 
     $SuccessMsg = "SUCCESS: Removed $Removed apps."
     Write-DeployLog $SuccessMsg
-    Write-Output "Bloatware removal done: $Removed apps."
     exit 0
 } catch {
     $ErrMsg = $_.Exception.Message

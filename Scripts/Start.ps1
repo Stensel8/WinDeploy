@@ -68,6 +68,16 @@ function Resolve-Version {
     return [pscustomobject]@{ Tag = 'main'; Source = 'Fallback'; ReleaseUrl = Get-VersionReferenceUrl -Tag 'main' }
 }
 
+Function Write-DeployLog {
+    param([string]$Message, [switch]$IsError)
+    $logDir = "C:\WinDeploy\Logs"
+    if (!(Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir -Force | Out-Null }
+    $scriptName = [System.IO.Path]::GetFileNameWithoutExtension([System.IO.Path]::GetFileName($MyInvocation.ScriptName))
+    $logFile = Join-Path $logDir "$scriptName.log"
+    $Message | Out-File -FilePath $logFile -Append
+    if ($IsError) { Write-Error $Message } else { Write-Output $Message }
+}
+
 $resolvedVersion = Resolve-Version -RequestedVersion $VersionTag
 $script:Version = $resolvedVersion.Tag
 $script:VersionSource = $resolvedVersion.Source
@@ -255,16 +265,6 @@ $Host.UI.RawUI.WindowTitle = "WinDeploy - Windows Deployment (Admin - PS7)"
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Continue'
 
-Function Write-DeployLog {
-    param([string]$Message, [switch]$IsError)
-    $logDir = "C:\WinDeploy\Logs"
-    if (!(Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir -Force | Out-Null }
-    $scriptName = [System.IO.Path]::GetFileNameWithoutExtension([System.IO.Path]::GetFileName($MyInvocation.ScriptName))
-    $logFile = Join-Path $logDir "$scriptName.log"
-    $Message | Out-File -FilePath $logFile -Append
-    if ($IsError) { Write-Error $Message } else { Write-Output $Message }
-}
-
 # Simple header
 Write-Output ""
 Write-Output "    ============================================================"
@@ -275,6 +275,23 @@ Write-Output ""
 Write-Output "    PowerShell: $($PSVersionTable.PSVersion)"
 $scriptDisplay = if ($MyInvocation.MyCommand.Path) { $MyInvocation.MyCommand.Path } else { "https://raw.githubusercontent.com/Stensel8/WinDeploy/main/Scripts/Start.ps1" }
 Write-Output "    Script: $scriptDisplay"
+Write-Output ""
+
+# Ensure WinGet is installed
+Write-Output "Checking WinGet..."
+$wingetAvailable = Get-Command winget -ErrorAction SilentlyContinue
+if (-not $wingetAvailable) {
+    Write-Output "WinGet not found. Installing..."
+    try {
+        # Use the winget-install script from asheroto
+        Invoke-Expression "& { $(Invoke-RestMethod 'https://raw.githubusercontent.com/asheroto/winget-install/master/winget-install.ps1') }"
+        Write-Output "WinGet installed successfully."
+    } catch {
+        Write-Warning "Failed to install WinGet: $_"
+    }
+} else {
+    Write-Output "WinGet is available."
+}
 Write-Output ""
 
 # Download function
@@ -295,9 +312,12 @@ function Get-DeploymentScript {
 # Define deployment steps
 $deploymentSteps = @(
     @{ Name = "Driver Installation"; ScriptName = "Install-Drivers.ps1" }
+    @{ Name = "RMM Agent Installation"; ScriptName = "Install-RMMAgent.ps1" }
+    @{ Name = "AutoRun Disable"; ScriptName = "Disable-AutoRun.ps1" }
     @{ Name = "Application Installation"; ScriptName = "Install-Applications.ps1" }
     @{ Name = "Bloatware Removal"; ScriptName = "Remove-Bloat.ps1" }
     @{ Name = "Theme Configuration"; ScriptName = "Set-Theme.ps1" }
+    @{ Name = "Hostname Configuration"; ScriptName = "Set-HostName.ps1" }
     @{ Name = "Windows Updates"; ScriptName = "Install-WindowsUpdates.ps1" }
 )
 
