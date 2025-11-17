@@ -74,17 +74,30 @@ foreach ($step in $deploymentSteps) {
     Write-Output "======================================== "
     Write-Output ""
     $localPath = Join-Path $dlRoot $step.ScriptName
+    $scriptAvailable = $false
     try {
         Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/main/Scripts/Deployment/$($step.ScriptName)" -OutFile $localPath -UseBasicParsing -ErrorAction Stop
         Write-DeployLog "Downloaded $($step.ScriptName) to $localPath"
+        $scriptAvailable = $true
+    } catch {
+        # If download fails, use local copy if available
+        $localSourcePath = Join-Path $PSScriptRoot "Deployment" $step.ScriptName
+        if (Test-Path $localSourcePath) {
+            Copy-Item $localSourcePath $localPath -Force
+            Write-DeployLog "Copied local $($step.ScriptName) to $localPath"
+            $scriptAvailable = $true
+        } else {
+            Write-Warning "Cannot download or find $($step.ScriptName): $_"
+            $allSuccessful = $false
+            continue
+        }
+    }
+    if ($scriptAvailable) {
         $argumentList = "-ExecutionPolicy Bypass -File `"$localPath`""
         $proc = Start-Process pwsh -ArgumentList $argumentList -Wait -NoNewWindow -PassThru
         if ($proc.ExitCode -ne 0) {
             $allSuccessful = $false
         }
-    } catch {
-        Write-Warning "Cannot download or execute $($step.ScriptName): $_"
-        $allSuccessful = $false
     }
 }
 

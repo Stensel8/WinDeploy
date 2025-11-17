@@ -3,7 +3,7 @@ param(
 )
 
 # Helper: find or install PowerShell 7 robustly
-function Ensure-Pwsh7 {
+function Install-Pwsh7 {
     $pwshPath = $null
     $pwshPaths = @(
         "$env:ProgramFiles\PowerShell\7\pwsh.exe",
@@ -32,7 +32,7 @@ function Ensure-Pwsh7 {
 }
 
 # Helper: ensure WinGet present (optional, since deploy.ps1 may use it)
-function Ensure-WinGet {
+function Install-WinGet {
     if (Get-Command winget -ErrorAction SilentlyContinue) { return }
     $temp = [System.IO.Path]::GetTempFileName() + ".ps1"
     try {
@@ -44,19 +44,35 @@ function Ensure-WinGet {
 
 # Elevate if needed
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    $psz = Ensure-Pwsh7
-    $args = ""
-    if ($VersionTag) { $args = "-VersionTag '$VersionTag'" }
-    Start-Process -FilePath $psz -ArgumentList "-ExecutionPolicy Bypass -NoProfile -File `"$PSCommandPath`" $args" -Verb RunAs
+    $psz = Install-Pwsh7
+    $versionArgs = ""
+    if ($VersionTag) { $versionArgs = "-VersionTag '$VersionTag'" }
+    Start-Process -FilePath $psz -ArgumentList "-ExecutionPolicy Bypass -NoProfile -File `"$PSCommandPath`" $versionArgs" -Verb RunAs
     exit
 }
 
-$psz = Ensure-Pwsh7
-Ensure-WinGet
+$psz = Install-Pwsh7
+Install-WinGet
 
-# Download deploy.ps1 (always overwrite)
-$deployPath = "C:\WinDeploy\Deploy.ps1"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/main/Scripts/Deploy.ps1" -OutFile $deployPath -UseBasicParsing -ErrorAction Stop
+# Ensure directories exist
+$deployDir = "C:\WinDeploy\Download"
+$logDir = "C:\WinDeploy\Logs"
+if (!(Test-Path $deployDir)) { New-Item -ItemType Directory -Path $deployDir -Force | Out-Null }
+if (!(Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir -Force | Out-Null }
+
+# Download or copy deploy.ps1
+$deployPath = Join-Path $deployDir "Deploy.ps1"
+try {
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/main/Scripts/Deploy.ps1" -OutFile $deployPath -UseBasicParsing -ErrorAction Stop
+} catch {
+    # If download fails, use local copy if available
+    $localDeployPath = Join-Path $PSScriptRoot "Deploy.ps1"
+    if (Test-Path $localDeployPath) {
+        Copy-Item $localDeployPath $deployPath -Force
+    } else {
+        throw "Cannot download or find Deploy.ps1: $_"
+    }
+}
 
 # Re-launch deployment in PowerShell 7 (always, so deployment logic can be simple)
 Start-Process -FilePath $psz -ArgumentList "-ExecutionPolicy Bypass -NoProfile -File `"$deployPath`"" -Wait

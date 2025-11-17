@@ -22,9 +22,6 @@ Function Write-DeployLog {
 
 try {
 
-    # Get script directory
-    $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-
     # Get system manufacturer and model
     $systemInfo = Get-CimInstance Win32_ComputerSystem -ErrorAction Stop
     $manufacturer = $systemInfo.Manufacturer.ToLower()
