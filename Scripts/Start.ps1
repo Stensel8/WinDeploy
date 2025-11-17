@@ -146,58 +146,58 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
                 New-Item -Path 'C:\WinDeploy\Download' -ItemType Directory -Force | Out-Null
             }
 
-            # Find or download installation scripts
-            $wingetScript = Join-Path 'C:\WinDeploy\Download' "Install-Winget.ps1"
+            # Install WinGet first
+            Write-DeployLog "Installing WinGet..."
+            try {
+                # DevSkim: ignore DS104456 - Trusted source for WinGet installation
+                Invoke-Expression "& { $(Invoke-RestMethod 'https://raw.githubusercontent.com/asheroto/winget-install/master/winget-install.ps1') }"
+                $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH", "User")
+                Start-Sleep -Seconds 2
+            } catch {
+                Write-Warning "WinGet install failed: $_"
+            }
+
+            # Find PowerShell 7 installation script path
             $ps7Script = Join-Path 'C:\WinDeploy\Download' "Install-PowerShell7.ps1"
 
             # Check local directory first
             if ($script:ScriptRoot) {
-                $localWinget = Join-Path $script:ScriptRoot "Install-Winget.ps1"
                 $localPs7 = Join-Path $script:ScriptRoot "Install-PowerShell7.ps1"
-                if (Test-Path $localWinget) { $wingetScript = $localWinget }
                 if (Test-Path $localPs7) { $ps7Script = $localPs7 }
             }
 
-            # Download if not found locally
-            if (-not (Test-Path $wingetScript)) {
-                try {
-                    $url = "https://raw.githubusercontent.com/Stensel8/WinDeploy/$($script:Version)/Scripts/Install-Winget.ps1"
-                    Invoke-WebRequest -Uri $url -OutFile $wingetScript -UseBasicParsing -ErrorAction Stop
-                } catch {
-                    Write-Warning "Download failed: $_"
-                }
-            }
-
-            if (-not (Test-Path $ps7Script)) {
-                try {
-                    $url = "https://raw.githubusercontent.com/Stensel8/WinDeploy/$($script:Version)/Scripts/Install-PowerShell7.ps1"
-                    Invoke-WebRequest -Uri $url -OutFile $ps7Script -UseBasicParsing -ErrorAction Stop
-                } catch {
-                    Write-Warning "Download failed: $_"
-                }
-            }
-
-            # Install WinGet first
-            if (Test-Path $wingetScript) {
-                Write-DeployLog "Installing WinGet..."
-                try {
-                    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $wingetScript
-                    $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH", "User")
-                    Start-Sleep -Seconds 2
-                } catch {
-                    Write-Warning "WinGet install failed: $_"
-                }
-            }
-
             # Install PowerShell 7
-            if (Test-Path $ps7Script) {
-                Write-DeployLog "Installing PowerShell 7..."
-                try {
-                    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $ps7Script
+            try {
+                if (Get-Command winget -ErrorAction SilentlyContinue) {
+                    Write-DeployLog "Installing PowerShell 7 via WinGet..."
+                    & winget install --id Microsoft.PowerShell --source winget --accept-package-agreements --accept-source-agreements
                     $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH", "User")
                     Start-Sleep -Seconds 3
-                } catch {
-                    Write-Warning "PowerShell 7 install failed: $_"
+                } else {
+                    throw "WinGet not available for PS7"
+                }
+            } catch {
+                Write-Warning "WinGet method failed for PS7: $_"
+                # Fallback to script
+                if (-not (Test-Path $ps7Script)) {
+                    try {
+                        $url = "https://aka.ms/install-powershell.ps1"
+                        Invoke-WebRequest -Uri $url -OutFile $ps7Script -UseBasicParsing -ErrorAction Stop
+                    } catch {
+                        Write-Warning "Download failed: $_"
+                    }
+                }
+                if (Test-Path $ps7Script) {
+                    Write-DeployLog "Installing PowerShell 7 via script..."
+                    try {
+                        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $ps7Script
+                        $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH", "User")
+                        Start-Sleep -Seconds 3
+                    } catch {
+                        Write-Warning "PowerShell 7 script install failed: $_"
+                    }
+                } else {
+                    Write-Warning "No installation method available for PowerShell 7"
                 }
             }
         }
