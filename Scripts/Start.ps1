@@ -286,7 +286,8 @@ if (-not $wingetAvailable) {
         # Download the winget-install script from asheroto (trusted source)
         $tempScript = [System.IO.Path]::GetTempFileName() + ".ps1"
         Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/asheroto/winget-install/master/winget-install.ps1' -OutFile $tempScript -UseBasicParsing -ErrorAction Stop
-        & $tempScript
+        # Run the script in a separate process to prevent it from exiting this script
+        Start-Process pwsh -ArgumentList "-ExecutionPolicy Bypass -File `"$tempScript`"" -Wait -NoNewWindow
         Remove-Item $tempScript -Force
         Write-Output "WinGet installed successfully."
     } catch {
