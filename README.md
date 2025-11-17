@@ -8,7 +8,12 @@
 
 Zero-touch Windows deployment with automatic driver updates, application installation, bloatware removal, and system configuration. Deploy via USB, network, RMM agents, or AutoUnattend.xml.
 
-![Terminal showing successful deployment with green checkmarks](Docs/Deployment_Flow.png)
+![Terminal showing begin of deployment](Docs/Deployment_Flow.png)
+
+![Terminal showing successful deployment](Docs/Deployment_Success.png)
+
+![Clean Windows after successful deployment](Docs/Expected_Result.png)
+
 
 ---
 
@@ -47,7 +52,7 @@ WinDeploy/
 │   ├── autounattend.xml                  # [AUTO] Unattended Windows installation config
 │   │
 │   ├── Archived/
-│   │   ├── Get-InstalledSoftware.ps1      # [ARCHIVED] Lists installed software
+│   │   ├── Get-InstalledSoftware.ps1     # [ARCHIVED] Lists installed software
 │   │   └── Get-IntuneHash.ps1            # [ARCHIVED] Generates Autopilot device hash for Intune
 │   │
 │   ├── Deployment/
@@ -159,7 +164,7 @@ To view all models, check [Supported Dell devices](Docs/SupportedDellDevices.jso
 
 ## Logging
 
-All operations are logged with timestamps:
+All operations are logged:
 - **Main log**: `C:\WinDeploy\Logs\Start.log`
 - **Individual scripts**: `C:\WinDeploy\Logs\*.log` (e.g., Install-Drivers.log)
 
