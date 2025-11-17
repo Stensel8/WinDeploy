@@ -70,12 +70,20 @@ function Resolve-Version {
 
 Function Write-DeployLog {
     param([string]$Message, [switch]$IsError)
-    $logDir = "C:\WinDeploy\Logs"
-    if (!(Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir -Force | Out-Null }
-    $scriptName = [System.IO.Path]::GetFileNameWithoutExtension([System.IO.Path]::GetFileName($MyInvocation.ScriptName))
-    $logFile = Join-Path $logDir "$scriptName.log"
-    $Message | Out-File -FilePath $logFile -Append
-    if ($IsError) { Write-Error $Message } else { Write-Output $Message }
+    try {
+        $logDir = "C:\WinDeploy\Logs"
+        if (!(Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir -Force | Out-Null }
+        $scriptName = if ($MyInvocation.ScriptName) {
+            [System.IO.Path]::GetFileNameWithoutExtension([System.IO.Path]::GetFileName($MyInvocation.ScriptName))
+        } else {
+            "WinDeploy"
+        }
+        $logFile = Join-Path $logDir "$scriptName.log"
+        $Message | Out-File -FilePath $logFile -Append -ErrorAction Stop
+    } catch {
+        # Ignore logging errors to prevent script failure
+    }
+    if ($IsError) { Write-Error $Message -ErrorAction Continue } else { Write-Output $Message }
 }
 
 $resolvedVersion = Resolve-Version -RequestedVersion $VersionTag
@@ -171,6 +179,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
                 if (Get-Command winget -ErrorAction SilentlyContinue) {
                     Write-DeployLog "Installing PowerShell 7 via WinGet..."
                     & winget install --id Microsoft.PowerShell --source winget --accept-package-agreements --accept-source-agreements
+                    if ($LASTEXITCODE -ne 0) { throw "Winget install failed with exit code $LASTEXITCODE" }
                     $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH", "User")
                     Start-Sleep -Seconds 3
                 } else {
@@ -191,6 +200,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
                     Write-DeployLog "Installing PowerShell 7 via script..."
                     try {
                         & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $ps7Script
+                        if ($LASTEXITCODE -ne 0) { throw "PowerShell 7 script install failed with exit code $LASTEXITCODE" }
                         $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH", "User")
                         Start-Sleep -Seconds 3
                     } catch {
