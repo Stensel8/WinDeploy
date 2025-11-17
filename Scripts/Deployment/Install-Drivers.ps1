@@ -38,7 +38,20 @@ try {
     $dellPath = "C:\WinDeploy\Download\SupportedDellDevices.json"
     $hpPath = "C:\WinDeploy\Download\SupportedHPDevices.json"
 
-    if (!(Test-Path $dellPath)) {
+    # Ensure download directory exists
+    $downloadDir = Split-Path $dellPath
+    if (!(Test-Path $downloadDir)) {
+        New-Item -ItemType Directory -Path $downloadDir -Force | Out-Null
+    }
+
+    # Try to copy from local repo first
+    $dellLocal = Join-Path $PSScriptRoot "..\..\Docs\SupportedDellDevices.json"
+    $hpLocal = Join-Path $PSScriptRoot "..\..\Docs\SupportedHPDevices.json"
+
+    if (Test-Path $dellLocal) {
+        Copy-Item $dellLocal $dellPath -Force
+        Write-DeployLog "Copied SupportedDellDevices.json from local repo"
+    } elseif (!(Test-Path $dellPath)) {
         $url = "https://raw.githubusercontent.com/Stensel8/WinDeploy/$version/Docs/SupportedDellDevices.json"
         try {
             Invoke-WebRequest -Uri $url -OutFile $dellPath -UseBasicParsing -ErrorAction Stop
@@ -48,7 +61,10 @@ try {
         }
     }
 
-    if (!(Test-Path $hpPath)) {
+    if (Test-Path $hpLocal) {
+        Copy-Item $hpLocal $hpPath -Force
+        Write-DeployLog "Copied SupportedHPDevices.json from local repo"
+    } elseif (!(Test-Path $hpPath)) {
         $url = "https://raw.githubusercontent.com/Stensel8/WinDeploy/$version/Docs/SupportedHPDevices.json"
         try {
             Invoke-WebRequest -Uri $url -OutFile $hpPath -UseBasicParsing -ErrorAction Stop
@@ -125,11 +141,15 @@ try {
                 }
                 if ($scanExitCode -eq 0) {
                     Write-DeployLog "Installing driver updates..."
-                    $applyResult = Start-Process $dcu -ArgumentList "/applyUpdates", "/reboot=no", "/silent" -Wait -PassThru -NoNewWindow -RedirectStandardOutput $null -RedirectStandardError $null
-                    if ($applyResult.ExitCode -eq 0 -or $applyResult.ExitCode -eq 1 -or $applyResult.ExitCode -eq 2 -or $applyResult.ExitCode -eq 5 -or $applyResult.ExitCode -eq 500) {
+                    $applyOutput = & $dcu /applyUpdates /reboot=no /silent 2>&1
+                    $applyExitCode = $LASTEXITCODE
+                    if ($applyOutput) {
+                        Write-DeployLog ($applyOutput -join "`n")
+                    }
+                    if ($applyExitCode -eq 0 -or $applyExitCode -eq 1 -or $applyExitCode -eq 2 -or $applyExitCode -eq 5 -or $applyExitCode -eq 500) {
                         Write-DeployLog "Driver updates completed."
                     } else {
-                        Write-DeployLog "Driver updates failed with exit code $($applyResult.ExitCode)."
+                        Write-DeployLog "Driver updates failed with exit code $applyExitCode."
                     }
                 } elseif ($scanExitCode -eq 500) {
                     Write-DeployLog "No driver updates available."
