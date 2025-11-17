@@ -83,15 +83,48 @@ Function Write-DeployLog {
     } catch {
         # Ignore logging errors to prevent script failure
     }
-    if ($IsError) { Write-Error $Message -ErrorAction Continue } else { Write-Output $Message }
+    if ($IsError) {
+        # Houd de output rustig in de console (geen lelijke error trace)
+        Write-Warning $Message
+    } else {
+        Write-Output $Message
+    }
 }
 
+# Bepaal versie
 $resolvedVersion = Resolve-Version -RequestedVersion $VersionTag
 $script:Version = $resolvedVersion.Tag
 $script:VersionSource = $resolvedVersion.Source
 $script:VersionReleaseUrl = $resolvedVersion.ReleaseUrl
 
 Write-DeployLog "Resolved version: $script:Version (source: $script:VersionSource)"
+
+# Helper om nette Script/Source/Execution-regel te tonen in de banner
+function Get-ScriptDisplay {
+    # 1. Normaal pad als script vanaf disk draait
+    if ($PSCommandPath) {
+        return "Script: $PSCommandPath"
+    }
+
+    if ($script:CommandPath) {
+        return "Script: $script:CommandPath"
+    }
+
+    if ($MyInvocation.MyCommand.Path) {
+        return "Script: $($MyInvocation.MyCommand.Path)"
+    }
+
+    # 2. Geen fysiek pad => in-memory (bijv. iex/irm)
+    $versionSegment = if ($script:Version) { $script:Version } else { 'main' }
+    $onlineUrl = "https://raw.githubusercontent.com/Stensel8/WinDeploy/$versionSegment/Scripts/Start.ps1"
+
+    # ScriptBlock / Invoke-Expression scenario
+    if ($MyInvocation.MyCommand.CommandType -eq 'Script') {
+        return "Execution: Remote (via Invoke-Expression) - Source: $onlineUrl"
+    }
+
+    return "Execution: In-memory (no script path) - Source: $onlineUrl"
+}
 
 # Check if admin
 if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
@@ -136,7 +169,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         # Try WinGet first (fastest method)
         $wingetAvailable = Get-Command winget -ErrorAction SilentlyContinue
         if ($wingetAvailable) {
-        Write-DeployLog "Installing via WinGet..."
+            Write-DeployLog "Installing via WinGet..."
             try {
                 & winget install --id Microsoft.PowerShell --silent --accept-package-agreements --accept-source-agreements 2>&1 | Out-Null
                 # Refresh PATH
@@ -218,11 +251,11 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         }
     }
 
-    # Exit if still not found
+    # Exit if still not found  (geen Write-Error meer -> geen lelijke stacktrace)
     if (-not $pwshPath) {
-        Write-DeployLog "Failed to install PowerShell 7" -IsError
-        Write-Warning "Install manually: https://github.com/PowerShell/PowerShell/releases"
-        pause
+        Write-DeployLog "Failed to install PowerShell 7"
+        Write-Warning "Failed to install PowerShell 7 automatically. Install manually: https://github.com/PowerShell/PowerShell/releases"
+        Read-Host "Press Enter to exit"
         exit 1
     }
 
@@ -260,7 +293,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
         exit
     } catch {
         Write-DeployLog "Failed to relaunch in PowerShell 7: $_" -IsError
-        pause
+        Read-Host "Press Enter to exit"
         exit 1
     }
 }
@@ -283,8 +316,7 @@ Write-Output "            Windows Deployment Automation Toolkit               "
 Write-Output "    ============================================================"
 Write-Output ""
 Write-Output "    PowerShell: $($PSVersionTable.PSVersion)"
-$scriptDisplay = if ($MyInvocation.MyCommand.Path) { $MyInvocation.MyCommand.Path } else { "https://raw.githubusercontent.com/Stensel8/WinDeploy/main/Scripts/Start.ps1" }
-Write-Output "    Script: $scriptDisplay"
+Write-Output ("    {0}" -f (Get-ScriptDisplay))
 Write-Output ""
 
 # Ensure WinGet is installed
