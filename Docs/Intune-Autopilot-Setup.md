@@ -150,12 +150,10 @@ Create two separate policies:
    Scope tags can be added if needed, but are not covered in this guide.  
    ![Device Preparation assignment](./Intune%20configuration/Device-Preparation-new_policy-standarduser_5.png)
 
-
 ## Next Steps
-- Monitor group memberships and adjust as needed.
-- Expand with additional groups for more granular control over users or applications.
+- Soon be added.
 
 ## Troubleshooting
-- If the "Intune Provisioning Client" is not found, ensure Intune is properly set up in your tenant.
-- Verify group configurations in the Azure portal.
-- For permission issues, contact your Azure AD administrator.
+- If the "Intune Provisioning Client" is not found, ensure Intune is properly set up in your tenant and that you have the neccesary licenses.
+- Verify group configurations in the Microsoft Entra portal.
+- For permission issues, contact your Microsoft Entra administrator.
