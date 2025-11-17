@@ -7,11 +7,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.5.0] - 2025-11-14
+
+### Added
+- Added documentation for Intune Autopilot device preparation setup (`Docs/Intune-Autopilot-Setup.md`)
+- Added RMM agent installation support with USB detection and download fallback
+
+### Changed
+- Simplified and improved project structure for better maintainability
+- Streamlined deployment scripts with cleaner, more maintainable code
+- Updated README.md with comprehensive documentation and updated flowchart
+- Reorganized scripts into `Scripts/Deployment/` for better organization
+
+### Removed
+- Removed complex modular architecture in favor of inline scripts
+- Removed unused utility modules and scripts
+
+### Fixed
+- Improved error handling and logging across all scripts
+- Enhanced compatibility and reliability of deployment process
+
+---
+
+## [0.1.2] - 2025-10-22
+
+### Changed
+- Enhanced startup banner with script source detection and color-coded execution info
+- Standardized script headers and documentation blocks for consistency
+- Optimized WinGet preparation and application installation process
+- Improved output formatting for Windows updates
+
+### Fixed
+- Added error logging to catch blocks and improved error messages
+- Increased resiliency in bloatware removal and application installation
+- `Install-WindowsUpdates.ps1`: Removed unused parameter
+
+### Removed
+- Removed all author, company, and version metadata from individual script files
+- Removed redundant `.LINK` sections from documentation blocks
+- Removed verbose bullet lists and "Features:" sections from descriptions
+
+---
+
 ## [0.1.1] - 2025-10-21
 
 ### Initial Public Release
 
 First open-source release of WinDeploy - Windows Deployment Automation Toolkit. This is the first release under the new name and repository.
 
+---
 
+[0.5.0]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.0
+[0.1.2]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.1.2
 [0.1.1]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.1.1

@@ -8,7 +8,12 @@
 
 Zero-touch Windows deployment with automatic driver updates, application installation, bloatware removal, and system configuration. Deploy via USB, network, RMM agents, or AutoUnattend.xml.
 
-![Terminal showing successful deployment with green checkmarks](Docs/Deployment_Flow.png)
+![Terminal showing begin of deployment](Docs/Deployment_Flow.png)
+
+![Terminal showing successful deployment](Docs/Deployment_Success.png)
+
+![Clean Windows after successful deployment](Docs/Expected_Result.png)
+
 
 ---
 
@@ -31,6 +36,11 @@ Zero-touch Windows deployment with automatic driver updates, application install
 iex "& { $(irm 'https://raw.githubusercontent.com/Stensel8/WinDeploy/main/Scripts/Start.ps1') }"
 ```
 
+### Option 3: Fastest method (one-liner)
+```powershell
+iex(irm windeploy.stensel.nl)
+```
+
 ---
 
 ## Project Structure
@@ -38,25 +48,49 @@ iex "& { $(irm 'https://raw.githubusercontent.com/Stensel8/WinDeploy/main/Script
 ```
 WinDeploy/
 ├── Scripts/
-│   ├── Start.ps1                    # Main entry point with auto-elevation
-│   ├── Deploy-Device.ps1            # Full deployment orchestrator
-│   ├── Install-Drivers.ps1          # Dell/HP driver automation
-│   ├── Install-Applications.ps1     # WinGet app installer
-│   ├── Install-WindowsUpdates.ps1   # Windows Update automation
-│   ├── Remove-Bloat.ps1             # Bloatware removal
-│   ├── Get-IntuneHash.ps1           # Autopilot hash generator
-│   ├── Set-Theme.ps1                # Desktop theme configuration
-│   └── Utilities/                   # Shared modules
-│       ├── Logging.psm1             # Logging framework
-│       ├── WinGet.psm1              # WinGet wrapper functions
-│       ├── System.psm1              # System utilities
-│       └── Download.psm1            # Download helpers
+│   ├── Start.ps1                         # [AUTO] Main entry point with Auto-Elevate
+│   ├── autounattend.xml                  # [AUTO] Unattended Windows installation config
+│   │
+│   ├── Archived/
+│   │   ├── Get-InstalledSoftware.ps1     # [ARCHIVED] Lists installed software
+│   │   └── Get-IntuneHash.ps1            # [ARCHIVED] Generates Autopilot device hash for Intune
+│   │
+│   ├── Deployment/
+│   │   ├── Disable-AutoRun.ps1           # [AUTO] Disables AutoRun for security
+│   │   ├── Install-Applications.ps1      # [AUTO] WinGet app installer
+│   │   ├── Install-Drivers.ps1           # [AUTO] Dell/HP driver automation
+│   │   ├── Install-RMMAgent.ps1          # [AUTO] RMM agent installation
+│   │   ├── Install-WindowsUpdates.ps1    # [AUTO] Windows Update automation
+│   │   ├── Remove-Bloat.ps1              # [AUTO] Bloatware removal
+│   │   ├── Set-HostName.ps1              # [AUTO] Hostname configuration
+│   │   ├── Set-Theme.ps1                 # [AUTO] Desktop theme configuration
+│   │   └── README.md                     # Deployment scripts documentation
+│   │
+│   └── Intune/
+│       └── Company branding/
+│           └── Platform scripts/
+│               ├── Install-DattoRMM-Intune.ps1
+│               └── Skip-OOBEPrivacy-Intune.ps1
+│
 ├── Docs/
-│   ├── SupportedDellDevices.json    # Dell device compatibility list
-│   └── SupportedHPDevices.json      # HP device compatibility list
-├── Config/                          # (Future) Configuration files
-└── README.md
+│   ├── Intune-Autopilot-Setup.md         # Intune Autopilot setup guide
+│   ├── SupportedDellDevices.json         # Dell device compatibility list
+│   ├── SupportedHPDevices.json           # HP device compatibility list
+│   └── Intune configuration/
+│       └── intune-settings_catalog.md    # Intune settings catalog
+│
+├── autounattend.xml                      # [AUTO] Unattended Windows installation config
+├── README.md                             # Main documentation
+├── CONTRIBUTING.md                       # Contribution guidelines
+├── CHANGELOG.md                          # Version history
+├── LICENSE                               # MIT License
+└── VERSION                               # Current version
 ```
+
+**Legend:**
+- [AUTO] **Auto-run during deployment** - Executed automatically by `Start.ps1`
+- [ARCHIVED] **Archived scripts** - No longer used in deployment
+- [UTIL] **Standalone utilities** - Available for manual execution as needed
 
 ---
 
@@ -71,40 +105,54 @@ graph TD
     B -->|Yes| D
     D -->|No| E[Install PS7 + WinGet]
     E --> F[Relaunch in PS7]
-    D -->|Yes| G[Deploy-Device.ps1]
+    D -->|Yes| G[Run Deployment]
     F --> G
-    G --> H[Install RMM Agent]
-    H --> I[Update Drivers]
-    I --> J[Install Applications]
-    J --> K[Remove Bloatware]
-    K --> L[Generate Intune Hash]
+    G --> H[Update Drivers]
+    H --> I[Install RMM Agent]
+    I --> J[Disable AutoRun]
+    J --> K[Install Applications]
+    K --> L[Remove Bloatware]
     L --> M[Apply Theme]
-    M --> N[Install Windows Updates]
-    N --> O[Complete]
+    M --> N[Set Hostname]
+    N --> O[Install Windows Updates]
+    O --> P[Complete]
 ```
 
 
 ## Configuration
 
 ### Customize Application List
-Edit `Scripts/Install-Applications.ps1` (lines 80-100):
+Edit `Scripts/Deployment/Install-Applications.ps1` (lines 20-30):
 ```powershell
-$applications = @(
-    @{ Id = "Microsoft.VisualStudioCode"; Name = "VS Code" },
-    @{ Id = "Google.Chrome"; Name = "Chrome" },
+$Applications = @(
+    "Microsoft.VCRedist.2015+.x64",
+    "Microsoft.Office",
+    "Microsoft.Teams",
     # Add your apps here
 )
 ```
 
 ### Customize Bloatware List
-Edit `Scripts/Remove-Bloat.ps1` (lines 50-75):
+Edit `Scripts/Deployment/Remove-Bloat.ps1` (lines 15-40):
 ```powershell
-$bloatwareList = @(
+$BloatwareList = @(
     "Microsoft.BingNews",
     "Microsoft.GamingApp",
     # Add packages to remove
 )
 ```
+
+### Configure RMM Agent Installation
+The deployment includes automatic RMM agent installation for Datto RMM. It first checks if Datto RMM is already installed and running. If not:
+
+- Scans all USB drives for files matching `*agent*.exe` (case-insensitive) and installs the first match silently.
+- As a fallback, downloads the agent using a configurable Site ID from Datto's servers.
+
+To configure the Site ID:
+1. Edit `Scripts/Deployment/Install-RMMAgent.ps1` (line ~18).
+2. Replace `"EnterYourIDHere"` with your actual Datto RMM Site ID.
+
+**Security Note**: We do not include random or example Site IDs in the public repository to avoid accidental exposure of sensitive information. Always configure your Site ID manually after cloning the repository.
 
 ### Supported Devices (Drivers)
 - **Dell**: Latitude, OptiPlex, Precision, XPS series
@@ -116,22 +164,31 @@ To view all models, check [Supported Dell devices](Docs/SupportedDellDevices.jso
 
 ## Logging
 
-All operations are logged with timestamps:
-- **Main log**: `C:\WinDeploy\Logs\Deploy-Device.log`
-- **Individual scripts**: `C:\WinDeploy\Logs\Install-*.log`
-- **Bootstrap log**: `C:\WinDeploy\Logs\Start-Bootstrap.log`
+All operations are logged:
+- **Main log**: `C:\WinDeploy\Logs\Start.log`
+- **Individual scripts**: `C:\WinDeploy\Logs\*.log` (e.g., Install-Drivers.log)
 
 View logs in real-time:
 ```powershell
-Get-Content "C:\WinDeploy\Logs\Deploy-Device.log" -Wait -Tail 20
+Get-Content "C:\WinDeploy\Logs\Start.log" -Wait -Tail 20
 ```
 
 ---
-### Used Dependencies
-- **WinGet**: v1.11.510 or later (auto-installed if missing)
-- **PSWindowsUpdate**: 2.2.1.5 or later (auto-installed for Windows Updates)
-- **Dell Command Update**: 5.5.0 or later (auto-installed for Dell devices)
-- **HP Image Assistant**: 5.3.2 or later (auto-installed for HP devices)
+
+## Dependencies
+
+WinDeploy automatically installs and manages the following dependencies:
+
+### PowerShell Gallery (Auto-installed)
+- **[winget-install](https://www.powershellgallery.com/packages/winget-install)** (v5.2.1+) - PowerShell script for reliable WinGet installation by [asheroto](https://github.com/asheroto/winget-install)
+- **[PSWindowsUpdate](https://www.powershellgallery.com/packages/PSWindowsUpdate)** (v2.2.1.5+) - PowerShell module for Windows Update automation
+
+### Application Dependencies (Auto-installed via WinGet)
+- **Windows Package Manager (WinGet)** (v1.11.510+) - Installed via `winget-install` script
+- **Dell Command Update** (v5.5.0+) - Auto-installed for supported Dell devices
+- **HP Image Assistant** (v5.3.2+) - Auto-installed for supported HP devices
+
+**Note:** All dependencies are automatically detected and installed during deployment. No manual installation required.
 
 ---
 
