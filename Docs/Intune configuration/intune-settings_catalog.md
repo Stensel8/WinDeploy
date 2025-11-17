@@ -1,4 +1,5 @@
 # Intune Configuration settings
+These are my recommended settings for Intune Configuration Profiles using the Settings Catalog. Adjust settings as needed for your organization's requirements.
 
 ## Administrative Templates
 ### MS Security Guide

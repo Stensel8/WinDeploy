@@ -1,24 +1,24 @@
 # Setting Up Intune with Autopilot Device Preparation
 
 ## Overview
-This guide provides a step-by-step process for configuring Microsoft Intune with Autopilot Device Preparation (formerly known as Autopilot v2). It focuses on streamlining Mobile Device Management (MDM) for IT professionals.
+This guide provides step-by-step instructions for configuring Microsoft Intune with Autopilot Device Preparation (formerly Autopilot v2), streamlining Mobile Device Management (MDM) for IT professionals.
 
-To establish a baseline setup, create three security groups in Azure Active Directory (Azure AD). These groups enable targeted policies and configurations:
+To establish a baseline setup, create three security groups in Microsoft Entra ID (formerly Azure AD). These groups enable targeted policies and configurations:
 
 - **Standard Users Group**: For regular users on Autopilot-prepared devices.
-- **Local Admins Group**: For users needing local administrator privileges.
-- **Devices Group**: For the devices themselves, supporting device-based policies.
+- **Local Admins Group**: For users requiring local administrator privileges.
+- **Devices Group**: For the devices themselves, to support device-based policies.
 
-These groups form the foundation. You can add more later for finer control over users or applications.
+These groups form the foundation. You can add more groups later for finer control over users or applications.
 
 ## Prerequisites
-- Access to the Azure portal with appropriate permissions (e.g., Global Administrator or User Administrator).
-- Microsoft Intune enabled in your Azure AD tenant (via Microsoft 365 Business Premium or equivalent licenses).
+- Access to the Microsoft Entra admin center with appropriate permissions (e.g., Global Administrator or User Administrator).
+- Microsoft Intune enabled in your Microsoft Entra ID tenant (via Microsoft 365 Business Premium or equivalent licenses).
 - The "Intune Provisioning Client" service principal (required for the Devices group).
 
 ## Steps
 
-### 1. Navigate to Azure Portal
+### 1. Navigate to Microsoft Entra Admin Center
 1. Open your web browser and go to [https://entra.microsoft.com/](https://entra.microsoft.com/).
 2. Sign in with an account that has the necessary permissions.
 
@@ -142,7 +142,7 @@ Create two separate policies:
 
 #### Configure Apps and Scripts
 6. Add **Apps and Scripts** for deployment.  
-   *Note*: These install during Autopilot provisioning (OOBE or ESPv2). Assign apps via **Home > Apps** in Intune or directly here. Non-assigned apps install after full enrollment.  
+   **Note:** These install during Autopilot provisioning (OOBE or ESPv2). Assign apps via **Home > Apps** in Intune or directly here. Non-assigned apps install after full enrollment.  
    ![Device Preparation apps and scripts](./Intune%20configuration/Device-Preparation-new_policy-standarduser_4.png)
 
 #### Assign the Policy
@@ -150,10 +150,25 @@ Create two separate policies:
    Scope tags can be added if needed, but are not covered in this guide.  
    ![Device Preparation assignment](./Intune%20configuration/Device-Preparation-new_policy-standarduser_5.png)
 
-## Next Steps
-- Soon be added.
+### 9. Assigning Licenses to Groups
+To simplify license management, assign Intune licenses to the user groups created earlier. This eliminates the need to assign licenses individually to each user. By adding a user to one of these groups, they will automatically receive the required license and gain access to Intune and Autopilot functionality.
+1. Head to the Microsoft 365 admin center: [https://admin.microsoft.com](https://admin.microsoft.com).
+2. Go to License - Subscriptions > Microsoft 365 Business Premium (or the license you use that includes Intune).
+3. Click on **Groups** tab.
+4. Click on **Assign licenses** and assign the `Autopilot Device Preparation - Users` and `Autopilot Device Preparation - Local Admins` groups to the license.
+   ![Licenses and groups in Microsoft 365 Admin Center](./Intune%20configuration/M365-Admin_center-licenses-groups.png)
+
+### 10. Assigning Groups to Users
+Finally, ensure users are added to the appropriate groups created earlier. This will ensure they receive the correct policies and permissions when using Autopilot Device Preparation.
+1. In the Microsoft 365 admin center or the Microsoft Entra admin center, navigate to **Users**.
+2. Select the user you want to add to a group.
+3. Go to the **Groups** tab and click on **+ Add memberships**.
+4. Search for and select either `Autopilot Device Preparation - Users` or `Autopilot Device Preparation - Local Admins` based on the user's role.
+5. Click **Save** to confirm the changes.
+   ![Licenses and groups assigned to user in Microsoft 365 Admin Center](./Intune%20configuration/M365-Admin_center-licenses-groups-users.png)
+
 
 ## Troubleshooting
-- If the "Intune Provisioning Client" is not found, ensure Intune is properly set up in your tenant and that you have the neccesary licenses.
+- If the "Intune Provisioning Client" is not found, ensure Intune is properly set up in your tenant and that you have the necessary licenses.
 - Verify group configurations in the Microsoft Entra portal.
 - For permission issues, contact your Microsoft Entra administrator.
