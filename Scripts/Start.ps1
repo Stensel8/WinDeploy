@@ -51,6 +51,15 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     exit
 }
 
+Set-Location $PSScriptRoot
+Write-Output "Elevated to administrator, starting WinDeploy setup."
+
+# Start logging
+$logDir = "C:\WinDeploy\Logs"
+if (!(Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir -Force | Out-Null }
+$logFile = Join-Path $logDir "Start.log"
+Start-Transcript -Path $logFile -Append -NoClobber
+
 $psz = Install-Pwsh7
 Install-WinGet
 
@@ -64,15 +73,21 @@ if (!(Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir -Force | 
 $deployPath = Join-Path $deployDir "Deploy.ps1"
 try {
     Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/main/Scripts/Deploy.ps1" -OutFile $deployPath -UseBasicParsing -ErrorAction Stop
+    Write-Output "Downloaded Deploy.ps1 to $deployPath"
 } catch {
     # If download fails, use local copy if available
     $localDeployPath = Join-Path $PSScriptRoot "Deploy.ps1"
     if (Test-Path $localDeployPath) {
         Copy-Item $localDeployPath $deployPath -Force
+        Write-Output "Copied local Deploy.ps1 to $deployPath"
     } else {
-        throw "Cannot download or find Deploy.ps1: $_"
+        $errorMsg = "Cannot download or find Deploy.ps1: $_"
+        Write-Output $errorMsg
+        throw $errorMsg
     }
 }
 
 # Re-launch deployment in PowerShell 7 (always, so deployment logic can be simple)
+Write-Output "Starting Deploy.ps1 with PowerShell 7"
 Start-Process -FilePath $psz -ArgumentList "-ExecutionPolicy Bypass -NoProfile -File `"$deployPath`"" -Wait
+Stop-Transcript

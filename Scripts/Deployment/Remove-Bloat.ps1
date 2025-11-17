@@ -70,11 +70,9 @@ try {
                     $Removed++
                     $PkgMsg = "Removed provisioned: $($Pkg.DisplayName)"
                     Write-DeployLog $PkgMsg
-                    Write-Output $PkgMsg
                 } else {
                     $FailMsg = "Failed to remove provisioned: $($Pkg.DisplayName)"
                     Write-DeployLog $FailMsg -IsError
-                    Write-Error $FailMsg
                 }
             }
         }
@@ -92,11 +90,9 @@ try {
                     $Removed++
                     $PkgMsg = "Removed installed: $($Pkg.Name)"
                     Write-DeployLog $PkgMsg
-                    Write-Output $PkgMsg
                 } else {
                     $FailMsg = "Failed to remove installed: $($Pkg.Name)"
                     Write-DeployLog $FailMsg -IsError
-                    Write-Error $FailMsg
                 }
             }
         }
