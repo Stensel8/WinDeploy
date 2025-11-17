@@ -283,8 +283,11 @@ $wingetAvailable = Get-Command winget -ErrorAction SilentlyContinue
 if (-not $wingetAvailable) {
     Write-Output "WinGet not found. Installing..."
     try {
-        # Use the winget-install script from asheroto
-        Invoke-Expression "& { $(Invoke-RestMethod 'https://raw.githubusercontent.com/asheroto/winget-install/master/winget-install.ps1') }"
+        # Download the winget-install script from asheroto (trusted source)
+        $tempScript = [System.IO.Path]::GetTempFileName() + ".ps1"
+        Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/asheroto/winget-install/master/winget-install.ps1' -OutFile $tempScript -UseBasicParsing -ErrorAction Stop
+        & $tempScript
+        Remove-Item $tempScript -Force
         Write-Output "WinGet installed successfully."
     } catch {
         Write-Warning "Failed to install WinGet: $_"
