@@ -49,6 +49,7 @@ iex(irm windeploy.stensel.nl)
 WinDeploy/
 ├── Scripts/
 │   ├── Start.ps1                         # [AUTO] Main entry point with Auto-Elevate
+│   ├── Deploy.ps1                        # [AUTO] Deployment orchestrator (downloaded and launched by Start.ps1)
 │   ├── autounattend.xml                  # [AUTO] Unattended Windows installation config
 │   │
 │   ├── Archived/
@@ -105,18 +106,21 @@ graph TD
     B -->|Yes| D
     D -->|No| E[Install PS7 + WinGet]
     E --> F[Relaunch in PS7]
-    D -->|Yes| G[Run Deployment]
+    D -->|Yes| G[Download Deploy.ps1]
     F --> G
-    G --> H[Update Drivers]
-    H --> I[Install RMM Agent]
-    I --> J[Disable AutoRun]
-    J --> K[Install Applications]
-    K --> L[Remove Bloatware]
-    L --> M[Apply Theme]
-    M --> N[Set Hostname]
-    N --> O[Install Windows Updates]
-    O --> P[Complete]
+    G --> H[Launch Deploy.ps1]
+    H --> I[Update Drivers]
+    I --> J[Install RMM Agent]
+    J --> K[Disable AutoRun]
+    K --> L[Install Applications]
+    L --> M[Remove Bloatware]
+    M --> N[Apply Theme]
+    N --> O[Set Hostname]
+    O --> P[Install Windows Updates]
+    P --> Q[Complete]
 ```
+
+Start.ps1 is the main entry point that ensures the system has PowerShell 7 and WinGet installed, handles elevation, and downloads/launchs Deploy.ps1. Deploy.ps1 orchestrates the actual deployment by downloading and executing each script in sequence.
 
 
 ## Configuration
