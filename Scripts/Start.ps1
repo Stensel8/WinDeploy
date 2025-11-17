@@ -47,7 +47,18 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     $psz = Install-Pwsh7
     $versionArgs = ""
     if ($VersionTag) { $versionArgs = "-VersionTag '$VersionTag'" }
-    Start-Process -FilePath $psz -ArgumentList "-ExecutionPolicy Bypass -NoProfile -File `"$PSCommandPath`" $versionArgs" -Verb RunAs
+    $scriptPath = $PSCommandPath
+    if (-not $scriptPath) {
+        # Script is run via iex, download to temp file
+        $scriptPath = [System.IO.Path]::GetTempFileName() + ".ps1"
+        try {
+            Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/main/Scripts/Start.ps1" -OutFile $scriptPath -UseBasicParsing -ErrorAction Stop
+        } catch {
+            Write-Host "Failed to download Start.ps1 for elevation: $_" -ForegroundColor Red
+            exit 1
+        }
+    }
+    Start-Process -FilePath $psz -ArgumentList "-ExecutionPolicy Bypass -NoProfile -File `"$scriptPath`" $versionArgs" -Verb RunAs
     exit
 }
 
