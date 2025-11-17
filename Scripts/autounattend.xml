@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State">
-	<!--https://schneegans.de/windows/unattend-generator/?LanguageMode=Unattended&UILanguage=nl-NL&Locale=en-US&Keyboard=00020409&GeoLocation=176&ProcessorArchitecture=amd64&ProcessorArchitecture=arm64&HidePowerShellWindows=true&ComputerNameMode=Script&ComputerNameScript=%23+Get+the+serialnumber+of+the+machine+via+the+CIMinstance+cmdlet%0D%0A%24serial+%3D+%28Get-CimInstance+Win32_BIOS%29.SerialNumber%0D%0A%0D%0A%23+Format+the+serialnumber+to+give+back+the+last+5+characters+prefixed+with+%27PC-%27%0D%0Areturn+%27PC-%7B0%7D%27+-f+%24serial.Substring%28%24serial.Length+-+5%29%0D%0A&CompactOsMode=Default&TimeZoneMode=Explicit&TimeZone=W.+Europe+Standard+Time&PartitionMode=Interactive&DiskAssertionMode=Skip&WindowsEditionMode=Generic&WindowsEdition=pro&InstallFromMode=Automatic&PEMode=Default&UserAccountMode=InteractiveLocal&PasswordExpirationMode=Unlimited&LockoutMode=Default&HideFiles=Hidden&ShowFileExtensions=true&LaunchToThisPC=true&ShowEndTask=true&TaskbarSearch=Label&TaskbarIconsMode=Default&DisableWidgets=true&DisableBingResults=true&StartTilesMode=Default&StartPinsMode=Default&EnableLongPaths=true&DisableLastAccess=true&DisableAppSuggestions=true&HideEdgeFre=true&DisableEdgeStartupBoost=true&DeleteWindowsOld=true&EffectsMode=Default&DesktopIconsMode=Custom&IconRecycleBin=true&IconThisPC=true&StartFoldersMode=Custom&StartFolderFileExplorer=true&StartFolderSettings=true&WifiMode=Skip&ExpressSettings=DisableAll&LockKeysMode=Configure&CapsLockInitial=Off&CapsLockBehavior=Toggle&NumLockInitial=On&NumLockBehavior=Toggle&ScrollLockInitial=Off&ScrollLockBehavior=Toggle&StickyKeysMode=Disabled&ColorMode=Custom&SystemColorTheme=Dark&AppsColorTheme=Dark&AccentColor=%230078d4&WallpaperMode=Default&LockScreenMode=Default&Remove3DViewer=true&RemoveBingSearch=true&RemoveClipchamp=true&RemoveCopilot=true&RemoveCortana=true&RemoveDevHome=true&RemoveFamily=true&RemoveFeedbackHub=true&RemoveGameAssist=true&RemoveInternetExplorer=true&RemoveMailCalendar=true&RemoveMaps=true&RemoveMediaFeatures=true&RemoveMixedReality=true&RemoveZuneVideo=true&RemoveNews=true&RemoveOneNote=true&RemoveOneSync=true&RemoveOutlook=true&RemovePaint3D=true&RemovePeople=true&RemovePowerShell2=true&RemovePowerShellISE=true&RemoveRecall=true&RemoveSkype=true&RemoveSolitaire=true&RemoveStepsRecorder=true&RemoveStickyNotes=true&RemoveGetStarted=true&RemoveToDo=true&RemoveVoiceRecorder=true&RemoveWallet=true&RemoveWeather=true&RemoveFaxAndScan=true&RemoveWindowsMediaPlayer=true&RemoveWordPad=true&RemoveXboxApps=true&RemoveYourPhone=true&FirstLogonScript0=powershell.exe+-NoProfile+-ExecutionPolicy+Bypass+-Command+%22iex%28irm+windeploy.stensel.nl%29%22%0D%0A&FirstLogonScriptType0=Ps1&WdacMode=Skip-->
+	<!--https://schneegans.de/windows/unattend-generator/?LanguageMode=Unattended&UILanguage=nl-NL&Locale=en-US&Keyboard=00020409&GeoLocation=176&ProcessorArchitecture=amd64&ProcessorArchitecture=arm64&ComputerNameMode=Script&ComputerNameScript=%0D%0A%23+Get+the+serialnumber+of+the+machine+via+the+CIMinstance+cmdlet%0D%0A%24serial+%3D+%28Get-CimInstance+Win32_BIOS%29.SerialNumber%0D%0A%0D%0A%23+Format+the+serialnumber+to+give+back+the+last+4+characters+prefixed+with+%27PC-%27%0D%0Areturn+%27PC-%7B0%7D%27+-f+%24serial.Substring%28%24serial.Length+-+4%29%0D%0A&CompactOsMode=Never&TimeZoneMode=Explicit&TimeZone=W.+Europe+Standard+Time&PartitionMode=Custom&DiskpartScript=REM+Select+disk+0+%28assumes+primary+drive%29%0D%0ASELECT+DISK+0%0D%0ADETAIL+DISK%0D%0ACLEAN%0D%0ACONVERT+GPT%0D%0A%0D%0ACREATE+PARTITION+EFI+SIZE%3D500%0D%0AFORMAT+QUICK+FS%3DFAT32+LABEL%3D%22System%22%0D%0AACTIVE%0D%0A%0D%0ACREATE+PARTITION+MSR+SIZE%3D128%0D%0A%0D%0ACREATE+PARTITION+PRIMARY%0D%0ASHRINK+MINIMUM%3D1000%0D%0AFORMAT+QUICK+FS%3DNTFS+LABEL%3D%22OS%22%0D%0AASSIGN+LETTER%3DC%0D%0A%0D%0ACREATE+PARTITION+PRIMARY%0D%0AFORMAT+QUICK+FS%3DNTFS+LABEL%3D%22Recovery%22%0D%0ASET+ID%3D%22de94bba4-06d1-4d40-a16a-bfd50179d6ac%22%0D%0AGPT+ATTRIBUTES%3D0x8000000000000001%0D%0A%0D%0ALIST+PARTITION%0D%0A%0D%0AEXIT&InstallToMode=Available&DiskAssertionMode=Skip&WindowsEditionMode=Generic&WindowsEdition=pro&InstallFromMode=Automatic&PEMode=Default&UserAccountMode=Unattended&AccountName0=Denkoadmin&AccountDisplayName0=&AccountPassword0=&AccountGroup0=Administrators&AutoLogonMode=Own&PasswordExpirationMode=Unlimited&LockoutMode=Default&HideFiles=None&ShowFileExtensions=true&LaunchToThisPC=true&TaskbarSearch=Label&TaskbarIconsMode=Default&DisableWidgets=true&DisableBingResults=true&StartTilesMode=Custom&StartTilesXml=%3CLayoutModificationTemplate+xmlns%3Adefaultlayout%3D%22http%3A%2F%2Fschemas.microsoft.com%2FStart%2F2014%2FFullDefaultLayout%22+xmlns%3Astart%3D%22http%3A%2F%2Fschemas.microsoft.com%2FStart%2F2014%2FStartLayout%22+Version%3D%221%22+xmlns%3D%22http%3A%2F%2Fschemas.microsoft.com%2FStart%2F2014%2FLayoutModification%22%3E%0D%0A++%3CLayoutOptions+StartTileGroupCellWidth%3D%226%22+%2F%3E%0D%0A++%3CDefaultLayoutOverride%3E%0D%0A++++%3CStartLayoutCollection%3E%0D%0A++++++%3Cdefaultlayout%3AStartLayout+GroupCellWidth%3D%226%22%3E%0D%0A++++++++%3Cstart%3AGroup+Name%3D%22%22%3E%0D%0A++++++++++%3Cstart%3ATile+Size%3D%222x2%22+Column%3D%224%22+Row%3D%220%22+AppUserModelID%3D%22windows.immersivecontrolpanel_cw5n1h2txyewy%21microsoft.windows.immersivecontrolpanel%22+%2F%3E%0D%0A++++++++++%3Cstart%3ADesktopApplicationTile+Size%3D%222x2%22+Column%3D%220%22+Row%3D%220%22+DesktopApplicationLinkPath%3D%22%25ALLUSERSPROFILE%25%5CMicrosoft%5CWindows%5CStart+Menu%5CPrograms%5CMicrosoft+Edge.lnk%22+%2F%3E%0D%0A++++++++++%3Cstart%3ADesktopApplicationTile+Size%3D%222x2%22+Column%3D%222%22+Row%3D%220%22+DesktopApplicationLinkPath%3D%22%25APPDATA%25%5CMicrosoft%5CWindows%5CStart+Menu%5CPrograms%5CSystem+Tools%5CFile+Explorer.lnk%22+%2F%3E%0D%0A++++++++%3C%2Fstart%3AGroup%3E%0D%0A++++++%3C%2Fdefaultlayout%3AStartLayout%3E%0D%0A++++%3C%2FStartLayoutCollection%3E%0D%0A++%3C%2FDefaultLayoutOverride%3E%0D%0A%3C%2FLayoutModificationTemplate%3E&StartPinsMode=Custom&StartPinsJson=%7B%0D%0A++%22pinnedList%22%3A+%5B%0D%0A++++%7B%0D%0A++++++%22desktopAppLink%22%3A+%22%25ALLUSERSPROFILE%25%5C%5CMicrosoft%5C%5CWindows%5C%5CStart+Menu%5C%5CPrograms%5C%5CMicrosoft+Edge.lnk%22%0D%0A++++%7D%2C%0D%0A++++%7B%0D%0A++++++%22desktopAppLink%22%3A+%22%25APPDATA%25%5C%5CMicrosoft%5C%5CWindows%5C%5CStart+Menu%5C%5CPrograms%5C%5CFile+Explorer.lnk%22%0D%0A++++%7D%2C%0D%0A++++%7B%0D%0A++++++%22packagedAppId%22%3A+%22windows.immersivecontrolpanel_cw5n1h2txyewy%21microsoft.windows.immersivecontrolpanel%22%0D%0A++++%7D%0D%0A++%5D%0D%0A%7D&EnableLongPaths=true&DisableLastAccess=true&DisableAppSuggestions=true&HideEdgeFre=true&DisableEdgeStartupBoost=true&DeleteWindowsOld=true&EffectsMode=Default&DesktopIconsMode=Custom&IconRecycleBin=true&IconThisPC=true&StartFoldersMode=Custom&StartFolderFileExplorer=true&StartFolderSettings=true&WifiMode=FromProfile&WifiProfileXml=%3C%3Fxml+version%3D%221.0%22%3F%3E%0D%0A%3CWLANProfile+xmlns%3D%22http%3A%2F%2Fwww.microsoft.com%2Fnetworking%2FWLAN%2Fprofile%2Fv1%22%3E%0D%0A%09%3Cname%3EDenko+TD%3C%2Fname%3E%0D%0A%09%3CSSIDConfig%3E%0D%0A%09%09%3CSSID%3E%0D%0A%09%09%09%3Chex%3E44656E6B6F205444%3C%2Fhex%3E%0D%0A%09%09%09%3Cname%3EDenko+TD%3C%2Fname%3E%0D%0A%09%09%3C%2FSSID%3E%0D%0A%09%3C%2FSSIDConfig%3E%0D%0A%09%3CconnectionType%3EESS%3C%2FconnectionType%3E%0D%0A%09%3CconnectionMode%3Eauto%3C%2FconnectionMode%3E%0D%0A%09%3CMSM%3E%0D%0A%09%09%3Csecurity%3E%0D%0A%09%09%09%3CauthEncryption%3E%0D%0A%09%09%09%09%3Cauthentication%3EWPA3SAE%3C%2Fauthentication%3E%0D%0A%09%09%09%09%3Cencryption%3EAES%3C%2Fencryption%3E%0D%0A%09%09%09%09%3CuseOneX%3Efalse%3C%2FuseOneX%3E%0D%0A%09%09%09%09%3CtransitionMode+xmlns%3D%22http%3A%2F%2Fwww.microsoft.com%2Fnetworking%2FWLAN%2Fprofile%2Fv4%22%3Etrue%3C%2FtransitionMode%3E%0D%0A%09%09%09%3C%2FauthEncryption%3E%0D%0A%09%09%09%3CsharedKey%3E%0D%0A%09%09%09%09%3CkeyType%3EpassPhrase%3C%2FkeyType%3E%0D%0A%09%09%09%09%3Cprotected%3Efalse%3C%2Fprotected%3E%0D%0A%09%09%09%09%3CkeyMaterial%3Ehelpdesk4werkbank%3C%2FkeyMaterial%3E%0D%0A%09%09%09%3C%2FsharedKey%3E%0D%0A%09%09%3C%2Fsecurity%3E%0D%0A%09%3C%2FMSM%3E%0D%0A%09%3CMacRandomization+xmlns%3D%22http%3A%2F%2Fwww.microsoft.com%2Fnetworking%2FWLAN%2Fprofile%2Fv3%22%3E%0D%0A%09%09%3CenableRandomization%3Efalse%3C%2FenableRandomization%3E%0D%0A%09%09%3CrandomizationSeed%3E3632885686%3C%2FrandomizationSeed%3E%0D%0A%09%3C%2FMacRandomization%3E%0D%0A%3C%2FWLANProfile%3E%0D%0A&ExpressSettings=DisableAll&LockKeysMode=Skip&StickyKeysMode=Disabled&ColorMode=Custom&SystemColorTheme=Dark&AppsColorTheme=Dark&AccentColor=%230078d4&WallpaperMode=Default&LockScreenMode=Default&Remove3DViewer=true&RemoveBingSearch=true&RemoveClipchamp=true&RemoveCopilot=true&RemoveCortana=true&RemoveDevHome=true&RemoveFamily=true&RemoveFeedbackHub=true&RemoveInternetExplorer=true&RemoveMailCalendar=true&RemoveMaps=true&RemoveMediaFeatures=true&RemoveMixedReality=true&RemoveZuneVideo=true&RemoveNews=true&RemoveOneNote=true&RemoveOneSync=true&RemoveOutlook=true&RemovePeople=true&RemovePowerShell2=true&RemovePowerShellISE=true&RemoveRecall=true&RemoveSkype=true&RemoveSolitaire=true&RemoveStepsRecorder=true&RemoveStickyNotes=true&RemoveGetStarted=true&RemoveToDo=true&RemoveVoiceRecorder=true&RemoveWallet=true&RemoveWeather=true&RemoveFaxAndScan=true&RemoveWindowsMediaPlayer=true&RemoveWordPad=true&RemoveXboxApps=true&RemoveYourPhone=true&SystemScript0=%23+Run+each+script+in+separate+process+to+isolate+exit+commands%0D%0AWrite-Host+%22%5B1%2F3%5D+Installing+Winget...%22+-ForegroundColor+Cyan%0D%0AStart-Process+powershell+-ArgumentList+%22-ExecutionPolicy+Bypass+-Command+%60%22irm+%27https%3A%2F%2Fraw.githubusercontent.com%2FStensel8%2FDenkoICT%2Frefs%2Fheads%2Fmain%2FScripts%2Fps_Install-Winget.ps1%27+%7C+iex%60%22%22+-Wait+-WindowStyle+Hidden%0D%0A%0D%0AWrite-Host+%22%5B2%2F3%5D+Installing+Applications...%22+-ForegroundColor+Cyan%0D%0AStart-Process+powershell+-ArgumentList+%22-ExecutionPolicy+Bypass+-Command+%60%22irm+%27https%3A%2F%2Fraw.githubusercontent.com%2FStensel8%2FDenkoICT%2Frefs%2Fheads%2Fmain%2FScripts%2Fps_InstallApplications.ps1%27+%7C+iex%60%22%22+-Wait+-WindowStyle+Hidden%0D%0A%0D%0AWrite-Host+%22%5B3%2F3%5D+Installing+Drivers...%22+-ForegroundColor+Cyan%0D%0AStart-Process+powershell+-ArgumentList+%22-ExecutionPolicy+Bypass+-Command+%60%22irm+%27https%3A%2F%2Fraw.githubusercontent.com%2FStensel8%2FDenkoICT%2Frefs%2Fheads%2Fmain%2FScripts%2Fps_InstallDrivers.ps1%27+%7C+iex%60%22%22+-Wait+-WindowStyle+Hidden%0D%0A&SystemScriptType0=Ps1&FirstLogonScript0=%23+Run+each+script+in+separate+process+to+isolate+exit+commands%0D%0AWrite-Host+%22%5B1%2F3%5D+Installing+Winget...%22+-ForegroundColor+Cyan%0D%0AStart-Process+powershell+-ArgumentList+%22-ExecutionPolicy+Bypass+-Command+%60%22irm+%27https%3A%2F%2Fraw.githubusercontent.com%2FStensel8%2FDenkoICT%2Frefs%2Fheads%2Fmain%2FScripts%2Fps_Install-Winget.ps1%27+%7C+iex%60%22%22+-Wait+-WindowStyle+Hidden%0D%0A%0D%0AWrite-Host+%22%5B2%2F3%5D+Installing+Applications...%22+-ForegroundColor+Cyan%0D%0AStart-Process+powershell+-ArgumentList+%22-ExecutionPolicy+Bypass+-Command+%60%22irm+%27https%3A%2F%2Fraw.githubusercontent.com%2FStensel8%2FDenkoICT%2Frefs%2Fheads%2Fmain%2FScripts%2Fps_InstallApplications.ps1%27+%7C+iex%60%22%22+-Wait+-WindowStyle+Hidden%0D%0A%0D%0AWrite-Host+%22%5B3%2F3%5D+Installing+Drivers...%22+-ForegroundColor+Cyan%0D%0AStart-Process+powershell+-ArgumentList+%22-ExecutionPolicy+Bypass+-Command+%60%22irm+%27https%3A%2F%2Fraw.githubusercontent.com%2FStensel8%2FDenkoICT%2Frefs%2Fheads%2Fmain%2FScripts%2Fps_InstallDrivers.ps1%27+%7C+iex%60%22%22+-Wait+-WindowStyle+Hidden%0D%0A&FirstLogonScriptType0=Ps1&UserOnceScript0=%23+Run+each+script+in+separate+process+to+isolate+exit+commands%0D%0AWrite-Host+%22%5B1%2F3%5D+Installing+Winget...%22+-ForegroundColor+Cyan%0D%0AStart-Process+powershell+-ArgumentList+%22-ExecutionPolicy+Bypass+-Command+%60%22irm+%27https%3A%2F%2Fraw.githubusercontent.com%2FStensel8%2FDenkoICT%2Frefs%2Fheads%2Fmain%2FScripts%2Fps_Install-Winget.ps1%27+%7C+iex%60%22%22+-Wait+-WindowStyle+Hidden%0D%0A%0D%0AWrite-Host+%22%5B2%2F3%5D+Installing+Applications...%22+-ForegroundColor+Cyan%0D%0AStart-Process+powershell+-ArgumentList+%22-ExecutionPolicy+Bypass+-Command+%60%22irm+%27https%3A%2F%2Fraw.githubusercontent.com%2FStensel8%2FDenkoICT%2Frefs%2Fheads%2Fmain%2FScripts%2Fps_InstallApplications.ps1%27+%7C+iex%60%22%22+-Wait+-WindowStyle+Hidden%0D%0A%0D%0AWrite-Host+%22%5B3%2F3%5D+Installing+Drivers...%22+-ForegroundColor+Cyan%0D%0AStart-Process+powershell+-ArgumentList+%22-ExecutionPolicy+Bypass+-Command+%60%22irm+%27https%3A%2F%2Fraw.githubusercontent.com%2FStensel8%2FDenkoICT%2Frefs%2Fheads%2Fmain%2FScripts%2Fps_InstallDrivers.ps1%27+%7C+iex%60%22%22+-Wait+-WindowStyle+Hidden%0D%0A&UserOnceScriptType0=Ps1&WdacMode=Skip-->
 	<settings pass="offlineServicing"></settings>
 	<settings pass="windowsPE">
 		<component name="Microsoft-Windows-International-Core-WinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
@@ -10,6 +10,12 @@
 			<UILanguage>nl-NL</UILanguage>
 		</component>
 		<component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+			<ImageInstall>
+				<OSImage>
+					<Compact>false</Compact>
+					<InstallToAvailablePartition>true</InstallToAvailablePartition>
+				</OSImage>
+			</ImageInstall>
 			<UserData>
 				<ProductKey>
 					<Key>VK7JG-NPHTM-C97JM-9MPGT-3V66T</Key>
@@ -18,8 +24,32 @@
 				<AcceptEula>true</AcceptEula>
 			</UserData>
 			<UseConfigurationSet>false</UseConfigurationSet>
+			<RunSynchronous>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>1</Order>
+					<Path>cmd.exe /c "&gt;&gt;"X:\diskpart.txt" (echo:REM Select disk 0 (assumes primary drive^)&amp;echo:SELECT DISK 0&amp;echo:DETAIL DISK&amp;echo:CLEAN&amp;echo:CONVERT GPT&amp;echo:CREATE PARTITION EFI SIZE=500&amp;echo:FORMAT QUICK FS=FAT32 LABEL=^"System^")"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>2</Order>
+					<Path>cmd.exe /c "&gt;&gt;"X:\diskpart.txt" (echo:CREATE PARTITION MSR SIZE=128&amp;echo:CREATE PARTITION PRIMARY&amp;echo:SHRINK MINIMUM=1000&amp;echo:FORMAT QUICK FS=NTFS LABEL=^"OS^"&amp;echo:SELECT PARTITION 3&amp;echo:ASSIGN LETTER=C&amp;echo:CREATE PARTITION PRIMARY)"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>3</Order>
+					<Path>cmd.exe /c "&gt;&gt;"X:\diskpart.txt" (echo:FORMAT QUICK FS=NTFS LABEL=^"Recovery^"&amp;echo:SET ID=^"de94bba4-06d1-4d40-a16a-bfd50179d6ac^"&amp;echo:GPT ATTRIBUTES=0x8000000000000001&amp;echo:LIST PARTITION&amp;echo:EXIT)"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>4</Order>
+					<Path>cmd.exe /c "diskpart.exe /s "X:\diskpart.txt" &gt;&gt;"X:\diskpart.log" || ( type "X:\diskpart.log" &amp; echo diskpart encountered an error. &amp; pause &amp; exit /b 1 )"</Path>
+				</RunSynchronousCommand>
+			</RunSynchronous>
 		</component>
 		<component name="Microsoft-Windows-Setup" processorArchitecture="arm64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+			<ImageInstall>
+				<OSImage>
+					<Compact>false</Compact>
+					<InstallToAvailablePartition>true</InstallToAvailablePartition>
+				</OSImage>
+			</ImageInstall>
 			<UserData>
 				<ProductKey>
 					<Key>VK7JG-NPHTM-C97JM-9MPGT-3V66T</Key>
@@ -28,6 +58,24 @@
 				<AcceptEula>true</AcceptEula>
 			</UserData>
 			<UseConfigurationSet>false</UseConfigurationSet>
+			<RunSynchronous>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>1</Order>
+					<Path>cmd.exe /c "&gt;&gt;"X:\diskpart.txt" (echo:REM Select disk 0 (assumes primary drive^)&amp;echo:SELECT DISK 0&amp;echo:DETAIL DISK&amp;echo:CLEAN&amp;echo:CONVERT GPT&amp;echo:CREATE PARTITION EFI SIZE=500&amp;echo:FORMAT QUICK FS=FAT32 LABEL=^"System^")"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>2</Order>
+					<Path>cmd.exe /c "&gt;&gt;"X:\diskpart.txt" (echo:CREATE PARTITION MSR SIZE=128&amp;echo:CREATE PARTITION PRIMARY&amp;echo:SHRINK MINIMUM=1000&amp;echo:FORMAT QUICK FS=NTFS LABEL=^"OS^"&amp;echo:SELECT PARTITION 3&amp;echo:ASSIGN LETTER=C&amp;echo:CREATE PARTITION PRIMARY)"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>3</Order>
+					<Path>cmd.exe /c "&gt;&gt;"X:\diskpart.txt" (echo:FORMAT QUICK FS=NTFS LABEL=^"Recovery^"&amp;echo:SET ID=^"de94bba4-06d1-4d40-a16a-bfd50179d6ac^"&amp;echo:GPT ATTRIBUTES=0x8000000000000001&amp;echo:LIST PARTITION&amp;echo:EXIT)"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>4</Order>
+					<Path>cmd.exe /c "diskpart.exe /s "X:\diskpart.txt" &gt;&gt;"X:\diskpart.log" || ( type "X:\diskpart.log" &amp; echo diskpart encountered an error. &amp; pause &amp; exit /b 1 )"</Path>
+				</RunSynchronousCommand>
+			</RunSynchronous>
 		</component>
 	</settings>
 	<settings pass="generalize"></settings>
@@ -44,11 +92,11 @@
 			<RunSynchronous>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>1</Order>
-					<Path>powershell.exe -WindowStyle Hidden -NoProfile -Command "$xml = [xml]::new(); $xml.Load('C:\Windows\Panther\unattend.xml'); $sb = [scriptblock]::Create( $xml.unattend.Extensions.ExtractScript ); Invoke-Command -ScriptBlock $sb -ArgumentList $xml;"</Path>
+					<Path>powershell.exe -WindowStyle Normal -NoProfile -Command "$xml = [xml]::new(); $xml.Load('C:\Windows\Panther\unattend.xml'); $sb = [scriptblock]::Create( $xml.unattend.Extensions.ExtractScript ); Invoke-Command -ScriptBlock $sb -ArgumentList $xml;"</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>2</Order>
-					<Path>powershell.exe -WindowStyle Hidden -NoProfile -Command "Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\Specialize.ps1' -Raw | Invoke-Expression;"</Path>
+					<Path>powershell.exe -WindowStyle Normal -NoProfile -Command "Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\Specialize.ps1' -Raw | Invoke-Expression;"</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>3</Order>
@@ -56,7 +104,7 @@
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>4</Order>
-					<Path>powershell.exe -WindowStyle Hidden -NoProfile -Command "Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\DefaultUser.ps1' -Raw | Invoke-Expression;"</Path>
+					<Path>powershell.exe -WindowStyle Normal -NoProfile -Command "Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\DefaultUser.ps1' -Raw | Invoke-Expression;"</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>5</Order>
@@ -68,11 +116,11 @@
 			<RunSynchronous>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>1</Order>
-					<Path>powershell.exe -WindowStyle Hidden -NoProfile -Command "$xml = [xml]::new(); $xml.Load('C:\Windows\Panther\unattend.xml'); $sb = [scriptblock]::Create( $xml.unattend.Extensions.ExtractScript ); Invoke-Command -ScriptBlock $sb -ArgumentList $xml;"</Path>
+					<Path>powershell.exe -WindowStyle Normal -NoProfile -Command "$xml = [xml]::new(); $xml.Load('C:\Windows\Panther\unattend.xml'); $sb = [scriptblock]::Create( $xml.unattend.Extensions.ExtractScript ); Invoke-Command -ScriptBlock $sb -ArgumentList $xml;"</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>2</Order>
-					<Path>powershell.exe -WindowStyle Hidden -NoProfile -Command "Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\Specialize.ps1' -Raw | Invoke-Expression;"</Path>
+					<Path>powershell.exe -WindowStyle Normal -NoProfile -Command "Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\Specialize.ps1' -Raw | Invoke-Expression;"</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>3</Order>
@@ -80,7 +128,7 @@
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>4</Order>
-					<Path>powershell.exe -WindowStyle Hidden -NoProfile -Command "Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\DefaultUser.ps1' -Raw | Invoke-Expression;"</Path>
+					<Path>powershell.exe -WindowStyle Normal -NoProfile -Command "Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\DefaultUser.ps1' -Raw | Invoke-Expression;"</Path>
 				</RunSynchronousCommand>
 				<RunSynchronousCommand wcm:action="add">
 					<Order>5</Order>
@@ -105,30 +153,72 @@
 			<UserLocale>en-US</UserLocale>
 		</component>
 		<component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+			<UserAccounts>
+				<LocalAccounts>
+					<LocalAccount wcm:action="add">
+						<Name>Denkoadmin</Name>
+						<DisplayName></DisplayName>
+						<Group>Administrators</Group>
+						<Password>
+							<Value></Value>
+							<PlainText>true</PlainText>
+						</Password>
+					</LocalAccount>
+				</LocalAccounts>
+			</UserAccounts>
+			<AutoLogon>
+				<Username>Denkoadmin</Username>
+				<Enabled>true</Enabled>
+				<LogonCount>1</LogonCount>
+				<Password>
+					<Value></Value>
+					<PlainText>true</PlainText>
+				</Password>
+			</AutoLogon>
 			<OOBE>
 				<ProtectYourPC>3</ProtectYourPC>
 				<HideEULAPage>true</HideEULAPage>
-				<HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
-				<HideOnlineAccountScreens>true</HideOnlineAccountScreens>
+				<HideOnlineAccountScreens>false</HideOnlineAccountScreens>
 			</OOBE>
 			<FirstLogonCommands>
 				<SynchronousCommand wcm:action="add">
 					<Order>1</Order>
-					<CommandLine>powershell.exe -WindowStyle Hidden -NoProfile -Command "Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\FirstLogon.ps1' -Raw | Invoke-Expression;"</CommandLine>
+					<CommandLine>powershell.exe -WindowStyle Normal -NoProfile -Command "Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\FirstLogon.ps1' -Raw | Invoke-Expression;"</CommandLine>
 				</SynchronousCommand>
 			</FirstLogonCommands>
 		</component>
 		<component name="Microsoft-Windows-Shell-Setup" processorArchitecture="arm64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+			<UserAccounts>
+				<LocalAccounts>
+					<LocalAccount wcm:action="add">
+						<Name>Denkoadmin</Name>
+						<DisplayName></DisplayName>
+						<Group>Administrators</Group>
+						<Password>
+							<Value></Value>
+							<PlainText>true</PlainText>
+						</Password>
+					</LocalAccount>
+				</LocalAccounts>
+			</UserAccounts>
+			<AutoLogon>
+				<Username>Denkoadmin</Username>
+				<Enabled>true</Enabled>
+				<LogonCount>1</LogonCount>
+				<Password>
+					<Value></Value>
+					<PlainText>true</PlainText>
+				</Password>
+			</AutoLogon>
 			<OOBE>
 				<ProtectYourPC>3</ProtectYourPC>
 				<HideEULAPage>true</HideEULAPage>
-				<HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
-				<HideOnlineAccountScreens>true</HideOnlineAccountScreens>
+				<HideOnlineAccountScreens>false</HideOnlineAccountScreens>
 			</OOBE>
 			<FirstLogonCommands>
 				<SynchronousCommand wcm:action="add">
 					<Order>1</Order>
-					<CommandLine>powershell.exe -WindowStyle Hidden -NoProfile -Command "Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\FirstLogon.ps1' -Raw | Invoke-Expression;"</CommandLine>
+					<CommandLine>powershell.exe -WindowStyle Normal -NoProfile -Command "Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\FirstLogon.ps1' -Raw | Invoke-Expression;"</CommandLine>
 				</SynchronousCommand>
 			</FirstLogonCommands>
 		</component>
@@ -155,8 +245,8 @@ foreach( $file in $Document.unattend.Extensions.File ) {
 # Get the serialnumber of the machine via the CIMinstance cmdlet
 $serial = (Get-CimInstance Win32_BIOS).SerialNumber
 
-# Format the serialnumber to give back the last 5 characters prefixed with 'PC-'
-return 'PC-{0}' -f $serial.Substring($serial.Length - 5)
+# Format the serialnumber to give back the last 4 characters prefixed with 'PC-'
+return 'PC-{0}' -f $serial.Substring($serial.Length - 4)
 		</File>
 		<File path="C:\Windows\Setup\Scripts\SetComputerName.ps1">
 $ErrorActionPreference = 'Stop';
@@ -188,19 +278,17 @@ Set-StrictMode -Version 'Latest';
 		}
 		Start-Sleep -Milliseconds 50;
 	}
-} *&gt;&amp;1 | Out-String -Stream &gt;&gt; 'C:\Windows\Setup\Scripts\SetComputerName.log';
+} *&gt;&amp;1 &gt;&gt; 'C:\Windows\Setup\Scripts\SetComputerName.log';
 		</File>
 		<File path="C:\Windows\Setup\Scripts\RemovePackages.ps1">
 $selectors = @(
 	'Microsoft.Microsoft3DViewer';
 	'Microsoft.BingSearch';
 	'Clipchamp.Clipchamp';
-	'Microsoft.Copilot';
 	'Microsoft.549981C3F5F10';
 	'Microsoft.Windows.DevHome';
 	'MicrosoftCorporationII.MicrosoftFamily';
 	'Microsoft.WindowsFeedbackHub';
-	'Microsoft.Edge.GameAssist';
 	'Microsoft.Getstarted';
 	'microsoft.windowscommunicationsapps';
 	'Microsoft.WindowsMaps';
@@ -208,7 +296,6 @@ $selectors = @(
 	'Microsoft.BingNews';
 	'Microsoft.Office.OneNote';
 	'Microsoft.OutlookForWindows';
-	'Microsoft.MSPaint';
 	'Microsoft.People';
 	'Microsoft.SkypeApp';
 	'Microsoft.MicrosoftSolitaireCollection';
@@ -265,7 +352,7 @@ $logfile = 'C:\Windows\Setup\Scripts\RemovePackages.log';
 		}
 		$result | ConvertTo-Json -Depth 3 -Compress;
 	}
-} *&gt;&amp;1 | Out-String -Stream &gt;&gt; $logfile;
+} *&gt;&amp;1 &gt;&gt; $logfile;
 		</File>
 		<File path="C:\Windows\Setup\Scripts\RemoveCapabilities.ps1">
 $selectors = @(
@@ -318,7 +405,7 @@ $logfile = 'C:\Windows\Setup\Scripts\RemoveCapabilities.log';
 		}
 		$result | ConvertTo-Json -Depth 3 -Compress;
 	}
-} *&gt;&amp;1 | Out-String -Stream &gt;&gt; $logfile;
+} *&gt;&amp;1 &gt;&gt; $logfile;
 		</File>
 		<File path="C:\Windows\Setup\Scripts\RemoveFeatures.ps1">
 $selectors = @(
@@ -367,7 +454,76 @@ $logfile = 'C:\Windows\Setup\Scripts\RemoveFeatures.log';
 		}
 		$result | ConvertTo-Json -Depth 3 -Compress;
 	}
-} *&gt;&amp;1 | Out-String -Stream &gt;&gt; $logfile;
+} *&gt;&amp;1 &gt;&gt; $logfile;
+		</File>
+		<File path="C:\Windows\Setup\Scripts\Wifi.xml">
+&lt;WLANProfile xmlns="http://www.microsoft.com/networking/WLAN/profile/v1"&gt;
+	&lt;name&gt;Denko TD&lt;/name&gt;
+	&lt;SSIDConfig&gt;
+		&lt;SSID&gt;
+			&lt;hex&gt;44656E6B6F205444&lt;/hex&gt;
+			&lt;name&gt;Denko TD&lt;/name&gt;
+		&lt;/SSID&gt;
+	&lt;/SSIDConfig&gt;
+	&lt;connectionType&gt;ESS&lt;/connectionType&gt;
+	&lt;connectionMode&gt;auto&lt;/connectionMode&gt;
+	&lt;MSM&gt;
+		&lt;security&gt;
+			&lt;authEncryption&gt;
+				&lt;authentication&gt;WPA3SAE&lt;/authentication&gt;
+				&lt;encryption&gt;AES&lt;/encryption&gt;
+				&lt;useOneX&gt;false&lt;/useOneX&gt;
+				&lt;transitionMode xmlns="http://www.microsoft.com/networking/WLAN/profile/v4"&gt;true&lt;/transitionMode&gt;
+			&lt;/authEncryption&gt;
+			&lt;sharedKey&gt;
+				&lt;keyType&gt;passPhrase&lt;/keyType&gt;
+				&lt;protected&gt;false&lt;/protected&gt;
+				&lt;keyMaterial&gt;helpdesk4werkbank&lt;/keyMaterial&gt;
+			&lt;/sharedKey&gt;
+		&lt;/security&gt;
+	&lt;/MSM&gt;
+	&lt;MacRandomization xmlns="http://www.microsoft.com/networking/WLAN/profile/v3"&gt;
+		&lt;enableRandomization&gt;false&lt;/enableRandomization&gt;
+		&lt;randomizationSeed&gt;3632885686&lt;/randomizationSeed&gt;
+	&lt;/MacRandomization&gt;
+&lt;/WLANProfile&gt;
+		</File>
+		<File path="C:\Windows\Setup\Scripts\SetStartPins.ps1">
+$json = '{
+  "pinnedList": [
+    {
+      "desktopAppLink": "%ALLUSERSPROFILE%\\Microsoft\\Windows\\Start Menu\\Programs\\Microsoft Edge.lnk"
+    },
+    {
+      "desktopAppLink": "%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\File Explorer.lnk"
+    },
+    {
+      "packagedAppId": "windows.immersivecontrolpanel_cw5n1h2txyewy!microsoft.windows.immersivecontrolpanel"
+    }
+  ]
+}';
+if( [System.Environment]::OSVersion.Version.Build -lt 20000 ) {
+	return;
+}
+$key = 'Registry::HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\Start';
+New-Item -Path $key -ItemType 'Directory' -ErrorAction 'SilentlyContinue';
+Set-ItemProperty -LiteralPath $key -Name 'ConfigureStartPins' -Value $json -Type 'String';
+		</File>
+		<File path="C:\Users\Default\AppData\Local\Microsoft\Windows\Shell\LayoutModification.xml">
+&lt;LayoutModificationTemplate xmlns:defaultlayout="http://schemas.microsoft.com/Start/2014/FullDefaultLayout" xmlns:start="http://schemas.microsoft.com/Start/2014/StartLayout" Version="1" xmlns="http://schemas.microsoft.com/Start/2014/LayoutModification"&gt;
+	&lt;LayoutOptions StartTileGroupCellWidth="6" /&gt;
+	&lt;DefaultLayoutOverride&gt;
+		&lt;StartLayoutCollection&gt;
+			&lt;defaultlayout:StartLayout GroupCellWidth="6"&gt;
+				&lt;start:Group Name=""&gt;
+					&lt;start:Tile Size="2x2" Column="4" Row="0" AppUserModelID="windows.immersivecontrolpanel_cw5n1h2txyewy!microsoft.windows.immersivecontrolpanel" /&gt;
+					&lt;start:DesktopApplicationTile Size="2x2" Column="0" Row="0" DesktopApplicationLinkPath="%ALLUSERSPROFILE%\Microsoft\Windows\Start Menu\Programs\Microsoft Edge.lnk" /&gt;
+					&lt;start:DesktopApplicationTile Size="2x2" Column="2" Row="0" DesktopApplicationLinkPath="%APPDATA%\Microsoft\Windows\Start Menu\Programs\System Tools\File Explorer.lnk" /&gt;
+				&lt;/start:Group&gt;
+			&lt;/defaultlayout:StartLayout&gt;
+		&lt;/StartLayoutCollection&gt;
+	&lt;/DefaultLayoutOverride&gt;
+&lt;/LayoutModificationTemplate&gt;
 		</File>
 		<File path="C:\Windows\Setup\Scripts\SetColorTheme.ps1">
 $lightThemeSystem = 0;
@@ -423,7 +579,37 @@ $htmlAccentColor = '#0078D4';
 };
 		</File>
 		<File path="C:\Windows\Setup\Scripts\unattend-01.ps1">
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "iex(irm windeploy.stensel.nl)"
+# Run each script in separate process to isolate exit commands
+Write-Host "[1/3] Installing Winget..." -ForegroundColor Cyan
+Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass -Command `"irm 'https://raw.githubusercontent.com/Stensel8/DenkoICT/refs/heads/main/Scripts/ps_Install-Winget.ps1' | iex`"" -Wait -WindowStyle Hidden
+
+Write-Host "[2/3] Installing Applications..." -ForegroundColor Cyan
+Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass -Command `"irm 'https://raw.githubusercontent.com/Stensel8/DenkoICT/refs/heads/main/Scripts/ps_InstallApplications.ps1' | iex`"" -Wait -WindowStyle Hidden
+
+Write-Host "[3/3] Installing Drivers..." -ForegroundColor Cyan
+Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass -Command `"irm 'https://raw.githubusercontent.com/Stensel8/DenkoICT/refs/heads/main/Scripts/ps_InstallDrivers.ps1' | iex`"" -Wait -WindowStyle Hidden
+		</File>
+		<File path="C:\Windows\Setup\Scripts\unattend-02.ps1">
+# Run each script in separate process to isolate exit commands
+Write-Host "[1/3] Installing Winget..." -ForegroundColor Cyan
+Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass -Command `"irm 'https://raw.githubusercontent.com/Stensel8/DenkoICT/refs/heads/main/Scripts/ps_Install-Winget.ps1' | iex`"" -Wait -WindowStyle Hidden
+
+Write-Host "[2/3] Installing Applications..." -ForegroundColor Cyan
+Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass -Command `"irm 'https://raw.githubusercontent.com/Stensel8/DenkoICT/refs/heads/main/Scripts/ps_InstallApplications.ps1' | iex`"" -Wait -WindowStyle Hidden
+
+Write-Host "[3/3] Installing Drivers..." -ForegroundColor Cyan
+Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass -Command `"irm 'https://raw.githubusercontent.com/Stensel8/DenkoICT/refs/heads/main/Scripts/ps_InstallDrivers.ps1' | iex`"" -Wait -WindowStyle Hidden
+		</File>
+		<File path="C:\Windows\Setup\Scripts\unattend-03.ps1">
+# Run each script in separate process to isolate exit commands
+Write-Host "[1/3] Installing Winget..." -ForegroundColor Cyan
+Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass -Command `"irm 'https://raw.githubusercontent.com/Stensel8/DenkoICT/refs/heads/main/Scripts/ps_Install-Winget.ps1' | iex`"" -Wait -WindowStyle Hidden
+
+Write-Host "[2/3] Installing Applications..." -ForegroundColor Cyan
+Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass -Command `"irm 'https://raw.githubusercontent.com/Stensel8/DenkoICT/refs/heads/main/Scripts/ps_InstallApplications.ps1' | iex`"" -Wait -WindowStyle Hidden
+
+Write-Host "[3/3] Installing Drivers..." -ForegroundColor Cyan
+Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass -Command `"irm 'https://raw.githubusercontent.com/Stensel8/DenkoICT/refs/heads/main/Scripts/ps_InstallDrivers.ps1' | iex`"" -Wait -WindowStyle Hidden
 		</File>
 		<File path="C:\Windows\Setup\Scripts\Specialize.ps1">
 $scripts = @(
@@ -448,6 +634,12 @@ $scripts = @(
 		Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\RemoveFeatures.ps1' -Raw | Invoke-Expression;
 	};
 	{
+		netsh.exe wlan add profile filename="C:\Windows\Setup\Scripts\Wifi.xml" user=all;
+	};
+	{
+		netsh.exe wlan connect name="Denko TD" ssid="Denko TD";
+	};
+	{
 		net.exe accounts /maxpwage:UNLIMITED;
 	};
 	{
@@ -470,7 +662,13 @@ $scripts = @(
 		reg.exe add "HKLM\Software\Policies\Microsoft\Edge\Recommended" /v StartupBoostEnabled /t REG_DWORD /d 0 /f;
 	};
 	{
+		Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\SetStartPins.ps1' -Raw | Invoke-Expression;
+	};
+	{
 		reg.exe add "HKU\.DEFAULT\Control Panel\Accessibility\StickyKeys" /v Flags /t REG_SZ /d 10 /f;
+	};
+	{
+		Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\unattend-01.ps1' -Raw | Invoke-Expression;
 	};
 );
 
@@ -494,7 +692,7 @@ $scripts = @(
     "`r`n" * 3;
     $complete += $increment;
   }
-} *&gt;&amp;1 | Out-String -Stream &gt;&gt; "C:\Windows\Setup\Scripts\Specialize.log";
+} *&gt;&amp;1 &gt;&gt; "C:\Windows\Setup\Scripts\Specialize.log";
 		</File>
 		<File path="C:\Windows\Setup\Scripts\UserOnce.ps1">
 $scripts = @(
@@ -547,6 +745,9 @@ $scripts = @(
 		Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\SetColorTheme.ps1' -Raw | Invoke-Expression;
 	};
 	{
+		Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\unattend-03.ps1' -Raw | Invoke-Expression;
+	};
+	{
 		Get-Process -Name 'explorer' -ErrorAction 'SilentlyContinue' | Where-Object -FilterScript {
 			$_.SessionId -eq ( Get-Process -Id $PID ).SessionId;
 		} | Stop-Process -Force;
@@ -573,7 +774,7 @@ $scripts = @(
     "`r`n" * 3;
     $complete += $increment;
   }
-} *&gt;&amp;1 | Out-String -Stream &gt;&gt; "$env:TEMP\UserOnce.log";
+} *&gt;&amp;1 &gt;&gt; "$env:TEMP\UserOnce.log";
 		</File>
 		<File path="C:\Windows\Setup\Scripts\DefaultUser.ps1">
 $scripts = @(
@@ -588,6 +789,12 @@ $scripts = @(
 	};
 	{
 		reg.exe add "HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "HideFileExt" /t REG_DWORD /d 0 /f;
+	};
+	{
+		reg.exe add "HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "Hidden" /t REG_DWORD /d 1 /f;
+	};
+	{
+		reg.exe add "HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "ShowSuperHidden" /t REG_DWORD /d 1 /f;
 	};
 	{
 		$names = @(
@@ -615,15 +822,7 @@ $scripts = @(
 		}
 	};
 	{
-		foreach( $root in 'Registry::HKU\.DEFAULT', 'Registry::HKU\DefaultUser' ) {
-		  Set-ItemProperty -LiteralPath "$root\Control Panel\Keyboard" -Name 'InitialKeyboardIndicators' -Type 'String' -Value 2 -Force;
-		}
-	};
-	{
 		reg.exe add "HKU\DefaultUser\Software\Policies\Microsoft\Windows\Explorer" /v DisableSearchBoxSuggestions /t REG_DWORD /d 1 /f;
-	};
-	{
-		reg.exe add "HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings" /v TaskbarEndTask /t REG_DWORD /d 1 /f;
 	};
 	{
 		reg.exe add "HKU\DefaultUser\Control Panel\Accessibility\StickyKeys" /v Flags /t REG_SZ /d 10 /f;
@@ -632,7 +831,7 @@ $scripts = @(
 		reg.exe add "HKU\DefaultUser\Software\Microsoft\Windows\DWM" /v ColorPrevalence /t REG_DWORD /d 0 /f;
 	};
 	{
-		reg.exe add "HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\RunOnce" /v "UnattendedSetup" /t REG_SZ /d "powershell.exe -WindowStyle Hidden -NoProfile -Command \""Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\UserOnce.ps1' -Raw | Invoke-Expression;\""" /f;
+		reg.exe add "HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\RunOnce" /v "UnattendedSetup" /t REG_SZ /d "powershell.exe -WindowStyle Normal -NoProfile -Command \""Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\UserOnce.ps1' -Raw | Invoke-Expression;\""" /f;
 	};
 );
 
@@ -656,22 +855,18 @@ $scripts = @(
     "`r`n" * 3;
     $complete += $increment;
   }
-} *&gt;&amp;1 | Out-String -Stream &gt;&gt; "C:\Windows\Setup\Scripts\DefaultUser.log";
+} *&gt;&amp;1 &gt;&gt; "C:\Windows\Setup\Scripts\DefaultUser.log";
 		</File>
 		<File path="C:\Windows\Setup\Scripts\FirstLogon.ps1">
 $scripts = @(
 	{
+		Set-ItemProperty -LiteralPath 'Registry::HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -Name 'AutoLogonCount' -Type 'DWord' -Force -Value 0;
+	};
+	{
 		cmd.exe /c "rmdir C:\Windows.old";
 	};
 	{
-		Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\unattend-01.ps1' -Raw | Invoke-Expression;
-	};
-	{
-		Remove-Item -LiteralPath @(
-		  'C:\Windows\Panther\unattend.xml';
-		  'C:\Windows\Panther\unattend-original.xml';
-		  'C:\Windows\Setup\Scripts\Wifi.xml';
-		) -Force -ErrorAction 'SilentlyContinue' -Verbose;
+		Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\unattend-02.ps1' -Raw | Invoke-Expression;
 	};
 );
 
@@ -695,7 +890,7 @@ $scripts = @(
     "`r`n" * 3;
     $complete += $increment;
   }
-} *&gt;&amp;1 | Out-String -Stream &gt;&gt; "C:\Windows\Setup\Scripts\FirstLogon.log";
+} *&gt;&amp;1 &gt;&gt; "C:\Windows\Setup\Scripts\FirstLogon.log";
 		</File>
 	</Extensions>
 </unattend>
