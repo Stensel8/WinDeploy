@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State">
-	<!--https://schneegans.de/windows/unattend-generator/?LanguageMode=Unattended&UILanguage=nl-NL&Locale=en-US&Keyboard=00020409&GeoLocation=176&ProcessorArchitecture=amd64&ProcessorArchitecture=arm64&HidePowerShellWindows=true&ComputerNameMode=Script&ComputerNameScript=%23+Get+the+serialnumber+of+the+machine+via+the+CIMinstance+cmdlet%0D%0A%24serial+%3D+%28Get-CimInstance+Win32_BIOS%29.SerialNumber%0D%0A%0D%0A%23+Format+the+serialnumber+to+give+back+the+last+5+characters+prefixed+with+%27PC-%27%0D%0Areturn+%27PC-%7B0%7D%27+-f+%24serial.Substring%28%24serial.Length+-+5%29%0D%0A&CompactOsMode=Default&TimeZoneMode=Explicit&TimeZone=W.+Europe+Standard+Time&PartitionMode=Interactive&DiskAssertionMode=Skip&WindowsEditionMode=Generic&WindowsEdition=pro&InstallFromMode=Automatic&PEMode=Default&UserAccountMode=InteractiveLocal&PasswordExpirationMode=Unlimited&LockoutMode=Default&HideFiles=Hidden&ShowFileExtensions=true&LaunchToThisPC=true&ShowEndTask=true&TaskbarSearch=Label&TaskbarIconsMode=Default&DisableWidgets=true&DisableBingResults=true&StartTilesMode=Default&StartPinsMode=Default&EnableLongPaths=true&DisableLastAccess=true&DisableAppSuggestions=true&HideEdgeFre=true&DisableEdgeStartupBoost=true&DeleteWindowsOld=true&EffectsMode=Default&DesktopIconsMode=Custom&IconRecycleBin=true&IconThisPC=true&StartFoldersMode=Custom&StartFolderFileExplorer=true&StartFolderSettings=true&WifiMode=Skip&ExpressSettings=DisableAll&LockKeysMode=Configure&CapsLockInitial=Off&CapsLockBehavior=Toggle&NumLockInitial=On&NumLockBehavior=Toggle&ScrollLockInitial=Off&ScrollLockBehavior=Toggle&StickyKeysMode=Disabled&ColorMode=Custom&SystemColorTheme=Dark&AppsColorTheme=Dark&AccentColor=%230078d4&WallpaperMode=Default&LockScreenMode=Default&Remove3DViewer=true&RemoveBingSearch=true&RemoveClipchamp=true&RemoveCopilot=true&RemoveCortana=true&RemoveDevHome=true&RemoveFamily=true&RemoveFeedbackHub=true&RemoveGameAssist=true&RemoveInternetExplorer=true&RemoveMailCalendar=true&RemoveMaps=true&RemoveMediaFeatures=true&RemoveMixedReality=true&RemoveZuneVideo=true&RemoveNews=true&RemoveOneNote=true&RemoveOneSync=true&RemoveOutlook=true&RemovePaint3D=true&RemovePeople=true&RemovePowerShell2=true&RemovePowerShellISE=true&RemoveRecall=true&RemoveSkype=true&RemoveSolitaire=true&RemoveStepsRecorder=true&RemoveStickyNotes=true&RemoveGetStarted=true&RemoveToDo=true&RemoveVoiceRecorder=true&RemoveWallet=true&RemoveWeather=true&RemoveFaxAndScan=true&RemoveWindowsMediaPlayer=true&RemoveWordPad=true&RemoveXboxApps=true&RemoveYourPhone=true&FirstLogonScript0=powershell.exe+-NoProfile+-ExecutionPolicy+Bypass+-Command+%22iex%28irm+windeploy.stensel.nl%29%22%0D%0A&FirstLogonScriptType0=Ps1&WdacMode=Skip-->
+	<!--https://schneegans.de/windows/unattend-generator/?LanguageMode=Unattended&UILanguage=nl-NL&Locale=nl-NL&Keyboard=00020409&GeoLocation=176&ProcessorArchitecture=amd64&ProcessorArchitecture=arm64&HidePowerShellWindows=true&ComputerNameMode=Script&ComputerNameScript=%23+Get+the+serialnumber+of+the+machine+via+the+CIMinstance+cmdlet%0D%0A%24serial+%3D+%28Get-CimInstance+Win32_BIOS%29.SerialNumber%0D%0A%0D%0A%23+Format+the+serialnumber+to+give+back+the+last+5+characters+prefixed+with+%27PC-%27%0D%0Areturn+%27PC-%7B0%7D%27+-f+%24serial.Substring%28%24serial.Length+-+5%29%0D%0A&CompactOsMode=Default&TimeZoneMode=Explicit&TimeZone=W.+Europe+Standard+Time&PartitionMode=Interactive&DiskAssertionMode=Skip&WindowsEditionMode=Generic&WindowsEdition=pro&InstallFromMode=Automatic&PEMode=Default&UserAccountMode=Unattended&AccountName0=DenkoAdmin&AccountDisplayName0=DenkoAdmin&AccountPassword0=&AccountGroup0=Administrators&AutoLogonMode=Own&PasswordExpirationMode=Unlimited&LockoutMode=Default&HideFiles=Hidden&ShowFileExtensions=true&LaunchToThisPC=true&ShowEndTask=true&TaskbarSearch=Label&TaskbarIconsMode=Default&DisableWidgets=true&DisableBingResults=true&StartTilesMode=Default&StartPinsMode=Default&EnableLongPaths=true&DisableLastAccess=true&DisableAppSuggestions=true&HideEdgeFre=true&DisableEdgeStartupBoost=true&DeleteWindowsOld=true&EffectsMode=Default&DesktopIconsMode=Custom&IconRecycleBin=true&IconThisPC=true&StartFoldersMode=Custom&StartFolderSettings=true&WifiMode=Skip&ExpressSettings=DisableAll&LockKeysMode=Configure&CapsLockInitial=Off&CapsLockBehavior=Toggle&NumLockInitial=On&NumLockBehavior=Toggle&ScrollLockInitial=Off&ScrollLockBehavior=Toggle&StickyKeysMode=Disabled&ColorMode=Custom&SystemColorTheme=Dark&AppsColorTheme=Dark&AccentColor=%230078d4&WallpaperMode=Default&LockScreenMode=Default&Remove3DViewer=true&RemoveBingSearch=true&RemoveClipchamp=true&RemoveCopilot=true&RemoveCortana=true&RemoveDevHome=true&RemoveFamily=true&RemoveFeedbackHub=true&RemoveGameAssist=true&RemoveInternetExplorer=true&RemoveMailCalendar=true&RemoveMaps=true&RemoveMediaFeatures=true&RemoveMixedReality=true&RemoveZuneVideo=true&RemoveNews=true&RemoveOneNote=true&RemoveOneSync=true&RemoveOutlook=true&RemovePaint3D=true&RemovePeople=true&RemovePowerShell2=true&RemovePowerShellISE=true&RemoveRecall=true&RemoveSkype=true&RemoveSolitaire=true&RemoveStepsRecorder=true&RemoveStickyNotes=true&RemoveGetStarted=true&RemoveToDo=true&RemoveVoiceRecorder=true&RemoveWallet=true&RemoveWeather=true&RemoveFaxAndScan=true&RemoveWindowsMediaPlayer=true&RemoveWordPad=true&RemoveXboxApps=true&RemoveYourPhone=true&FirstLogonScript0=powershell.exe+-NoProfile+-ExecutionPolicy+Bypass+-Command+%22iex%28irm+windeploy.stensel.nl%29%22%0D%0A&FirstLogonScriptType0=Ps1&WdacMode=Skip-->
 	<settings pass="offlineServicing"></settings>
 	<settings pass="windowsPE">
 		<component name="Microsoft-Windows-International-Core-WinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
@@ -93,23 +93,45 @@
 	<settings pass="auditUser"></settings>
 	<settings pass="oobeSystem">
 		<component name="Microsoft-Windows-International-Core" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
-			<InputLocale>0409:00020409</InputLocale>
-			<SystemLocale>en-US</SystemLocale>
+			<InputLocale>0413:00020409</InputLocale>
+			<SystemLocale>nl-NL</SystemLocale>
 			<UILanguage>nl-NL</UILanguage>
-			<UserLocale>en-US</UserLocale>
+			<UserLocale>nl-NL</UserLocale>
 		</component>
 		<component name="Microsoft-Windows-International-Core" processorArchitecture="arm64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
-			<InputLocale>0409:00020409</InputLocale>
-			<SystemLocale>en-US</SystemLocale>
+			<InputLocale>0413:00020409</InputLocale>
+			<SystemLocale>nl-NL</SystemLocale>
 			<UILanguage>nl-NL</UILanguage>
-			<UserLocale>en-US</UserLocale>
+			<UserLocale>nl-NL</UserLocale>
 		</component>
 		<component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+			<UserAccounts>
+				<LocalAccounts>
+					<LocalAccount wcm:action="add">
+						<Name>DenkoAdmin</Name>
+						<DisplayName>DenkoAdmin</DisplayName>
+						<Group>Administrators</Group>
+						<Password>
+							<Value></Value>
+							<PlainText>true</PlainText>
+						</Password>
+					</LocalAccount>
+				</LocalAccounts>
+			</UserAccounts>
+			<AutoLogon>
+				<Username>DenkoAdmin</Username>
+				<Enabled>true</Enabled>
+				<LogonCount>1</LogonCount>
+				<Password>
+					<Value></Value>
+					<PlainText>true</PlainText>
+				</Password>
+			</AutoLogon>
 			<OOBE>
 				<ProtectYourPC>3</ProtectYourPC>
 				<HideEULAPage>true</HideEULAPage>
 				<HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
-				<HideOnlineAccountScreens>true</HideOnlineAccountScreens>
+				<HideOnlineAccountScreens>false</HideOnlineAccountScreens>
 			</OOBE>
 			<FirstLogonCommands>
 				<SynchronousCommand wcm:action="add">
@@ -119,11 +141,33 @@
 			</FirstLogonCommands>
 		</component>
 		<component name="Microsoft-Windows-Shell-Setup" processorArchitecture="arm64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+			<UserAccounts>
+				<LocalAccounts>
+					<LocalAccount wcm:action="add">
+						<Name>DenkoAdmin</Name>
+						<DisplayName>DenkoAdmin</DisplayName>
+						<Group>Administrators</Group>
+						<Password>
+							<Value></Value>
+							<PlainText>true</PlainText>
+						</Password>
+					</LocalAccount>
+				</LocalAccounts>
+			</UserAccounts>
+			<AutoLogon>
+				<Username>DenkoAdmin</Username>
+				<Enabled>true</Enabled>
+				<LogonCount>1</LogonCount>
+				<Password>
+					<Value></Value>
+					<PlainText>true</PlainText>
+				</Password>
+			</AutoLogon>
 			<OOBE>
 				<ProtectYourPC>3</ProtectYourPC>
 				<HideEULAPage>true</HideEULAPage>
 				<HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
-				<HideOnlineAccountScreens>true</HideOnlineAccountScreens>
+				<HideOnlineAccountScreens>false</HideOnlineAccountScreens>
 			</OOBE>
 			<FirstLogonCommands>
 				<SynchronousCommand wcm:action="add">
@@ -499,9 +543,6 @@ $scripts = @(
 		<File path="C:\Windows\Setup\Scripts\UserOnce.ps1">
 $scripts = @(
 	{
-		Set-WinHomeLocation -GeoId 176;
-	};
-	{
 		Get-AppxPackage -Name 'Microsoft.Windows.Ai.Copilot.Provider' | Remove-AppxPackage;
 	};
 	{
@@ -541,7 +582,7 @@ $scripts = @(
 		Set-ItemProperty -Path 'Registry::HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel' -Name '{a0953c92-50dc-43bf-be83-3742fed03c9c}' -Value 1 -Type 'DWord';
 	};
 	{
-		Set-ItemProperty -Path 'Registry::HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Start' -Name 'VisiblePlaces' -Value $( [convert]::FromBase64String('vCSKFAzWiUKggG7Zu6JIgoYIc1KqUUNCn3sndlhGWdQ=') ) -Type 'Binary';
+		Set-ItemProperty -Path 'Registry::HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Start' -Name 'VisiblePlaces' -Value $( [convert]::FromBase64String('hghzUqpRQ0Kfeyd2WEZZ1A==') ) -Type 'Binary';
 	};
 	{
 		Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\SetColorTheme.ps1' -Raw | Invoke-Expression;
@@ -660,6 +701,9 @@ $scripts = @(
 		</File>
 		<File path="C:\Windows\Setup\Scripts\FirstLogon.ps1">
 $scripts = @(
+	{
+		Set-ItemProperty -LiteralPath 'Registry::HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -Name 'AutoLogonCount' -Type 'DWord' -Force -Value 0;
+	};
 	{
 		cmd.exe /c "rmdir C:\Windows.old";
 	};
