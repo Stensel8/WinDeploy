@@ -120,7 +120,7 @@ foreach ($step in $deploymentSteps) {
 try {
     $fixScriptPath = Join-Path $dlRoot "Fix-Spotlight.ps1"
     Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/Scripts/Archived/Fix-Spotlight.ps1" -OutFile $fixScriptPath -UseBasicParsing -ErrorAction Stop
-    Write-DeployLog "Downloaded Fix-Spotlight.ps1 to $fixScriptPath"
+    Write-DeployLog "Downloaded Fix-Spotlight.ps1 to $fixScriptPath as an optional script to fix missing Spotlight options on the system."
 } catch {
     Write-DeployLog "Optional: Could not download Fix-Spotlight.ps1: $_"
 }
