@@ -44,14 +44,6 @@ iex (irm windeploy.stensel.nl)
 
 ---
 
-## Project Structure
-
-- [AUTO] **Auto-run during deployment** - Executed automatically by `Start.ps1`
-- [DOCS] **Documentation files** - Guides and references
-- [ARCHIVED] **Archived scripts** - Not used in auto-deployment, but available to run manually
-
----
-
 ## How It Works
 
 ```mermaid
