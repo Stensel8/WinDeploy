@@ -49,7 +49,7 @@ iex(irm windeploy.stensel.nl)
 
 - [AUTO] **Auto-run during deployment** - Executed automatically by `Start.ps1`
 - [DOCS] **Documentation files** - Guides and references
-- [ARCHIVED] **Archived scripts** - No longer used in deployment
+- [ARCHIVED] **Archived scripts** - Not used in auto-deployment, but available to run manually
 
 ---
 
