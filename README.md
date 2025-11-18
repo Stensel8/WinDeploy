@@ -36,19 +36,11 @@ Zero-touch Windows deployment with automatic driver updates, application install
 iex (irm "https://raw.githubusercontent.com/Stensel8/WinDeploy/$((irm https://api.github.com/repos/Stensel8/WinDeploy/releases/latest).tag_name)/Scripts/Start.ps1")
 ```
 
-### Option 3: Fastest method (one-liner)
+### Option 3: Fastest method (Existing or fresh installs - one-liner)
 ```powershell
 # Run as Administrator in PowerShell 7
 iex (irm windeploy.stensel.nl)
 ```
-
----
-
-## Project Structure
-
-- [AUTO] **Auto-run during deployment** - Executed automatically by `Start.ps1`
-- [DOCS] **Documentation files** - Guides and references
-- [ARCHIVED] **Archived scripts** - Not used in auto-deployment, but available to run manually
 
 ---
 

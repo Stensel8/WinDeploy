@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.5.3] - 2025-11-18
+
+### Fixed
+- Fixed PowerShell 7 path refresh issue after installation by hardcoding `$env:ProgramFiles\PowerShell\7\pwsh.exe` to ensure correct executable usage.
+- Fixed: Autounatend scripts not shown in some scenarios.
+
 ## [0.5.2] - 2025-11-18
 
 ### Added
@@ -78,6 +84,7 @@ First open-source release of WinDeploy - Windows Deployment Automation Toolkit. 
 
 ---
 
+[0.5.3]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.3
 [0.5.2]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.2
 [0.5.0]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.0
 [0.1.2]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.1.2
