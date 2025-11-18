@@ -1,6 +1,21 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Continue'
 
+# Fetch the latest release tag for downloading scripts
+$releaseTag = $null
+try {
+    $latestRelease = Invoke-RestMethod -Uri "https://api.github.com/repos/Stensel8/WinDeploy/releases/latest" -ErrorAction SilentlyContinue
+    if ($latestRelease.tag_name) {
+        $releaseTag = $latestRelease.tag_name
+    }
+} catch {
+    # Ignore
+}
+if (!$releaseTag) {
+    Write-DeployLog "Failed to fetch latest release tag. Cannot proceed." -IsError
+    exit 1
+}
+
 Function Write-DeployLog {
     param(
         [string]$Message,
@@ -82,7 +97,7 @@ foreach ($step in $deploymentSteps) {
     $localPath = Join-Path $dlRoot $step.ScriptName
     $scriptAvailable = $false
     try {
-        Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/main/Scripts/Deployment/$($step.ScriptName)" -OutFile $localPath -UseBasicParsing -ErrorAction Stop
+        Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/Scripts/Deployment/$($step.ScriptName)" -OutFile $localPath -UseBasicParsing -ErrorAction Stop
         Write-DeployLog "Downloaded $($step.ScriptName) to $localPath"
         $scriptAvailable = $true
     } catch {
