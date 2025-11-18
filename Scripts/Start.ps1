@@ -68,6 +68,18 @@ function Install-Pwsh7 {
     exit 1
 }
 
+# Helper: return the pwsh.exe path if installed, without calling installers
+function Get-Pwsh7Path {
+    $pwshPaths = @(
+        "$env:ProgramFiles\PowerShell\7\pwsh.exe",
+        "${env:ProgramFiles(x86)}\PowerShell\7\pwsh.exe"
+    )
+    foreach ($path in $pwshPaths) {
+        if (Test-Path $path) { return $path }
+    }
+    return $null
+}
+
 # Helper: ensure WinGet present (optional, since deploy.ps1 may use it)
 function Install-WinGet {
     if (Get-Command winget -ErrorAction SilentlyContinue) { return }
@@ -88,7 +100,11 @@ function Install-WinGet {
 
 # Elevate if needed
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    $psz = Install-Pwsh7
+    $pwshExePath = Get-Pwsh7Path
+    if (-not $pwshExePath) {
+        $pwshExePath = Install-Pwsh7
+    }
+    if ($pwshExePath -is [array]) { $pwshExePath = $pwshExePath[0] }
     $versionArgs = ""
     if ($VersionTag) { $versionArgs = "-VersionTag '$VersionTag'" }
     $scriptPath = $PSCommandPath
@@ -102,7 +118,7 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
             exit 1
         }
     }
-    Start-Process -FilePath $psz -ArgumentList "-ExecutionPolicy Bypass -NoProfile -File `"$scriptPath`" $versionArgs" -Verb RunAs
+    Start-Process -FilePath $pwshExePath -ArgumentList "-ExecutionPolicy Bypass -NoProfile -File `"$scriptPath`" $versionArgs" -Verb RunAs
     exit
 }
 
@@ -115,7 +131,11 @@ if (!(Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir -Force | 
 $logFile = Join-Path $logDir "Start.log"
 Start-Transcript -Path $logFile -Append -NoClobber
 
-$psz = Install-Pwsh7
+$pwshExePath = Get-Pwsh7Path
+if (-not $pwshExePath -or $pwshExePath -is [array]) {
+    $pwshExePath = Install-Pwsh7
+}
+if ($pwshExePath -is [array]) { $pwshExePath = $pwshExePath[0] }
 Install-WinGet
 
 # Ensure directories exist
@@ -144,5 +164,6 @@ try {
 
 # Re-launch deployment in PowerShell 7 (always, so deployment logic can be simple)
 Write-Output "Starting Deploy.ps1 with PowerShell 7"
-Start-Process -FilePath $psz -ArgumentList "-ExecutionPolicy Bypass -NoProfile -File `"$deployPath`"" -Wait -NoNewWindow
+if ($pwshExePath -is [array]) { $pwshExePath = $pwshExePath[0] }
+Start-Process -FilePath $pwshExePath -ArgumentList "-ExecutionPolicy Bypass -NoProfile -File `"$deployPath`"" -Wait -NoNewWindow
 Stop-Transcript
