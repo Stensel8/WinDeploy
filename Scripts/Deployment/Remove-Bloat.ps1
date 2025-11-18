@@ -40,7 +40,7 @@ $BloatwareList = @(
     # Microsoft News, Weather, and Information
     "Microsoft.BingNews", "Microsoft.BingWeather", "Microsoft.BingFinance",
     "Microsoft.BingHealthAndFitness", "Microsoft.BingSports", "Microsoft.BingTranslator",
-    "Microsoft.News", "Microsoft.Start", "Microsoft.BingSearch", "Microsoft.WebExperiencePack",
+    "Microsoft.News", "Microsoft.Start", "Microsoft.BingSearch", # "Microsoft.WebExperiencePack",  # Removed to preserve Windows Spotlight
     "Microsoft.549981C3F5F10",
 
     # Microsoft AI and Assistant
@@ -102,16 +102,17 @@ try {
     # Prevent reinstall - fixed registry path and added more policies
     Write-DeployLog "Setting anti-reinstall..."
     $RegPaths = @(
-        @{
-            Path = 'HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent'
-            Value = 'DisableWindowsConsumerFeatures'
-            Data = 1
-        },
-        @{
-            Path = 'HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent'
-            Value = 'DisableConsumerFeaturesThroughWindowsUpdates'
-            Data = 1
-        },
+        # Removed DisableWindowsConsumerFeatures and DisableConsumerFeaturesThroughWindowsUpdates to preserve Windows Spotlight
+        # @{
+        #     Path = 'HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent'
+        #     Value = 'DisableWindowsConsumerFeatures'
+        #     Data = 1
+        # },
+        # @{
+        #     Path = 'HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent'
+        #     Value = 'DisableConsumerFeaturesThroughWindowsUpdates'
+        #     Data = 1
+        # },
         @{
             Path = 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
             Value = 'Start_IrisRecommendations'

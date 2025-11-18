@@ -47,50 +47,6 @@ iex(irm windeploy.stensel.nl)
 
 ## Project Structure
 
-```
-WinDeploy/
-├── Scripts/
-│   ├── Start.ps1                         # [AUTO] Main entry point
-│   ├── Deploy.ps1                        # [AUTO] Deployment manager
-│   ├── autounattend.xml                  # [AUTO] Unattended Windows installation config
-│   │
-│   ├── Archived/
-│   │   ├── Get-InstalledSoftware.ps1     # [ARCHIVED] Lists installed software
-│   │   └── Get-IntuneHash.ps1            # [ARCHIVED] Generates Autopilot device hash for Intune
-│   │
-│   ├── Deployment/
-│   │   ├── Disable-AutoRun.ps1           # [AUTO] Disables AutoRun for security purposes
-│   │   ├── Install-Applications.ps1      # [AUTO] WinGet application installer
-│   │   ├── Install-Drivers.ps1           # [AUTO] Dell/HP driver automation
-│   │   ├── Install-RMMAgent.ps1          # [AUTO] RMM agent installation
-│   │   ├── Install-WindowsUpdates.ps1    # [AUTO] Windows Update automation
-│   │   ├── Remove-Bloat.ps1              # [AUTO] Bloatware removal
-│   │   ├── Set-HostName.ps1              # [AUTO] Hostname configuration
-│   │   ├── Set-Theme.ps1                 # [AUTO] Desktop theme configuration
-│   │   └── README.md                     # [DOCS] Deployment scripts documentation
-│   │
-│   └── Intune/
-│       └── Company branding/
-│           └── Platform scripts/
-│               ├── Install-DattoRMM-Intune.ps1
-│               └── Skip-OOBEPrivacy-Intune.ps1
-│
-├── Docs/
-│   ├── Intune-Autopilot-Setup.md         # [DOCS] Intune Autopilot setup guide
-│   ├── SupportedDellDevices.json         # [DOCS] Dell device compatibility list
-│   ├── SupportedHPDevices.json           # [DOCS] HP device compatibility list
-│   └── Intune configuration/
-│       └── intune-settings_catalog.md    # [DOCS] Intune settings catalog
-│
-├── autounattend.xml                      # [AUTO] Unattended Windows installation config
-├── README.md                             # [DOCS] Main documentation
-├── CONTRIBUTING.md                       # [DOCS] Contribution guidelines
-├── CHANGELOG.md                          # [DOCS] Version history
-├── LICENSE                               # [DOCS] MIT License
-└── VERSION                               # [DOCS] Current version
-```
-
-**Legend:**
 - [AUTO] **Auto-run during deployment** - Executed automatically by `Start.ps1`
 - [DOCS] **Documentation files** - Guides and references
 - [ARCHIVED] **Archived scripts** - No longer used in deployment
@@ -99,7 +55,6 @@ WinDeploy/
 
 ## How It Works
 
-### Deployment Flow
 ```mermaid
 graph TD
     A[Start.ps1] --> B{Admin Rights?}
@@ -206,6 +161,15 @@ WinDeploy automatically installs and manages the following dependencies:
 ```powershell
 Set-ExecutionPolicy Bypass  # Allows the script to run for the current session
 ```
+
+**Windows Spotlight not working after deployment**
+If Windows Spotlight is disabled after running the deployment, run the `Fix-Spotlight.ps1` script to re-enable it:
+```powershell
+# Run as Administrator
+& "C:\WinDeploy\Download\Fix-Spotlight.ps1"
+```
+This script sets the necessary registry keys and restarts Explorer. Then, set the lock screen background to "Windows Spotlight" in Settings > Personalization > Lock screen.
+
 **WinGet not found**
 
 Install WinGet using the winget-install script from PowerShell Gallery (by AsherToto)

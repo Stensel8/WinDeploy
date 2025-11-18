@@ -16,6 +16,25 @@ if (!$releaseTag) {
     exit 1
 }
 
+# Read version
+$version = $null
+try {
+    $version = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/VERSION" -ErrorAction SilentlyContinue
+    $version = $version.Trim()
+} catch {
+    # Ignore
+}
+
+# Print header
+Write-Host "============================================================" -ForegroundColor Cyan
+Write-Host "                    WinDeploy Deployment" -ForegroundColor Yellow
+Write-Host "            Windows Deployment Automation Toolkit" -ForegroundColor Yellow
+Write-Host "============================================================" -ForegroundColor Cyan
+if ($version) {
+    Write-Host "Version: $version" -ForegroundColor Green
+}
+Write-Host ""
+
 Function Write-DeployLog {
     param(
         [string]$Message,
@@ -120,6 +139,15 @@ foreach ($step in $deploymentSteps) {
             $allSuccessful = $false
         }
     }
+}
+
+# Download optional fix Spotlight script. Sometimes Spotlight option is not present and needs a little help.
+try {
+    $fixScriptPath = Join-Path $dlRoot "Fix-Spotlight.ps1"
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/Scripts/Deployment/Fix-Spotlight.ps1" -OutFile $fixScriptPath -UseBasicParsing -ErrorAction Stop
+    Write-DeployLog "Downloaded Fix-Spotlight.ps1 to $fixScriptPath"
+} catch {
+    Write-DeployLog "Optional: Could not download Fix-Spotlight.ps1: $_"
 }
 
 Write-Output ""
