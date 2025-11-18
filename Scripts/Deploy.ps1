@@ -2,18 +2,14 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Continue'
 
 # Fetch the latest release tag for downloading scripts
-$releaseTag = $null
+$releaseTag = "main"
 try {
     $latestRelease = Invoke-RestMethod -Uri "https://api.github.com/repos/Stensel8/WinDeploy/releases/latest" -ErrorAction SilentlyContinue
     if ($latestRelease.tag_name) {
         $releaseTag = $latestRelease.tag_name
     }
 } catch {
-    # Ignore
-}
-if (!$releaseTag) {
-    Write-DeployLog "Failed to fetch latest release tag. Cannot proceed." -IsError
-    exit 1
+    # Ignore, use main
 }
 
 # Read version
@@ -73,17 +69,6 @@ function Get-ScriptDisplay {
     return "Execution: In-memory (no script path) - Launched via Start.ps1"
 }
 
-# Banner
-Write-Output ""
-Write-Output "    ============================================================"
-Write-Output "                    WinDeploy Deployment                        "
-Write-Output "            Windows Deployment Automation Toolkit               "
-Write-Output "    ============================================================"
-Write-Output ""
-Write-Output "    PowerShell: $($PSVersionTable.PSVersion)"
-Write-Output ("    {0}" -f (Get-ScriptDisplay))
-Write-Output ""
-
 # Check for admin rights
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     Write-Output "ERROR: This script must be run as administrator."
@@ -133,7 +118,7 @@ foreach ($step in $deploymentSteps) {
         }
     }
     if ($scriptAvailable) {
-        $argumentList = "-ExecutionPolicy Bypass -File `"$localPath`""
+        $argumentList = "-ExecutionPolicy Bypass -File `"$localPath`"" 
         $proc = Start-Process pwsh -ArgumentList $argumentList -Wait -NoNewWindow -PassThru
         if ($proc.ExitCode -ne 0) {
             $allSuccessful = $false
@@ -144,7 +129,7 @@ foreach ($step in $deploymentSteps) {
 # Download optional fix Spotlight script. Sometimes Spotlight option is not present and needs a little help.
 try {
     $fixScriptPath = Join-Path $dlRoot "Fix-Spotlight.ps1"
-    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/Scripts/Deployment/Fix-Spotlight.ps1" -OutFile $fixScriptPath -UseBasicParsing -ErrorAction Stop
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/Scripts/Archived/Fix-Spotlight.ps1" -OutFile $fixScriptPath -UseBasicParsing -ErrorAction Stop
     Write-DeployLog "Downloaded Fix-Spotlight.ps1 to $fixScriptPath"
 } catch {
     Write-DeployLog "Optional: Could not download Fix-Spotlight.ps1: $_"
