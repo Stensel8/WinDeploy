@@ -10,7 +10,7 @@ $ErrorActionPreference = 'Continue'
 
 Function Write-DeployLog {
     param([string]$Message, [switch]$IsError)
-    $logDir = "C:\WinDeploy\Logs"
+    $logDir = Join-Path $env:TEMP "WinDeploy\Logs"
     if (!(Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir -Force | Out-Null }
     $scriptName = [System.IO.Path]::GetFileNameWithoutExtension([System.IO.Path]::GetFileName($MyInvocation.ScriptName))
     $logFile = Join-Path $logDir "$scriptName.log"
@@ -190,41 +190,16 @@ try {
         # No logging if no packages found (suppressed as requested)
     }
 
-    # Prevent reinstall - fixed registry path and added more policies
-    Write-DeployLog "Setting anti-reinstall..."
-    $RegPaths = @(
-        # Removed DisableWindowsConsumerFeatures and DisableConsumerFeaturesThroughWindowsUpdates to preserve Windows Spotlight
-        # @(
-        #     Path = 'HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent'
-        #     Value = 'DisableWindowsConsumerFeatures'
-        #     Data = 1
-        # ),
-        # @(
-        #     Path = 'HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent'
-        #     Value = 'DisableConsumerFeaturesThroughWindowsUpdates'
-        #     Data = 1
-        # ),
-        # Removed Start_IrisRecommendations to preserve Windows Spotlight
-        # @{
-        #     Path = 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
-        #     Value = 'Start_IrisRecommendations'
-        #     Data = 0
-        # }
-    )
 
-    foreach ($Reg in $RegPaths) {
-        $RegResult = reg add "$($Reg.Path)" /v $Reg.Value /t REG_DWORD /d $Reg.Data /f 2>&1
-        if ($LASTEXITCODE -ne 0) {
-            $RegErr = "Registry failed for $($Reg.Value): $RegResult"
-            Write-DeployLog $RegErr -IsError
-            Write-Error $RegErr
-        } else {
-            Write-DeployLog "Set policy: $($Reg.Value)"
-        }
-    }
+
+
+
+
 
     $SuccessMsg = "SUCCESS: Removed $Removed apps."
     Write-DeployLog $SuccessMsg
+    # Note: Bloatware may be reinstalled with future Windows Updates. For more control, consider using Winutil: https://github.com/ChrisTitusTech/winutil
+    Write-DeployLog "Note: Bloatware may be reinstalled with future Windows Updates. For more control, consider using Winutil: https://github.com/ChrisTitusTech/winutil"
     exit 0
 } catch {
     $ErrMsg = $_.Exception.Message
