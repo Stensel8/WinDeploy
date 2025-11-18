@@ -9,7 +9,7 @@ try {
         $releaseTag = $latestRelease.tag_name
     }
 } catch {
-    # Ignore, use main
+    Write-Warning "Failed to fetch latest release, using main branch."
 }
 
 # Read version
@@ -18,7 +18,7 @@ try {
     $version = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/VERSION" -ErrorAction SilentlyContinue
     $version = $version.Trim()
 } catch {
-    # Ignore
+    Write-Warning "Failed to fetch version information."
 }
 
 Function Write-DeployLog {
@@ -42,7 +42,7 @@ Function Write-DeployLog {
         $logFile = Join-Path $logDir "$scriptName.log"
         $Message | Out-File -FilePath $logFile -Append -ErrorAction Stop
     } catch {
-        # Ignore logging errors to prevent script failure
+        Write-Debug "Failed to log to file: $_"
     }
 
     if ($IsError) {
@@ -88,7 +88,7 @@ foreach ($step in $deploymentSteps) {
     Write-Output "  $($step.Name)"
     Write-Output "======================================== "
     Write-Output ""
-    $localPath = Join-Path $dlRoot $step.ScriptName
+    $localPath = Join-Path -Path $dlRoot -ChildPath $step.ScriptName
     $scriptAvailable = $false
     try {
         Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/Scripts/Deployment/$($step.ScriptName)" -OutFile $localPath -UseBasicParsing -ErrorAction Stop
@@ -96,7 +96,7 @@ foreach ($step in $deploymentSteps) {
         $scriptAvailable = $true
     } catch {
         # If download fails, use local copy if available
-        $localSourcePath = Join-Path $PSScriptRoot "Deployment" $step.ScriptName
+        $localSourcePath = Join-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath "Deployment") -ChildPath $step.ScriptName
         if (Test-Path $localSourcePath) {
             Copy-Item $localSourcePath $localPath -Force
             Write-DeployLog "Copied local $($step.ScriptName) to $localPath"
@@ -108,7 +108,7 @@ foreach ($step in $deploymentSteps) {
         }
     }
     if ($scriptAvailable) {
-        $argumentList = "-ExecutionPolicy Bypass -File `"$localPath`"" 
+        $argumentList = "-ExecutionPolicy Bypass -File `"$localPath`""
         $proc = Start-Process pwsh -ArgumentList $argumentList -Wait -NoNewWindow -PassThru
         if ($proc.ExitCode -ne 0) {
             $allSuccessful = $false

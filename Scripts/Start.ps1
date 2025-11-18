@@ -13,7 +13,8 @@ try {
         $version = $version.Trim()
     }
 } catch {
-    # Ignore errors, version remains null
+    Write-Host "Failed to fetch latest release. Please run Scripts\Deploy.ps1 manually." -ForegroundColor Red
+    exit 1
 }
 if (!$releaseTag) {
     Write-Host "Failed to fetch latest release tag. Cannot proceed." -ForegroundColor Red
@@ -44,12 +45,21 @@ function Install-Pwsh7 {
     if (Get-Command winget -ErrorAction SilentlyContinue) {
         try {
             & winget install --id Microsoft.PowerShell --silent --accept-package-agreements --accept-source-agreements
-        } catch {}
+        } catch {
+            Write-Warning "Winget installation of PowerShell 7 failed."
+        }
         foreach ($path in $pwshPaths) { if (Test-Path $path) { $pwshPath = $path; break } }
     }
     # Fallback MSI
     if (-not $pwshPath) {
-        try { Invoke-Expression "& { $(Invoke-RestMethod 'https://aka.ms/install-powershell.ps1') } -UseMSI -Quiet" } catch {}
+        try {
+            $tempScript = [System.IO.Path]::GetTempFileName() + ".ps1"
+            Invoke-WebRequest -Uri 'https://aka.ms/install-powershell.ps1' -OutFile $tempScript -UseBasicParsing
+            & pwsh -File $tempScript -UseMSI -Quiet
+            Remove-Item $tempScript -Force
+        } catch {
+            Write-Warning "MSI installation of PowerShell 7 failed."
+        }
         foreach ($path in $pwshPaths) { if (Test-Path $path) { $pwshPath = $path; break } }
     }
     if ($pwshPath) { return $pwshPath }
@@ -65,7 +75,9 @@ function Install-WinGet {
         Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/asheroto/winget-install/master/winget-install.ps1' -OutFile $temp -UseBasicParsing
         Start-Process pwsh -Wait -NoNewWindow -ArgumentList "-ExecutionPolicy Bypass -File `"$temp`""
         Remove-Item $temp -Force
-    } catch {}
+    } catch {
+        Write-Warning "Failed to install WinGet."
+    }
 }
 
 # Elevate if needed
