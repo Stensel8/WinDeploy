@@ -2,7 +2,34 @@ param(
     [string]$VersionTag
 )
 
-# Helper: find or install PowerShell 7 robustly
+# Set release tag for downloads
+$releaseTag = $null
+try {
+    $latestRelease = Invoke-RestMethod -Uri "https://api.github.com/repos/Stensel8/WinDeploy/releases/latest" -ErrorAction SilentlyContinue
+    $tag = $latestRelease.tag_name
+    if ($tag) {
+        $releaseTag = $tag
+        $version = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$tag/VERSION" -ErrorAction SilentlyContinue
+        $version = $version.Trim()
+    }
+} catch {
+    Write-Host "Failed to fetch latest release. Please run Scripts\Deploy.ps1 manually." -ForegroundColor Red
+    exit 1
+}
+if (!$releaseTag) {
+    Write-Host "Failed to fetch latest release tag. Cannot proceed." -ForegroundColor Red
+    exit 1
+}
+
+# Print header
+Write-Host "============================================================" -ForegroundColor Cyan
+Write-Host "                    WinDeploy Deployment" -ForegroundColor Yellow
+Write-Host "            Windows Deployment Automation Toolkit" -ForegroundColor Yellow
+Write-Host "============================================================" -ForegroundColor Cyan
+if ($version) {
+    Write-Host "Version: $version" -ForegroundColor Green
+}
+Write-Host ""
 function Install-Pwsh7 {
     $pwshPath = $null
     $pwshPaths = @(
@@ -18,12 +45,21 @@ function Install-Pwsh7 {
     if (Get-Command winget -ErrorAction SilentlyContinue) {
         try {
             & winget install --id Microsoft.PowerShell --silent --accept-package-agreements --accept-source-agreements
-        } catch {}
+        } catch {
+            Write-Warning "Winget installation of PowerShell 7 failed."
+        }
         foreach ($path in $pwshPaths) { if (Test-Path $path) { $pwshPath = $path; break } }
     }
     # Fallback MSI
     if (-not $pwshPath) {
-        try { Invoke-Expression "& { $(Invoke-RestMethod 'https://aka.ms/install-powershell.ps1') } -UseMSI -Quiet" } catch {}
+        try {
+            $tempScript = [System.IO.Path]::GetTempFileName() + ".ps1"
+            Invoke-WebRequest -Uri 'https://aka.ms/install-powershell.ps1' -OutFile $tempScript -UseBasicParsing
+            & pwsh -File $tempScript -UseMSI -Quiet
+            Remove-Item $tempScript -Force
+        } catch {
+            Write-Warning "MSI installation of PowerShell 7 failed."
+        }
         foreach ($path in $pwshPaths) { if (Test-Path $path) { $pwshPath = $path; break } }
     }
     if ($pwshPath) { return $pwshPath }
@@ -39,7 +75,9 @@ function Install-WinGet {
         Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/asheroto/winget-install/master/winget-install.ps1' -OutFile $temp -UseBasicParsing
         Start-Process pwsh -Wait -NoNewWindow -ArgumentList "-ExecutionPolicy Bypass -File `"$temp`""
         Remove-Item $temp -Force
-    } catch {}
+    } catch {
+        Write-Warning "Failed to install WinGet."
+    }
 }
 
 # Elevate if needed
@@ -52,7 +90,7 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
         # Script is run via iex, download to temp file
         $scriptPath = [System.IO.Path]::GetTempFileName() + ".ps1"
         try {
-            Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/main/Scripts/Start.ps1" -OutFile $scriptPath -UseBasicParsing -ErrorAction Stop
+            Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/Scripts/Start.ps1" -OutFile $scriptPath -UseBasicParsing -ErrorAction Stop
         } catch {
             Write-Host "Failed to download Start.ps1 for elevation: $_" -ForegroundColor Red
             exit 1
@@ -83,7 +121,7 @@ if (!(Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir -Force | 
 # Download or copy deploy.ps1
 $deployPath = Join-Path $deployDir "Deploy.ps1"
 try {
-    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/main/Scripts/Deploy.ps1" -OutFile $deployPath -UseBasicParsing -ErrorAction Stop
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/Scripts/Deploy.ps1" -OutFile $deployPath -UseBasicParsing -ErrorAction Stop
     Write-Output "Downloaded Deploy.ps1 to $deployPath"
 } catch {
     # If download fails, use local copy if available

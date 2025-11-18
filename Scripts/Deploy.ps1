@@ -1,6 +1,26 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Continue'
 
+# Fetch the latest release tag for downloading scripts
+$releaseTag = "main"
+try {
+    $latestRelease = Invoke-RestMethod -Uri "https://api.github.com/repos/Stensel8/WinDeploy/releases/latest" -ErrorAction SilentlyContinue
+    if ($latestRelease.tag_name) {
+        $releaseTag = $latestRelease.tag_name
+    }
+} catch {
+    Write-Warning "Failed to fetch latest release, using main branch."
+}
+
+# Read version
+$version = $null
+try {
+    $version = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/VERSION" -ErrorAction SilentlyContinue
+    $version = $version.Trim()
+} catch {
+    Write-Warning "Failed to fetch version information."
+}
+
 Function Write-DeployLog {
     param(
         [string]$Message,
@@ -22,7 +42,7 @@ Function Write-DeployLog {
         $logFile = Join-Path $logDir "$scriptName.log"
         $Message | Out-File -FilePath $logFile -Append -ErrorAction Stop
     } catch {
-        # Ignore logging errors to prevent script failure
+        Write-Debug "Failed to log to file: $_"
     }
 
     if ($IsError) {
@@ -38,17 +58,6 @@ function Get-ScriptDisplay {
     if ($PSScriptRoot)   { return "Directory: $PSScriptRoot" }
     return "Execution: In-memory (no script path) - Launched via Start.ps1"
 }
-
-# Banner
-Write-Output ""
-Write-Output "    ============================================================"
-Write-Output "                    WinDeploy Deployment                        "
-Write-Output "            Windows Deployment Automation Toolkit               "
-Write-Output "    ============================================================"
-Write-Output ""
-Write-Output "    PowerShell: $($PSVersionTable.PSVersion)"
-Write-Output ("    {0}" -f (Get-ScriptDisplay))
-Write-Output ""
 
 # Check for admin rights
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
@@ -79,15 +88,15 @@ foreach ($step in $deploymentSteps) {
     Write-Output "  $($step.Name)"
     Write-Output "======================================== "
     Write-Output ""
-    $localPath = Join-Path $dlRoot $step.ScriptName
+    $localPath = Join-Path -Path $dlRoot -ChildPath $step.ScriptName
     $scriptAvailable = $false
     try {
-        Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/main/Scripts/Deployment/$($step.ScriptName)" -OutFile $localPath -UseBasicParsing -ErrorAction Stop
+        Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/Scripts/Deployment/$($step.ScriptName)" -OutFile $localPath -UseBasicParsing -ErrorAction Stop
         Write-DeployLog "Downloaded $($step.ScriptName) to $localPath"
         $scriptAvailable = $true
     } catch {
         # If download fails, use local copy if available
-        $localSourcePath = Join-Path $PSScriptRoot "Deployment" $step.ScriptName
+        $localSourcePath = Join-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath "Deployment") -ChildPath $step.ScriptName
         if (Test-Path $localSourcePath) {
             Copy-Item $localSourcePath $localPath -Force
             Write-DeployLog "Copied local $($step.ScriptName) to $localPath"
@@ -105,6 +114,15 @@ foreach ($step in $deploymentSteps) {
             $allSuccessful = $false
         }
     }
+}
+
+# Download optional fix Spotlight script. Sometimes Spotlight option is not present and needs a little help.
+try {
+    $fixScriptPath = Join-Path $dlRoot "Fix-Spotlight.ps1"
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/Scripts/Archived/Fix-Spotlight.ps1" -OutFile $fixScriptPath -UseBasicParsing -ErrorAction Stop
+    Write-DeployLog "Downloaded Fix-Spotlight.ps1 to $fixScriptPath as an optional script to fix missing Spotlight options on the system."
+} catch {
+    Write-DeployLog "Optional: Could not download Fix-Spotlight.ps1: $_"
 }
 
 Write-Output ""

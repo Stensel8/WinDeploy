@@ -141,7 +141,7 @@ try {
                 }
                 if ($scanExitCode -eq 0) {
                     Write-DeployLog "Installing driver updates..."
-                    $applyOutput = & $dcu /applyUpdates /reboot=no /silent 2>&1
+                    $applyOutput = & $dcu /applyUpdates /reboot=disable /silent 2>&1
                     $applyExitCode = $LASTEXITCODE
                     if ($applyOutput) {
                         Write-DeployLog ($applyOutput -join "`n")

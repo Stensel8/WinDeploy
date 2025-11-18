@@ -26,78 +26,34 @@ Zero-touch Windows deployment with automatic driver updates, application install
 # 1. Create bootable Windows 11 USB
 # 2. Copy autounattend.xml to USB root
 # 3. (Optional) Copy RMM agent as Agent.exe to USB root
-# 4. Boot from USB with network connected
+# 4. Boot from USB with network connected. Make sure to keep the USB drive connected until deployment is complete.
 # 5. Wait - everything happens automatically
 ```
 
 ### Option 2: Direct Execution (Existing or fresh installs)
 ```powershell
 # Run as Administrator in PowerShell 7
-iex "& { $(irm 'https://raw.githubusercontent.com/Stensel8/WinDeploy/main/Scripts/Start.ps1') }"
+iex (irm "https://raw.githubusercontent.com/Stensel8/WinDeploy/$((irm https://api.github.com/repos/Stensel8/WinDeploy/releases/latest).tag_name)/Scripts/Start.ps1")
 ```
 
 ### Option 3: Fastest method (one-liner)
 ```powershell
-iex(irm windeploy.stensel.nl)
+# Run as Administrator in PowerShell 7
+iex (irm windeploy.stensel.nl)
 ```
 
 ---
 
 ## Project Structure
 
-```
-WinDeploy/
-├── Scripts/
-│   ├── Start.ps1                         # [AUTO] Main entry point with Auto-Elevate
-│   ├── Deploy.ps1                        # [AUTO] Deployment orchestrator (downloaded and launched by Start.ps1)
-│   ├── autounattend.xml                  # [AUTO] Unattended Windows installation config
-│   │
-│   ├── Archived/
-│   │   ├── Get-InstalledSoftware.ps1     # [ARCHIVED] Lists installed software
-│   │   └── Get-IntuneHash.ps1            # [ARCHIVED] Generates Autopilot device hash for Intune
-│   │
-│   ├── Deployment/
-│   │   ├── Disable-AutoRun.ps1           # [AUTO] Disables AutoRun for security
-│   │   ├── Install-Applications.ps1      # [AUTO] WinGet app installer
-│   │   ├── Install-Drivers.ps1           # [AUTO] Dell/HP driver automation
-│   │   ├── Install-RMMAgent.ps1          # [AUTO] RMM agent installation
-│   │   ├── Install-WindowsUpdates.ps1    # [AUTO] Windows Update automation
-│   │   ├── Remove-Bloat.ps1              # [AUTO] Bloatware removal
-│   │   ├── Set-HostName.ps1              # [AUTO] Hostname configuration
-│   │   ├── Set-Theme.ps1                 # [AUTO] Desktop theme configuration
-│   │   └── README.md                     # Deployment scripts documentation
-│   │
-│   └── Intune/
-│       └── Company branding/
-│           └── Platform scripts/
-│               ├── Install-DattoRMM-Intune.ps1
-│               └── Skip-OOBEPrivacy-Intune.ps1
-│
-├── Docs/
-│   ├── Intune-Autopilot-Setup.md         # Intune Autopilot setup guide
-│   ├── SupportedDellDevices.json         # Dell device compatibility list
-│   ├── SupportedHPDevices.json           # HP device compatibility list
-│   └── Intune configuration/
-│       └── intune-settings_catalog.md    # Intune settings catalog
-│
-├── autounattend.xml                      # [AUTO] Unattended Windows installation config
-├── README.md                             # Main documentation
-├── CONTRIBUTING.md                       # Contribution guidelines
-├── CHANGELOG.md                          # Version history
-├── LICENSE                               # MIT License
-└── VERSION                               # Current version
-```
-
-**Legend:**
 - [AUTO] **Auto-run during deployment** - Executed automatically by `Start.ps1`
-- [ARCHIVED] **Archived scripts** - No longer used in deployment
-- [UTIL] **Standalone utilities** - Available for manual execution as needed
+- [DOCS] **Documentation files** - Guides and references
+- [ARCHIVED] **Archived scripts** - Not used in auto-deployment, but available to run manually
 
 ---
 
 ## How It Works
 
-### Deployment Flow
 ```mermaid
 graph TD
     A[Start.ps1] --> B{Admin Rights?}
@@ -156,9 +112,9 @@ To configure the Site ID:
 1. Edit `Scripts/Deployment/Install-RMMAgent.ps1` (line ~18).
 2. Replace `"EnterYourIDHere"` with your actual Datto RMM Site ID.
 
-**Security Note**: We do not include random or example Site IDs in the public repository to avoid accidental exposure of sensitive information. Always configure your Site ID manually after cloning the repository.
+**Security Note**: Do not include random or example Site IDs in the public repository to avoid accidental exposure of sensitive information. Always configure your Site ID manually after cloning the repository. Keep the ID private.
 
-### Supported Devices (Drivers)
+### Supported Devices (Drivers & Firmware)
 - **Dell**: Latitude, OptiPlex, Precision, XPS series
 - **HP**: EliteBook, ProBook, EliteDesk, ProDesk, ZBook series
 
@@ -188,7 +144,7 @@ WinDeploy automatically installs and manages the following dependencies:
 - **[PSWindowsUpdate](https://www.powershellgallery.com/packages/PSWindowsUpdate)** (v2.2.1.5+) - PowerShell module for Windows Update automation
 
 ### Application Dependencies (Auto-installed via WinGet)
-- **Windows Package Manager (WinGet)** (v1.11.510+) - Installed via `winget-install` script
+- **Windows Package Manager (WinGet)** (v1.12.350+) - Installed via `winget-install` script
 - **Dell Command Update** (v5.5.0+) - Auto-installed for supported Dell devices
 - **HP Image Assistant** (v5.3.2+) - Auto-installed for supported HP devices
 
@@ -198,52 +154,80 @@ WinDeploy automatically installs and manages the following dependencies:
 
 ## Troubleshooting
 
-### Common Issues...
+### Common Issues
 
-**Script won't run - execution policy error**
+**Script won't run due to execution policy error**
 ```powershell
-Set-ExecutionPolicy Bypass # This will allow the script to run for this session
+Set-ExecutionPolicy Bypass  # Allows the script to run for the current session
 ```
+
+**Windows Spotlight not working after deployment**
+If Windows Spotlight is disabled after running the deployment, run the `Fix-Spotlight.ps1` script to re-enable it:
+```powershell
+# Run as Administrator
+& "C:\WinDeploy\Download\Fix-Spotlight.ps1"
+```
+This script sets the necessary registry keys and restarts Explorer. Then, set the lock screen background to "Windows Spotlight" in Settings > Personalization > Lock screen.
 
 **WinGet not found**
+
+Install WinGet using the winget-install script from PowerShell Gallery (by AsherToto)
+Open PowerShell as Administrator and run:
 ```powershell
-# Run Install-Winget.ps1 first
-.\Scripts\Install-Winget.ps1
+Install-Script winget-install -Force
 ```
+Follow the prompts to complete the installation (tap A to accept all or Y individually).
+Note: -Force is optional but recommended to update if outdated.
+
+Usage:
+```powershell
+winget-install
+```
+If WinGet is already installed, use -Force to run anyway.
+The script is published on PowerShell Gallery under winget-install.
 
 **Drivers not installing**
-- Check device compatibility in [Docs/SupportedDellDevices.json](Docs/SupportedDellDevices.json) or [Docs/SupportedHPDevices.json](Docs/SupportedHPDevices.json)  
-- Verify internet connection
-- Check logs: `C:\WinDeploy\Logs\Install-Drivers.log`
+- Check if your device is supported: See [Docs/SupportedDellDevices.json](Docs/SupportedDellDevices.json) or [Docs/SupportedHPDevices.json](Docs/SupportedHPDevices.json).
+- Ensure you have an internet connection.
+- Review the logs: `C:\WinDeploy\Logs\Install-Drivers.log`.
 
 **Applications failing to install**
-- Verify WinGet is functional: `winget --version`
-- Check app IDs: `winget search <app-name>`
-- Review logs: `C:\WinDeploy\Logs\Install-Applications.log`
+- Confirm WinGet is working: Run `winget --version`.
+- Verify app IDs: Use `winget search <app-name>` to find the correct ID.
+- Check the logs: `C:\WinDeploy\Logs\Install-Applications.log`.
+
+Sometimes, app installations fail because WinGet has issues with certain packages. Many apps have both a standard version and a Microsoft Store (msstore) version. If the default ID doesn't work, try the msstore version.
+
+To find the msstore App ID:
+1. Run `winget search <app-name>` in PowerShell.
+2. Look for entries where the "Source" column shows "Microsoft Store".
+3. Or, go to [apps.microsoft.com](https://apps.microsoft.com), search for the app, and copy the App ID from the URL.
+
+For examples, see the images below:
+
+![Finding the msstore App ID](Docs/Finding-msstore-id.png)
+
+![Installing the msstore App](Docs/Installing-via-msstore.png)
+
 
 
 ## Credits & Acknowledgments
 
 ### Built With
-- [PowerShell](https://github.com/PowerShell/PowerShell) - Microsoft's task automation framework
+- [PowerShell](https://github.com/PowerShell/PowerShell) - Microsoft's scripting language
 - [WinGet](https://github.com/microsoft/winget-cli) - Windows Package Manager
 - [PSWindowsUpdate](https://www.powershellgallery.com/packages/PSWindowsUpdate) - Windows Update automation module
-- [Dell Command Update](https://www.dell.com/support/contents/en-us/article/product-support/self-support-knowledgebase/software-and-downloads/dell-command-update) - Dell driver management
+- [winget-install](https://www.powershellgallery.com/packages/winget-install) - WinGet installation script by [asheroto](https://github.com/asheroto/winget-install)
+- [Dell Command Update](https://www.dell.com/support/kbdoc/en-us/000177325/dell-command-update) - Dell driver management
 - [HP Image Assistant](https://ftp.hp.com/pub/caps-softpaq/cmit/HPIA.html) - HP driver management
+- [HP CMSL](https://developers.hp.com/hp-client-management/doc/client-management-script-library) - HP Client Management Script Library
+## Support & Contributing
 
----
-
-## Support & Community
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 - **Issues**: [GitHub Issues](https://github.com/Stensel8/WinDeploy/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Stensel8/WinDeploy/discussions)
 - **Pull Requests**: Always welcome!
-
----
-
-## Contributing
-
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 
 ## Disclaimer
