@@ -31,44 +31,7 @@ if ($version) {
 }
 Write-Host ""
 
-function Install-Pwsh7 {
-    $pwshPath = $null
-    $pwshPaths = @(
-        "$env:ProgramFiles\PowerShell\7\pwsh.exe",
-        "${env:ProgramFiles(x86)}\PowerShell\7\pwsh.exe"
-    )
-    foreach ($path in $pwshPaths) {
-        if (Test-Path $path) { $pwshPath = $path; break }
-    }
-    if ($pwshPath) { return $pwshPath }
-
-    # Try winget
-    if (Get-Command winget -ErrorAction SilentlyContinue) {
-        try {
-            & winget install --id Microsoft.PowerShell --silent --accept-package-agreements --accept-source-agreements
-        } catch {
-            Write-Warning "Winget installation of PowerShell 7 failed."
-        }
-        foreach ($path in $pwshPaths) { if (Test-Path $path) { $pwshPath = $path; break } }
-    }
-    # Fallback MSI
-    if (-not $pwshPath) {
-        try {
-            $tempScript = [System.IO.Path]::GetTempFileName() + ".ps1"
-            Invoke-WebRequest -Uri 'https://aka.ms/install-powershell.ps1' -OutFile $tempScript -UseBasicParsing
-            & powershell.exe -File $tempScript -UseMSI -Quiet
-            Remove-Item $tempScript -Force
-        } catch {
-            Write-Warning "MSI installation of PowerShell 7 failed."
-        }
-        foreach ($path in $pwshPaths) { if (Test-Path $path) { $pwshPath = $path; break } }
-    }
-    if ($pwshPath) { return $pwshPath }
-    Write-Host "Failed to install PowerShell 7, install manually." -ForegroundColor Red
-    exit 1
-}
-
-# Helper: return the pwsh.exe path if installed, without calling installers
+# Helper: return the pwsh.exe path if installed
 function Get-Pwsh7Path {
     $pwshPaths = @(
         "$env:ProgramFiles\PowerShell\7\pwsh.exe",
@@ -80,50 +43,125 @@ function Get-Pwsh7Path {
     return $null
 }
 
-# Helper: ensure WinGet present (optional, since deploy.ps1 may use it)
+# Install PowerShell 7
+function Install-Pwsh7 {
+    Write-Host "Installing PowerShell 7..." -ForegroundColor Yellow
+    
+    # Try winget first
+    if (Get-Command winget -ErrorAction SilentlyContinue) {
+        try {
+            & winget install --id Microsoft.PowerShell --silent --accept-package-agreements --accept-source-agreements | Out-Null
+            Start-Sleep -Seconds 3
+            $path = Get-Pwsh7Path
+            if ($path) { 
+                Write-Host "PowerShell 7 installed successfully via WinGet" -ForegroundColor Green
+                return 
+            }
+        } catch {
+            Write-Warning "WinGet installation failed, trying MSI..."
+        }
+    }
+    
+    # Fallback to MSI
+    try {
+        $tempScript = [System.IO.Path]::GetTempFileName() + ".ps1"
+        Invoke-WebRequest -Uri 'https://aka.ms/install-powershell.ps1' -OutFile $tempScript -UseBasicParsing
+        & powershell.exe -ExecutionPolicy Bypass -File $tempScript -UseMSI -Quiet | Out-Null
+        Remove-Item $tempScript -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 3
+        $path = Get-Pwsh7Path
+        if ($path) { 
+            Write-Host "PowerShell 7 installed successfully via MSI" -ForegroundColor Green
+            return 
+        }
+    } catch {
+        Write-Warning "MSI installation failed: $_"
+    }
+    
+    Write-Host "Failed to install PowerShell 7" -ForegroundColor Red
+}
+
+# Ensure PowerShell 7 is installed and return its path
+function Test-Pwsh7 {
+    $path = Get-Pwsh7Path
+    if ($path) { return $path }
+    
+    Install-Pwsh7
+    
+    # Wait and retry detection
+    for ($i = 0; $i -lt 10; $i++) {
+        Start-Sleep -Seconds 1
+        $path = Get-Pwsh7Path
+        if ($path) { return $path }
+    }
+    
+    return $null
+}
+
+# Helper: ensure WinGet present
 function Install-WinGet {
     if (Get-Command winget -ErrorAction SilentlyContinue) { return }
+    
+    Write-Host "Installing WinGet..." -ForegroundColor Yellow
     $temp = [System.IO.Path]::GetTempFileName() + ".ps1"
     try {
         Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/asheroto/winget-install/master/winget-install.ps1' -OutFile $temp -UseBasicParsing
-        $pwsh7 = "$env:ProgramFiles\PowerShell\7\pwsh.exe"
-        if (Test-Path $pwsh7) {
-            Start-Process $pwsh7 -Wait -NoNewWindow -ArgumentList "-ExecutionPolicy Bypass -File `"$temp`""
+        $pwsh7 = Get-Pwsh7Path
+        if ($pwsh7) {
+            & $pwsh7 -ExecutionPolicy Bypass -File $temp | Out-Null
         } else {
-            Start-Process powershell.exe -Wait -NoNewWindow -ArgumentList "-ExecutionPolicy Bypass -File `"$temp`""
+            & powershell.exe -ExecutionPolicy Bypass -File $temp | Out-Null
         }
-        Remove-Item $temp -Force
+        Remove-Item $temp -Force -ErrorAction SilentlyContinue
     } catch {
-        Write-Warning "Failed to install WinGet."
+        Write-Warning "Failed to install WinGet: $_"
     }
 }
 
-# Elevate if needed
-if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    $pwshExePath = Get-Pwsh7Path
+# Check if running as admin and in PowerShell 7
+$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+$isPwsh7 = $PSVersionTable.PSVersion.Major -ge 7
+
+# If not PowerShell 7 or not admin, relaunch
+if (-not $isPwsh7 -or -not $isAdmin) {
+    $pwshExePath = Test-Pwsh7
+    
     if (-not $pwshExePath) {
-        $pwshExePath = Install-Pwsh7
+        Write-Host "Failed to locate or install PowerShell 7. Please install manually." -ForegroundColor Red
+        Write-Host "Download from: https://aka.ms/powershell" -ForegroundColor Yellow
+        exit 1
     }
-    if ($pwshExePath -is [array]) { $pwshExePath = $pwshExePath[0] }
+    
+    Write-Host "Relaunching in PowerShell 7..." -ForegroundColor Yellow
+    
     $versionArgs = ""
     if ($VersionTag) { $versionArgs = "-VersionTag '$VersionTag'" }
+    
     $scriptPath = $PSCommandPath
     if (-not $scriptPath) {
-        # Script is run via iex, download to temp file
+        # Script run via iex - download to temp
         $scriptPath = [System.IO.Path]::GetTempFileName() + ".ps1"
         try {
             Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/Scripts/Start.ps1" -OutFile $scriptPath -UseBasicParsing -ErrorAction Stop
         } catch {
-            Write-Host "Failed to download Start.ps1 for elevation: $_" -ForegroundColor Red
+            Write-Host "Failed to download Start.ps1: $_" -ForegroundColor Red
             exit 1
         }
     }
-    Start-Process -FilePath $pwshExePath -ArgumentList "-ExecutionPolicy Bypass -NoProfile -File `"$scriptPath`" $versionArgs" -Verb RunAs
+    
+    $argList = "-ExecutionPolicy Bypass -NoProfile -File `"$scriptPath`" $versionArgs"
+    
+    if ($isAdmin) {
+        Start-Process -FilePath $pwshExePath -ArgumentList $argList -Wait -NoNewWindow
+    } else {
+        Start-Process -FilePath $pwshExePath -ArgumentList $argList -Verb RunAs
+    }
     exit
 }
 
-Set-Location $PSScriptRoot
-Write-Output "Elevated to administrator, starting WinDeploy setup."
+# At this point: PowerShell 7 + Admin
+Write-Host "Running in PowerShell 7 as Administrator" -ForegroundColor Green
+Write-Host ""
 
 # Start logging
 $logDir = "C:\WinDeploy\Logs"
@@ -131,39 +169,40 @@ if (!(Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir -Force | 
 $logFile = Join-Path $logDir "Start.log"
 Start-Transcript -Path $logFile -Append -NoClobber
 
-$pwshExePath = Get-Pwsh7Path
-if (-not $pwshExePath -or $pwshExePath -is [array]) {
-    $pwshExePath = Install-Pwsh7
-}
-if ($pwshExePath -is [array]) { $pwshExePath = $pwshExePath[0] }
+# Ensure WinGet is installed
 Install-WinGet
 
 # Ensure directories exist
 $deployDir = "C:\WinDeploy\Download"
-$logDir = "C:\WinDeploy\Logs"
 if (!(Test-Path $deployDir)) { New-Item -ItemType Directory -Path $deployDir -Force | Out-Null }
-if (!(Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir -Force | Out-Null }
 
-# Download or copy deploy.ps1
+# Download Deploy.ps1
 $deployPath = Join-Path $deployDir "Deploy.ps1"
 try {
     Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/Scripts/Deploy.ps1" -OutFile $deployPath -UseBasicParsing -ErrorAction Stop
-    Write-Output "Downloaded Deploy.ps1 to $deployPath"
+    Write-Host "Downloaded Deploy.ps1 to $deployPath" -ForegroundColor Green
 } catch {
-    # If download fails, use local copy if available
     $localDeployPath = Join-Path $PSScriptRoot "Deploy.ps1"
     if (Test-Path $localDeployPath) {
         Copy-Item $localDeployPath $deployPath -Force
-        Write-Output "Copied local Deploy.ps1 to $deployPath"
+        Write-Host "Copied local Deploy.ps1 to $deployPath" -ForegroundColor Green
     } else {
-        $errorMsg = "Cannot download or find Deploy.ps1: $_"
-        Write-Output $errorMsg
-        throw $errorMsg
+        Write-Host "Cannot download or find Deploy.ps1: $_" -ForegroundColor Red
+        Stop-Transcript
+        exit 1
     }
 }
 
-# Re-launch deployment in PowerShell 7 (always, so deployment logic can be simple)
-Write-Output "Starting Deploy.ps1 with PowerShell 7"
-if ($pwshExePath -is [array]) { $pwshExePath = $pwshExePath[0] }
-Start-Process -FilePath $pwshExePath -ArgumentList "-ExecutionPolicy Bypass -NoProfile -File `"$deployPath`"" -Wait -NoNewWindow
+# Launch Deploy.ps1 (we're already in PowerShell 7)
+Write-Host "Starting Deploy.ps1..." -ForegroundColor Yellow
+Write-Host ""
+
+try {
+    & $deployPath
+} catch {
+    Write-Host "Deploy.ps1 failed: $_" -ForegroundColor Red
+    Stop-Transcript
+    exit 1
+}
+
 Stop-Transcript
