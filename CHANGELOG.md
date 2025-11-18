@@ -79,7 +79,6 @@ First open-source release of WinDeploy - Windows Deployment Automation Toolkit. 
 ---
 
 [0.5.2]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.2
-[0.5.1]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.1
 [0.5.0]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.0
 [0.1.2]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.1.2
 [0.1.1]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.1.1
