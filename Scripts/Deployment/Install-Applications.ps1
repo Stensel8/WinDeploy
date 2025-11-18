@@ -25,7 +25,7 @@ try {
     $Applications = @(
         "Microsoft.VCRedist.2015+.x64",
         "Microsoft.Office",
-        #"Adobe.Acrobat.Reader.64-bit",
+        #"Adobe.Acrobat.Reader.64-bit", #Uncomment if you need Adobe Reader
         "Microsoft.Teams",
         "Microsoft.OneDrive",
         "7zip.7zip",
@@ -33,13 +33,39 @@ try {
         "Microsoft.CompanyPortal"
     )
 
+    #Note: Some applications fail to install. This is why we have a separate list for msstore apps.
+    $MsStoreApplications = @(
+        #"XPDP273C0XHQH2", #Adobe Acrobat Reader (msstore) #Uncomment if you need Adobe Reader
+        "XP8BT8DW290MPQ", # Microsoft Teams (msstore)
+        "9N1F85V9T8BN", # Windows App (msstore)
+        "9WZDNCRFJ3PZ" # Company Portal (msstore)
+    )
+
     foreach ($app in $Applications) {
         Write-DeployLog "Installing $app..."
         try {
-            winget install --id $app --silent --accept-package-agreements --accept-source-agreements
-            Write-DeployLog "Installed $app"
+            $process = Start-Process winget -ArgumentList "install --id $app --silent --accept-package-agreements --accept-source-agreements" -NoNewWindow -Wait -PassThru
+            if ($process.ExitCode -eq 0) {
+                Write-DeployLog "Installed $app"
+            } else {
+                Write-DeployLog "Failed to install $app (exit code $($process.ExitCode))" -IsError
+            }
         } catch {
             Write-DeployLog "Failed to install $app" -IsError
+        }
+    }
+
+    foreach ($app in $MsStoreApplications) {
+        Write-DeployLog "Installing msstore $app..."
+        try {
+            $process = Start-Process winget -ArgumentList "install --id $app --silent --accept-package-agreements --accept-source-agreements" -NoNewWindow -Wait -PassThru
+            if ($process.ExitCode -eq 0) {
+                Write-DeployLog "Installed msstore $app"
+            } else {
+                Write-DeployLog "Failed to install msstore $app (exit code $($process.ExitCode))" -IsError
+            }
+        } catch {
+            Write-DeployLog "Failed to install msstore $app" -IsError
         }
     }
 
