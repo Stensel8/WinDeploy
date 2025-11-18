@@ -24,13 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.5.1] - 2025-11-17
+## [0.5.0] - 2025-11-14
 
 ### Fixed
 - Fixed bloatware removal printing duplicate messages on screen by removing redundant Write-Output calls
 - Improved admin elevation handling in Start.ps1 and Deploy.ps1 to prevent script crashes when not run as administrator
-
----
 
 ### Added
 - Added documentation for Intune Autopilot device preparation setup (`Docs/Intune-Autopilot-Setup.md`)
