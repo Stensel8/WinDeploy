@@ -44,11 +44,12 @@ try {
     foreach ($app in $Applications) {
         Write-DeployLog "Installing $app..."
         try {
-            $process = Start-Process winget -ArgumentList "install --id $app --silent --accept-package-agreements --accept-source-agreements" -NoNewWindow -Wait -PassThru
-            if ($process.ExitCode -eq 0) {
+            $output = & winget install --id $app --accept-package-agreements --accept-source-agreements 2>&1
+            $exitCode = $LASTEXITCODE
+            if ($exitCode -eq 0 -or $output -match "already installed|No available upgrade") {
                 Write-DeployLog "Installed $app"
             } else {
-                Write-DeployLog "Failed to install $app (exit code $($process.ExitCode))" -IsError
+                Write-DeployLog "Failed to install $app (exit code $exitCode)" -IsError
             }
         } catch {
             Write-DeployLog "Failed to install $app" -IsError
@@ -58,11 +59,12 @@ try {
     foreach ($app in $MsStoreApplications) {
         Write-DeployLog "Installing msstore $app..."
         try {
-            $process = Start-Process winget -ArgumentList "install --id $app --silent --accept-package-agreements --accept-source-agreements" -NoNewWindow -Wait -PassThru
-            if ($process.ExitCode -eq 0) {
+            $output = & winget install --id $app --accept-package-agreements --accept-source-agreements 2>&1
+            $exitCode = $LASTEXITCODE
+            if ($exitCode -eq 0 -or $output -match "already installed|No available upgrade") {
                 Write-DeployLog "Installed msstore $app"
             } else {
-                Write-DeployLog "Failed to install msstore $app (exit code $($process.ExitCode))" -IsError
+                Write-DeployLog "Failed to install msstore $app (exit code $exitCode)" -IsError
             }
         } catch {
             Write-DeployLog "Failed to install msstore $app" -IsError
