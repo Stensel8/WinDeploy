@@ -30,6 +30,7 @@ if ($version) {
     Write-Host "Version: $version" -ForegroundColor Green
 }
 Write-Host ""
+
 function Install-Pwsh7 {
     $pwshPath = $null
     $pwshPaths = @(
@@ -55,7 +56,7 @@ function Install-Pwsh7 {
         try {
             $tempScript = [System.IO.Path]::GetTempFileName() + ".ps1"
             Invoke-WebRequest -Uri 'https://aka.ms/install-powershell.ps1' -OutFile $tempScript -UseBasicParsing
-            & pwsh -File $tempScript -UseMSI -Quiet
+            & powershell.exe -File $tempScript -UseMSI -Quiet
             Remove-Item $tempScript -Force
         } catch {
             Write-Warning "MSI installation of PowerShell 7 failed."
@@ -73,7 +74,12 @@ function Install-WinGet {
     $temp = [System.IO.Path]::GetTempFileName() + ".ps1"
     try {
         Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/asheroto/winget-install/master/winget-install.ps1' -OutFile $temp -UseBasicParsing
-        Start-Process pwsh -Wait -NoNewWindow -ArgumentList "-ExecutionPolicy Bypass -File `"$temp`""
+        $pwsh7 = "$env:ProgramFiles\PowerShell\7\pwsh.exe"
+        if (Test-Path $pwsh7) {
+            Start-Process $pwsh7 -Wait -NoNewWindow -ArgumentList "-ExecutionPolicy Bypass -File `"$temp`""
+        } else {
+            Start-Process powershell.exe -Wait -NoNewWindow -ArgumentList "-ExecutionPolicy Bypass -File `"$temp`""
+        }
         Remove-Item $temp -Force
     } catch {
         Write-Warning "Failed to install WinGet."
@@ -138,5 +144,5 @@ try {
 
 # Re-launch deployment in PowerShell 7 (always, so deployment logic can be simple)
 Write-Output "Starting Deploy.ps1 with PowerShell 7"
-Start-Process -FilePath $psz -ArgumentList "-ExecutionPolicy Bypass -NoProfile -File `"$deployPath`"" -Wait
+Start-Process -FilePath $psz -ArgumentList "-ExecutionPolicy Bypass -NoProfile -File `"$deployPath`"" -Wait -NoNewWindow
 Stop-Transcript
