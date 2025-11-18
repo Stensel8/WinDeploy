@@ -56,6 +56,7 @@ try {
         }
     }
 
+    Write-DeployLog "Installing msstore versions of apps...."
     foreach ($app in $MsStoreApplications) {
         Write-DeployLog "Installing msstore $app..."
         try {
