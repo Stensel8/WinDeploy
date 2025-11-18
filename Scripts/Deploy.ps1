@@ -21,16 +21,6 @@ try {
     # Ignore
 }
 
-# Print header
-Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host "                    WinDeploy Deployment" -ForegroundColor Yellow
-Write-Host "            Windows Deployment Automation Toolkit" -ForegroundColor Yellow
-Write-Host "============================================================" -ForegroundColor Cyan
-if ($version) {
-    Write-Host "Version: $version" -ForegroundColor Green
-}
-Write-Host ""
-
 Function Write-DeployLog {
     param(
         [string]$Message,
