@@ -26,7 +26,7 @@ Zero-touch Windows deployment with automatic driver updates, application install
 # 1. Create bootable Windows 11 USB
 # 2. Copy autounattend.xml to USB root
 # 3. (Optional) Copy RMM agent as Agent.exe to USB root
-# 4. Boot from USB with network connected
+# 4. Boot from USB with network connected. Make sure to keep the USB drive connected until deployment is complete.
 # 5. Wait - everything happens automatically
 ```
 
@@ -35,12 +35,11 @@ Zero-touch Windows deployment with automatic driver updates, application install
 # Run as Administrator in PowerShell 7
 iex (irm "https://raw.githubusercontent.com/Stensel8/WinDeploy/$((irm https://api.github.com/repos/Stensel8/WinDeploy/releases/latest).tag_name)/Scripts/Start.ps1")
 ```
-```
 
 ### Option 3: Fastest method (one-liner)
 ```powershell
 # Run as Administrator in PowerShell 7
-iex(irm windeploy.stensel.nl)
+iex (irm windeploy.stensel.nl)
 ```
 
 ---
