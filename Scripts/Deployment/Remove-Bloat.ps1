@@ -20,38 +20,129 @@ Function Write-DeployLog {
 
 # Expanded list for common bloatware (inspired by WinDeploy Remove-Bloat.ps1, excluding Get Help)
 $BloatwareList = @(
-    # Microsoft Communication and Social
-    "Microsoft.SkypeApp", "Microsoft.YourPhone", "Microsoft.People", "Microsoft.Messaging",
+    # Microsoft Apps - Communication and Social
+    "Microsoft.SkypeApp",
+    "Microsoft.YourPhone",
+    "Microsoft.People",
+    "Microsoft.Messaging",
 
-    # Microsoft Media and Entertainment
-    "Microsoft.GamingApp", "Microsoft.Xbox.TCUI", "Microsoft.XboxApp", "Microsoft.XboxGameOverlay",
-    "Microsoft.XboxGamingOverlay", "Microsoft.XboxIdentityProvider", "Microsoft.XboxSpeechToTextOverlay",
-    "Microsoft.ZuneMusic", "Microsoft.ZuneVideo", "Microsoft.MicrosoftSolitaireCollection",
-    "Microsoft.Media.Player", "Microsoft.WindowsMaps",
+    # Media and Entertainment
+    "Microsoft.GamingApp",
+    "Microsoft.Xbox.TCUI",
+    "Microsoft.XboxApp",
+    "Microsoft.XboxGameOverlay",
+    "Microsoft.XboxGamingOverlay",
+    "Microsoft.XboxIdentityProvider",
+    "Microsoft.XboxSpeechToTextOverlay",
+    "Microsoft.ZuneMusic",
+    "Microsoft.ZuneVideo",
+    "Microsoft.MicrosoftSolitaireCollection",
+    "Microsoft.Media.Player",
 
-    # Microsoft Productivity and Tools
-    "Microsoft.Todos", "Microsoft.MicrosoftStickyNotes", "Microsoft.OneConnect",
-    "Microsoft.Getstarted", "Microsoft.WindowsFeedbackHub", "Microsoft.Microsoft3DViewer",
-    "Microsoft.3DBuilder", "Microsoft.Print3D", "Microsoft.MixedReality.Portal",
-    "Microsoft.Clipchamp", "Clipchamp.Clipchamp", "9P1J8S7CCWWT", "MicrosoftCorporationII.MicrosoftFamily",
-    "Microsoft.WindowsAlarms", "Microsoft.ScreenSketch", "Microsoft.Wallet",
-    "Microsoft.NetworkSpeedTest", "Microsoft.MicrosoftJournal", "Microsoft.Office.Sway",
+    # Productivity and Tools
+    "Microsoft.Todos",
+    "Microsoft.WindowsMaps",
+    "Microsoft.MicrosoftStickyNotes",
+    "Microsoft.MicrosoftOfficeHub",
+    "Microsoft.OneConnect",
+    # "Microsoft.GetHelp",  # Excluded: Required for Windows troubleshooting/support
+    "Microsoft.Getstarted",
+    "Microsoft.WindowsFeedbackHub",
+    "Microsoft.Microsoft3DViewer",
+    "Microsoft.3DBuilder",
+    "Microsoft.Print3D",
+    "Microsoft.MixedReality.Portal",
+    "Microsoft.Clipchamp",
+    "Clipchamp.Clipchamp",
+    "9P1J8S7CCWWT",
+    "MicrosoftCorporationII.MicrosoftFamily",
+    "Microsoft.WindowsAlarms",
+    "Microsoft.ScreenSketch",
+    "Microsoft.Wallet",
+    "Microsoft.NetworkSpeedTest",
+    "Microsoft.MicrosoftJournal",
+    "Microsoft.MicrosoftPowerBIForWindows",
+    "Microsoft.Office.Sway",
 
-    # Microsoft News, Weather, and Information
-    "Microsoft.BingNews", "Microsoft.BingWeather", "Microsoft.BingFinance",
-    "Microsoft.BingHealthAndFitness", "Microsoft.BingSports", "Microsoft.BingTranslator",
-    "Microsoft.News", "Microsoft.Start", "Microsoft.BingSearch", # "Microsoft.WebExperiencePack",  # Removed to preserve Windows Spotlight
+    # News, Weather, and Information
+    "Microsoft.BingNews",
+    "Microsoft.BingWeather",
+    "Microsoft.BingFinance",
+    "Microsoft.BingFoodAndDrink",
+    "Microsoft.BingHealthAndFitness",
+    "Microsoft.BingSports",
+    "Microsoft.BingTranslator",
+    "Microsoft.BingTravel",
+    "Microsoft.News",
+    "Microsoft.Start",
+    "Microsoft.BingSearch",
+    # "Microsoft.WebExperiencePack",  # Do not remove to preserve Windows Spotlight functionality
     "Microsoft.549981C3F5F10",
 
-    # Microsoft AI and Assistant
+    # AI and Assistant
     "Microsoft.Copilot",
 
-    # Third-Party Social and Streaming
-    "Facebook.Facebook", "Instagram", "Twitter", "TikTok", "LinkedInforWindows",
-    "SpotifyAB.SpotifyMusic", "Netflix", "Disney", "AmazonVideo.PrimeVideo",
+    # System & Utility
+    "Microsoft.PowerAutomateDesktop",
 
-    # Third-Party Games
-    "king.com.CandyCrushSaga", "king.com.CandyCrushSodaSaga", "king.com.BubbleWitch3Saga"
+    # Third Party Apps - Social Media
+    "Facebook",
+    "Instagram",
+    "Twitter",
+    "TikTok",
+    "LinkedInforWindows",
+    "XING",
+
+    # Entertainment and Streaming
+    "SpotifyAB.SpotifyMusic",
+    "Spotify",
+    "Netflix",
+    "AmazonVideo.PrimeVideo",
+    "Amazon.com.Amazon",
+    "HULULLC.HULUPLUS",
+    "Plex",
+    "Disney",
+    "DisneyMagicKingdoms",
+    "SlingTV",
+    "PandoraMediaInc",
+    "iHeartRadio",
+    "TuneInRadio",
+    "Shazam",
+
+    # Games
+    "king.com.CandyCrushSaga",
+    "king.com.CandyCrushSodaSaga",
+    "king.com.BubbleWitch3Saga",
+    "CaesarsSlotsFreeCasino",
+    "COOKINGFEVER",
+    "FarmVille2CountryEscape",
+    "MarchofEmpires",
+    "Royal Revolt",
+    "Asphalt8Airborne",
+    "HiddenCity",
+
+    # Productivity and Utilities
+    "Duolingo-LearnLanguagesforFree",
+    "NYTCrossword",
+    "Flipboard",
+    "OneCalendar",
+    "Wunderlist",
+    "fitbit",
+    "Viber",
+    "WinZipUniversal",
+    "EclipseManager",
+    "Sidia.LiveWallpaper",
+
+    # Creative and Photo Editing
+    "AdobeSystemsIncorporated.AdobePhotoshopExpress",
+    "AutodeskSketchBook",
+    "DrawboardPDF",
+    "PhototasticCollage",
+    "PicsArt-PhotoStudio",
+    "PolarrPhotoEditorAcademicEdition",
+    "ActiproSoftwareLLC",
+    "ACGMediaPlayer",
+    "CyberLinkMediaSuiteEssentials"
 )
 
 try {
@@ -103,21 +194,22 @@ try {
     Write-DeployLog "Setting anti-reinstall..."
     $RegPaths = @(
         # Removed DisableWindowsConsumerFeatures and DisableConsumerFeaturesThroughWindowsUpdates to preserve Windows Spotlight
-        # @{
+        # @(
         #     Path = 'HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent'
         #     Value = 'DisableWindowsConsumerFeatures'
         #     Data = 1
-        # },
-        # @{
+        # ),
+        # @(
         #     Path = 'HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent'
         #     Value = 'DisableConsumerFeaturesThroughWindowsUpdates'
         #     Data = 1
-        # },
-        @{
-            Path = 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
-            Value = 'Start_IrisRecommendations'
-            Data = 0
-        }
+        # ),
+        # Removed Start_IrisRecommendations to preserve Windows Spotlight
+        # @{
+        #     Path = 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+        #     Value = 'Start_IrisRecommendations'
+        #     Data = 0
+        # }
     )
 
     foreach ($Reg in $RegPaths) {
