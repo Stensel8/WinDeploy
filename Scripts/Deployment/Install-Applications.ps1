@@ -41,6 +41,8 @@ try {
         "9WZDNCRFJ3PZ" # Company Portal (msstore)
     )
 
+    # Winget error codes that you may come across during installation. Note that these are not documented all well by Micrsoft. They documenent some of them, but not all.
+    # Sometimes we may come across an error, this is why we try to install most apps on 2 ways. Via normal winget and via msstore.
     $WingetErrorDescriptions = @{
         -1978335231 = "Internal Error"
         -1978335230 = "Invalid command line arguments"
@@ -242,6 +244,7 @@ try {
         -1978285814 = "A unit contains a setting that requires the config root."
         -1978285813 = "Loading the module for the configuration unit failed because it requires administrator privileges to run."
         -1978285812 = "Operation is not supported by the configuration processor."
+        2147024894 = "The application failed to initialize properly (0x80070646). This indicates a problem with the application's initialization, such as missing or corrupted dependencies, incorrect permissions, or issues with the Windows App Installer package."
     }
 
     foreach ($app in $Applications) {

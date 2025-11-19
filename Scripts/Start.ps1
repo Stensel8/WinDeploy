@@ -1,5 +1,6 @@
 param(
-    [string]$VersionTag
+    [string]$VersionTag,
+    [switch]$Relaunched
 )
 
 # Fetch latest release with retry logic
@@ -51,6 +52,11 @@ try {
     $version = $version.Trim()
 } catch {
     Write-Warning "Failed to fetch version information."
+}
+
+# Clear screen if relaunched
+if ($Relaunched) {
+    Clear-Host
 }
 
 # Print header
@@ -253,7 +259,7 @@ if (-not $isPwsh7) {
         }
     }
 
-    $argList = "-ExecutionPolicy Bypass -NoProfile -File `"$scriptPath`" $versionArgs"
+    $argList = "-ExecutionPolicy Bypass -NoProfile -File `"$scriptPath`" $versionArgs -Relaunched"
     Start-Process -FilePath $pwshExePath -ArgumentList $argList -Wait -NoNewWindow
     exit
 }
