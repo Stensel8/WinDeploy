@@ -109,7 +109,7 @@ The deployment includes automatic RMM agent installation for Datto RMM. It first
 - As a fallback, downloads the agent using a configurable Site ID from Datto's servers.
 
 To configure the Site ID:
-1. Edit `Scripts/Deployment/Install-RMMAgent.ps1` (line ~18).
+1. Edit `Scripts/Deployment/Install-RMMAgent.ps1` (line ~25).
 2. Replace `"EnterYourIDHere"` with your actual Datto RMM Site ID.
 
 **Security Note**: Do not include random or example Site IDs in the public repository to avoid accidental exposure of sensitive information. Always configure your Site ID manually after cloning the repository. Keep the ID private.
