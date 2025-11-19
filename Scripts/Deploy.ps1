@@ -1,15 +1,48 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Continue'
 
-# Fetch the latest release tag for downloading scripts
-$releaseTag = "main"
-try {
-    $latestRelease = Invoke-RestMethod -Uri "https://api.github.com/repos/Stensel8/WinDeploy/releases/latest" -ErrorAction SilentlyContinue
-    if ($latestRelease.tag_name) {
-        $releaseTag = $latestRelease.tag_name
+# Fetch latest release with retry logic
+function Get-LatestRelease {
+    param(
+        [int]$MaxRetries = 3,
+        [int]$RetryDelay = 5
+    )
+
+    for ($attempt = 1; $attempt -le $MaxRetries; $attempt++) {
+        try {
+            $latestRelease = Invoke-RestMethod -Uri "https://api.github.com/repos/Stensel8/WinDeploy/releases/latest" -ErrorAction Stop
+            if ($latestRelease.tag_name) {
+                return $latestRelease.tag_name
+            }
+        } catch {
+            $errorMsg = $_.Exception.Message
+            Write-Warning "Failed to fetch latest release (attempt $attempt/$MaxRetries): $errorMsg"
+
+            if ($attempt -lt $MaxRetries) {
+                if ($errorMsg -match "403|401") {
+                    Write-Host "Possible issue: GitHub API rate limit or authentication required" -ForegroundColor Yellow
+                } elseif ($errorMsg -match "404") {
+                    Write-Host "Possible issue: No releases found in repository" -ForegroundColor Yellow
+                }
+                Write-Host "Waiting $RetryDelay seconds before retry..." -ForegroundColor Cyan
+                Start-Sleep -Seconds $RetryDelay
+            }
+        }
     }
-} catch {
-    Write-Warning "Failed to fetch latest release, using main branch."
+    return $null
+}
+
+# Fetch the latest release tag - REQUIRED for deployment
+$releaseTag = Get-LatestRelease
+if (!$releaseTag) {
+    Write-Output "ERROR: Failed to fetch latest release from GitHub."
+    Write-Output "Releases are required for deployment. Development branches are not used."
+    Write-Output "Please check:"
+    Write-Output "  1. Your internet connection"
+    Write-Output "  2. GitHub API accessibility"
+    Write-Output "  3. Repository has published releases: github.com/Stensel8/WinDeploy/releases"
+    Read-Host "Press Enter to exit"
+    exit 1
 }
 
 # Read version
@@ -17,6 +50,9 @@ $version = $null
 try {
     $version = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/VERSION" -ErrorAction SilentlyContinue
     $version = $version.Trim()
+    if ($version) {
+        Write-Output "Version: $version"
+    }
 } catch {
     Write-Warning "Failed to fetch version information."
 }
@@ -65,11 +101,61 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     exit 1
 }
 
+# Log execution context for debugging
+$scriptExecutionContext = Get-ScriptDisplay
+Write-DeployLog "Deployment started. Execution context: $scriptExecutionContext"
+
+# Helper function to download scripts with retry logic
+function Get-DeploymentScript {
+    param(
+        [string]$ScriptName,
+        [string]$LocalPath,
+        [int]$MaxRetries = 3,
+        [int]$RetryDelay = 5
+    )
+
+    for ($attempt = 1; $attempt -le $MaxRetries; $attempt++) {
+        try {
+            Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/Scripts/Deployment/$ScriptName" -OutFile $LocalPath -UseBasicParsing -ErrorAction Stop
+            Write-DeployLog "Downloaded $ScriptName to $LocalPath"
+            return $true
+        } catch {
+            $errorMsg = $_.Exception.Message
+            Write-Warning "Download attempt $attempt/$MaxRetries failed for $ScriptName`: $errorMsg"
+
+            if ($attempt -lt $MaxRetries) {
+                # Diagnose the issue
+                if ($errorMsg -match "403|401") {
+                    Write-Host "Possible issue: GitHub API rate limit reached" -ForegroundColor Yellow
+                } elseif ($errorMsg -match "404") {
+                    Write-Host "Possible issue: $ScriptName not found in release $releaseTag" -ForegroundColor Yellow
+                } elseif ($errorMsg -match "timeout|timed out") {
+                    Write-Host "Possible issue: Network timeout" -ForegroundColor Yellow
+                }
+
+                Write-Host "Waiting $RetryDelay seconds before retry..." -ForegroundColor Cyan
+                Start-Sleep -Seconds $RetryDelay
+            }
+        }
+    }
+
+    # If all download attempts failed, try local copy
+    $localSourcePath = Join-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath "Deployment") -ChildPath $ScriptName
+    if (Test-Path $localSourcePath) {
+        Copy-Item $localSourcePath $LocalPath -Force
+        Write-DeployLog "Copied local $ScriptName to $LocalPath"
+        return $true
+    }
+
+    Write-Warning "Cannot download or find $ScriptName after $MaxRetries attempts"
+    return $false
+}
+
 # Define deployment steps (customize as needed)
 $deploymentSteps = @(
     @{ Name = "Driver Installation";        ScriptName = "Install-Drivers.ps1" }
     @{ Name = "RMM Agent Installation";     ScriptName = "Install-RMMAgent.ps1" }
-    @{ Name = "AutoRun Disable";            ScriptName = "Disable-AutoRun.ps1" }
+    @{ Name = "Windows Hardening";          ScriptName = "Harden-Windows.ps1" }
     @{ Name = "Application Installation";   ScriptName = "Install-Applications.ps1" }
     @{ Name = "Bloatware Removal";          ScriptName = "Remove-Bloat.ps1" }
     @{ Name = "Theme Configuration";        ScriptName = "Set-Theme.ps1" }
@@ -88,39 +174,46 @@ foreach ($step in $deploymentSteps) {
     Write-Output "  $($step.Name)"
     Write-Output "======================================== "
     Write-Output ""
+
     $localPath = Join-Path -Path $dlRoot -ChildPath $step.ScriptName
-    $scriptAvailable = $false
-    try {
-        Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/Scripts/Deployment/$($step.ScriptName)" -OutFile $localPath -UseBasicParsing -ErrorAction Stop
-        Write-DeployLog "Downloaded $($step.ScriptName) to $localPath"
-        $scriptAvailable = $true
-    } catch {
-        # If download fails, use local copy if available
-        $localSourcePath = Join-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath "Deployment") -ChildPath $step.ScriptName
-        if (Test-Path $localSourcePath) {
-            Copy-Item $localSourcePath $localPath -Force
-            Write-DeployLog "Copied local $($step.ScriptName) to $localPath"
-            $scriptAvailable = $true
-        } else {
-            Write-Warning "Cannot download or find $($step.ScriptName): $_"
-            $allSuccessful = $false
-            continue
-        }
-    }
+
+    # Download script with retry logic
+    $scriptAvailable = Get-DeploymentScript -ScriptName $step.ScriptName -LocalPath $localPath
+
     if ($scriptAvailable) {
         $argumentList = "-ExecutionPolicy Bypass -File `"$localPath`""
         $proc = Start-Process pwsh -ArgumentList $argumentList -Wait -NoNewWindow -PassThru
         if ($proc.ExitCode -ne 0) {
+            Write-Warning "$($step.Name) completed with errors (Exit Code: $($proc.ExitCode))"
             $allSuccessful = $false
         }
+    } else {
+        Write-Warning "Skipping $($step.Name) - script unavailable"
+        $allSuccessful = $false
     }
 }
 
-# Download optional fix Spotlight script. Sometimes Spotlight option is not present and needs a little help.
+# Download optional fix Spotlight script with retry
+Write-Output ""
+Write-Output "Downloading optional scripts..."
 try {
     $fixScriptPath = Join-Path $dlRoot "Fix-Spotlight.ps1"
-    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/Scripts/Archived/Fix-Spotlight.ps1" -OutFile $fixScriptPath -UseBasicParsing -ErrorAction Stop
-    Write-DeployLog "Downloaded Fix-Spotlight.ps1 to $fixScriptPath as an optional script to fix missing Spotlight options on the system."
+    $downloaded = $false
+    for ($attempt = 1; $attempt -le 3; $attempt++) {
+        try {
+            Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/Scripts/Archived/Fix-Spotlight.ps1" -OutFile $fixScriptPath -UseBasicParsing -ErrorAction Stop
+            Write-DeployLog "Downloaded Fix-Spotlight.ps1 to $fixScriptPath as an optional script to fix missing Spotlight options on the system."
+            $downloaded = $true
+            break
+        } catch {
+            if ($attempt -lt 3) {
+                Start-Sleep -Seconds 5
+            }
+        }
+    }
+    if (-not $downloaded) {
+        Write-DeployLog "Optional: Could not download Fix-Spotlight.ps1 after 3 attempts"
+    }
 } catch {
     Write-DeployLog "Optional: Could not download Fix-Spotlight.ps1: $_"
 }

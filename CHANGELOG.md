@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.5.4] - 2025-11-19
+
+### Added
+- Additional security hardening based on CISO recommendations.
+- Additional Winget exit codes to better understand installation results.
+
+### Changed
+- Merged Autorun disable options into Harden-Windows.ps1 for better maintainability and understandability.
+
+### Fixed
+- Improved handling of situations where the script was not run as admin and PowerShell 7 was not present on the system.
+- Implemented PSScriptAnalyzer suggestions to enhance code quality and best practices.
+- Improved GitHub API usage: Scripts now perform more attempts to obtain a good release.
+- Fixed an issue where the deployment tried to use the wrong command to silently update a Dell device driver.
+- Fixed an issue where the logs did not properly capture the output of Driver installs.
+
+---
+
 ## [0.5.3] - 2025-11-18
 
 ### Fixed
@@ -84,6 +102,7 @@ First open-source release of WinDeploy - Windows Deployment Automation Toolkit. 
 
 ---
 
+[0.5.4]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.4
 [0.5.3]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.3
 [0.5.2]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.2
 [0.5.0]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.0
