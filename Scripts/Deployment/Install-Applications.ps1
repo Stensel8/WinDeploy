@@ -244,7 +244,7 @@ try {
         -1978285814 = "A unit contains a setting that requires the config root."
         -1978285813 = "Loading the module for the configuration unit failed because it requires administrator privileges to run."
         -1978285812 = "Operation is not supported by the configuration processor."
-        2147024894 = "The application failed to initialize properly (0x80070646). This indicates a problem with the application's initialization, such as missing or corrupted dependencies, incorrect permissions, or issues with the Windows App Installer package."
+        -2147024894 = "The application failed to initialize properly (0x80070646). This indicates a problem with the application's initialization, such as missing or corrupted dependencies, incorrect permissions, or issues with the Windows App Installer package."
     }
 
     foreach ($app in $Applications) {

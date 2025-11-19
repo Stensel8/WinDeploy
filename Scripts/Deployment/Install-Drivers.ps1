@@ -115,7 +115,7 @@ try {
     }
 
     if (-not $isSupported) {
-        Write-Warning "Skipped: Unsupported device"
+        Write-DeployLog "SKIPPED: Unsupported system - $manufacturer $model"
         exit 0
     }
 
