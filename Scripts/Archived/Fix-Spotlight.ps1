@@ -47,7 +47,7 @@ Write-Host "ContentDeliveryManager activated." -ForegroundColor Yellow
 
 # Step 4: Re-register Spotlight package (for lockscreen and desktop)
 Write-Host "Step 4: Re-registering Spotlight package..." -ForegroundColor Green
-Get-AppxPackage -allusers Microsoft.Windows.ContentDeliveryManager | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml"}
+Get-AppxPackage -allusers Microsoft.Windows.ContentDeliveryManager | ForEach-Object {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml"}
 Write-Host "Package registered." -ForegroundColor Yellow
 
 # Step 5: Optional policy-check and reset (if DisableSpotlightFeatures exists, set to 0)

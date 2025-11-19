@@ -1,4 +1,4 @@
-﻿# ============================================================================
+# ============================================================================
 # Skip-OOBEPrivacy-Intune.ps1
 # Skips OOBE privacy questions and sets privacy defaults
 # Compatible with: Intune Platform Scripts | Local Admin (SYSTEM context)

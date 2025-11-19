@@ -59,7 +59,7 @@ graph TD
     G --> H[Launch Deploy.ps1]
     H --> I[Update Drivers]
     I --> J[Install RMM Agent]
-    J --> K[Disable AutoRun]
+    J --> K[Windows Hardening]
     K --> L[Install Applications]
     L --> M[Remove Bloatware]
     M --> N[Apply Theme]

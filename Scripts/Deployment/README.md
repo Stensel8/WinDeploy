@@ -4,7 +4,7 @@ This folder contains PowerShell scripts used for automating various deployment t
 
 ## Scripts
 
-- `Disable-AutoRun.ps1`: Disables AutoRun for security hardening.
+- `Harden-Windows.ps1`: Applies security hardenings including AutoRun disable.
 - `Install-Applications.ps1`: Installs required applications via WinGet.
 - `Install-Drivers.ps1`: Installs device drivers for Dell/HP systems.
 - `Install-RMMAgent.ps1`: Installs RMM agent from USB or download.
@@ -36,4 +36,4 @@ To run all deployment scripts in sequence, execute `Start.ps1` from the root of 
 .\Scripts\Start.ps1
 ```
 
-Note: `Start.ps1` runs the scripts in this order: Drivers, RMM Agent, AutoRun Disable, Applications, Bloatware Removal, Theme, Hostname, Windows Updates.
+Note: `Start.ps1` runs the scripts in this order: Drivers, RMM Agent, Windows Hardening, Applications, Bloatware Removal, Theme, Hostname, Windows Updates.
