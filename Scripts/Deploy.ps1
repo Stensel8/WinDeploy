@@ -1,6 +1,12 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Continue'
 
+# Check for minimum PowerShell version
+if ($PSVersionTable.PSVersion.Major -lt 7) {
+    Write-Output "ERROR: This script requires PowerShell 7 or higher."
+    exit 1
+}
+
 # Fetch latest release with retry logic
 function Get-LatestRelease {
     param(
@@ -104,6 +110,33 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 # Log execution context for debugging
 $scriptExecutionContext = Get-ScriptDisplay
 Write-DeployLog "Deployment started. Execution context: $scriptExecutionContext"
+
+# Check if running in Windows Terminal (where left-click doesn't pause)
+$isWindowsTerminal = $env:WT_SESSION -ne $null
+
+# Clear screen and show warning banner only for PowerShell console
+Clear-Host
+if (-not $isWindowsTerminal) {
+    Write-Host ""
+    Write-Host "=========================================" -ForegroundColor Cyan
+    Write-Host "          DEPLOYMENT WARNING" -ForegroundColor Yellow
+    Write-Host "=========================================" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "Left click to pause deployment" -ForegroundColor Red
+    Write-Host "Right click to resume" -ForegroundColor Green
+    Write-Host "CTRL + C to cancel" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "=========================================" -ForegroundColor Cyan
+    Write-Host ""
+}
+
+# Countdown before starting
+for ($i = 15; $i -gt 0; $i--) {
+    Write-Host "`rStarting deployment in $i seconds... (Press CTRL+C to cancel)" -ForegroundColor Yellow -NoNewline
+    Start-Sleep -Seconds 1
+}
+Write-Host "`rStarting deployment now!                                        " -ForegroundColor Green
+Write-Host ""
 
 # Helper function to download scripts with retry logic
 function Get-DeploymentScript {
