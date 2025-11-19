@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Additional fallback to CDN if Microsoft 365 apps fail to install via Winget.
 - Added additional error messages during application installation to keep users informed of the process status.
 - Memory integrity will now be enabled during hardening if supported by the system.
+
 ---
 
 ## [0.5.4] - 2025-11-19
