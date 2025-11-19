@@ -10,6 +10,8 @@ Zero-touch Windows deployment with automatic driver updates, application install
 
 ![Terminal showing begin of deployment](Docs/Deployment_Flow.png)
 
+![Terminal showing a short demo of the deployment process](Docs/WinDeploy-Demo.gif)
+
 ![Terminal showing successful deployment](Docs/Deployment_Success.png)
 
 ![Clean Windows after successful deployment](Docs/Expected_Result.png)
