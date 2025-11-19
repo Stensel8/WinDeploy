@@ -123,6 +123,15 @@ try {
             Value = 4
             Type = "DWord"
             Description = "Disable Bluetooth service"
+        },
+
+        # Enable Memory Integrity
+        @{
+            Path = "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity"
+            Name = "Enabled"
+            Value = 1
+            Type = "DWord"
+            Description = "Enable Memory Integrity"
         }
     )
 
@@ -152,6 +161,7 @@ try {
     Write-DeployLog "  - Windows Script Host disabled"
     Write-DeployLog "  - UAC hardened"
     Write-DeployLog "  - Bluetooth service disabled. Re-enable if needed."
+    Write-DeployLog "  - Memory Integrity enabled"
 
     # Apply power settings for security
     Write-DeployLog ""
@@ -197,8 +207,18 @@ try {
     }
 
     Write-DeployLog ""
+    Write-DeployLog "Verifying Memory Integrity configuration..."
+    $verifyPathMI = "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity"
+    $currentValueMI = Get-ItemProperty -Path $verifyPathMI -Name "Enabled" -ErrorAction SilentlyContinue
+    if ($currentValueMI.Enabled -eq 1) {
+        Write-DeployLog "Verification successful: Memory Integrity is enabled"
+    } else {
+        Write-DeployLog "Warning: Memory Integrity may not be enabled. Current value: $($currentValueMI.Enabled)" -IsError
+    }
+
+    Write-DeployLog ""
     Write-DeployLog "Windows hardening process completed successfully"
-    Write-DeployLog "No system restart required - changes are effective immediately"
+    Write-DeployLog "System restart required for Memory Integrity to take effect"
 
     Write-DeployLog "SUCCESS: Windows hardening done."
 

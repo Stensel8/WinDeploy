@@ -247,6 +247,8 @@ try {
         -2147024894 = "The application failed to initialize properly (0x80070646). This indicates a problem with the application's initialization, such as missing or corrupted dependencies, incorrect permissions, or issues with the Windows App Installer package."
     }
 
+    $OfficeFailed = $false
+
     foreach ($app in $Applications) {
         Write-DeployLog "Installing $app..."
         try {
@@ -266,13 +268,67 @@ try {
                     Write-DeployLog "Failed to install $app (exit code $exitCode)" -IsError
 
                 }
+                if ($app -eq "Microsoft.Office") {
+                    $OfficeFailed = $true
+                }
             }
         } catch {
             Write-DeployLog "Failed to install $app" -IsError
+            if ($app -eq "Microsoft.Office") {
+                $OfficeFailed = $true
+            }
         }
     }
 
-    Write-DeployLog "Installing msstore versions of apps...."
+    if ($OfficeFailed) {
+        Write-DeployLog "Winget failed to install Microsoft Office. Attempting direct download from CDN with custom configuration..."
+        $setupUrl = "https://officecdn.microsoft.com/pr/wsus/setup.exe"
+        $setupPath = Join-Path $env:TEMP "OfficeSetup.exe"
+        $configPath = Join-Path $env:TEMP "OfficeConfig.xml"
+        try {
+            Invoke-WebRequest -Uri $setupUrl -OutFile $setupPath -UseBasicParsing
+            Write-DeployLog "Downloaded Office setup to $setupPath"
+
+            # Create config.xml for Dutch M365 Apps
+            $configContent = @'
+<Configuration>
+  <Add OfficeClientEdition="64" Channel="Current">
+    <Product ID="O365ProPlusRetail">
+      <Language ID="nl-NL" />
+      <Language ID="en-US" />
+      <ExcludeApp ID="Groove" />
+      <ExcludeApp ID="Lync" />
+    </Product>
+  </Add>
+  <Updates Enabled="TRUE" />
+  <Display Level="Full" AcceptEULA="TRUE" />
+  <Property Name="FORCEAPPSHUTDOWN" Value="TRUE" />
+</Configuration>
+'@
+            $configContent | Out-File -FilePath $configPath -Encoding UTF8
+            Write-DeployLog "Created Office configuration file at $configPath"
+
+            # Run installation with configuration
+            $output = & $setupPath /configure $configPath 2>&1
+            $exitCode = $LASTEXITCODE
+            if ($exitCode -eq 0) {
+                Write-DeployLog "Office installation completed from direct link with custom configuration."
+            } else {
+                Write-DeployLog "Office installation failed with exit code $exitCode. Output: $output" -IsError
+            }
+
+            # Clean up
+            Remove-Item $setupPath, $configPath -Force -ErrorAction SilentlyContinue
+            Write-DeployLog "Cleaned up temporary files."
+        } catch {
+            Write-DeployLog "Failed to install Office from direct link: $($_.Exception.Message)" -IsError
+            # Clean up on error
+            if (Test-Path $setupPath) { Remove-Item $setupPath -Force -ErrorAction SilentlyContinue }
+            if (Test-Path $configPath) { Remove-Item $configPath -Force -ErrorAction SilentlyContinue }
+        }
+    }
+
+    Write-DeployLog "Installing Microsoft Store versions of the applications listed above..."
     foreach ($app in $MsStoreApplications) {
         Write-DeployLog "Installing msstore $app..."
         try {

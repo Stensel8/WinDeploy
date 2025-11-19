@@ -1,6 +1,12 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Continue'
 
+# Check for minimum PowerShell version
+if ($PSVersionTable.PSVersion.Major -lt 7) {
+    Write-Output "ERROR: This script requires PowerShell 7 or higher."
+    exit 1
+}
+
 # Fetch latest release with retry logic
 function Get-LatestRelease {
     param(
@@ -82,7 +88,7 @@ Function Write-DeployLog {
     }
 
     if ($IsError) {
-        # Avoid noisy error records and stack traces in the console
+        # Avoid noisy and spammy error records and stack traces in the console
         Write-Warning $Message
     } else {
         Write-Output $Message
@@ -104,6 +110,41 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 # Log execution context for debugging
 $scriptExecutionContext = Get-ScriptDisplay
 Write-DeployLog "Deployment started. Execution context: $scriptExecutionContext"
+
+# Check if running in Windows Terminal (where left-click doesn't pause)
+$isWindowsTerminal = $null -ne $env:WT_SESSION
+
+# Clear screen and show banner and warning
+Clear-Host
+Write-Host "============================================================" -ForegroundColor Cyan
+Write-Host "            Windows Deployment Automation Toolkit" -ForegroundColor Yellow
+Write-Host "============================================================" -ForegroundColor Cyan
+if ($version) {
+    Write-Host "Version: $version" -ForegroundColor Green
+}
+Write-Host ""
+Write-Host "Running in PowerShell 7 as Administrator" -ForegroundColor Green
+Write-Host ""
+if (-not $isWindowsTerminal) {
+    Write-Host "=========================================" -ForegroundColor Cyan
+    Write-Host "          DEPLOYMENT WARNING" -ForegroundColor Yellow
+    Write-Host "=========================================" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "Left click to pause deployment" -ForegroundColor Red
+    Write-Host "Right click to resume" -ForegroundColor Green
+    Write-Host "CTRL + C to cancel" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "=========================================" -ForegroundColor Cyan
+    Write-Host ""
+}
+
+# Countdown before starting
+for ($i = 15; $i -gt 0; $i--) {
+    Write-Host "`rStarting deployment in $i seconds... (Press CTRL+C to cancel)" -ForegroundColor Yellow -NoNewline
+    Start-Sleep -Seconds 1
+}
+Write-Host "`rStarting deployment now!                                        " -ForegroundColor Green
+Write-Host ""
 
 # Helper function to download scripts with retry logic
 function Get-DeploymentScript {
@@ -182,10 +223,17 @@ foreach ($step in $deploymentSteps) {
 
     if ($scriptAvailable) {
         $argumentList = "-ExecutionPolicy Bypass -File `"$localPath`""
-        $proc = Start-Process pwsh -ArgumentList $argumentList -Wait -NoNewWindow -PassThru
-        if ($proc.ExitCode -ne 0) {
-            Write-Warning "$($step.Name) completed with errors (Exit Code: $($proc.ExitCode))"
-            $allSuccessful = $false
+        try {
+            $proc = Start-Process pwsh -ArgumentList $argumentList -Wait -NoNewWindow -PassThru
+            if ($proc.ExitCode -ne 0) {
+                Write-Warning "$($step.Name) completed with errors (Exit Code: $($proc.ExitCode))"
+                $allSuccessful = $false
+            }
+        } catch {
+            if ($proc -and !$proc.HasExited) {
+                Stop-Process -Id $proc.Id -Force
+            }
+            throw
         }
     } else {
         Write-Warning "Skipping $($step.Name) - script unavailable"
@@ -202,7 +250,7 @@ try {
     for ($attempt = 1; $attempt -le 3; $attempt++) {
         try {
             Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/Scripts/Archived/Fix-Spotlight.ps1" -OutFile $fixScriptPath -UseBasicParsing -ErrorAction Stop
-            Write-DeployLog "Downloaded Fix-Spotlight.ps1 to $fixScriptPath as an optional script to fix missing Spotlight options on the system."
+            Write-DeployLog "Downloaded Fix-Spotlight.ps1 to $fixScriptPath as an optional script to fix missing Spotlight options on the system. This can be run manually if needed."
             $downloaded = $true
             break
         } catch {

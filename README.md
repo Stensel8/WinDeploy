@@ -5,10 +5,18 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PowerShell 7.0+](https://img.shields.io/badge/PowerShell-7.0+-blue.svg)](https://github.com/PowerShell/PowerShell)
 [![Windows 11](https://img.shields.io/badge/Windows-11-0078D6.svg)](https://www.microsoft.com/windows)
+[![Windows 24H2/25H2](https://img.shields.io/badge/Windows-24H2/25H2-0078D6.svg)](https://www.microsoft.com/windows)
+
+
+[![PSScriptAnalyzer](https://github.com/Stensel8/WinDeploy/actions/workflows/powershell.yml/badge.svg)](https://github.com/Stensel8/WinDeploy/actions/workflows/powershell.yml)
+[![DevSkim](https://github.com/Stensel8/WinDeploy/actions/workflows/devskim.yml/badge.svg)](https://github.com/Stensel8/WinDeploy/actions/workflows/devskim.yml)
+[![Dependabot Updates](https://github.com/Stensel8/WinDeploy/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/Stensel8/WinDeploy/actions/workflows/dependabot/dependabot-updates)
 
 Zero-touch Windows deployment with automatic driver updates, application installation, bloatware removal, and system configuration. Deploy via USB, network, RMM agents, or AutoUnattend.xml.
 
 ![Terminal showing begin of deployment](Docs/Deployment_Flow.png)
+
+![Terminal showing a short demo of the deployment process](Docs/WinDeploy-Demo.gif)
 
 ![Terminal showing successful deployment](Docs/Deployment_Success.png)
 

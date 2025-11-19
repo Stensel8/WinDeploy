@@ -61,7 +61,6 @@ if ($Relaunched) {
 
 # Print header
 Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host "                    WinDeploy Deployment" -ForegroundColor Yellow
 Write-Host "            Windows Deployment Automation Toolkit" -ForegroundColor Yellow
 Write-Host "============================================================" -ForegroundColor Cyan
 if ($version) {
