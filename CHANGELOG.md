@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implemented PSScriptAnalyzer suggestions to enhance code quality and best practices.
 - Improved GitHub API usage: Scripts now perform more attempts to obtain a good release.
 - Fixed an issue where the deployment tried to use the wrong command to silently update a Dell device driver.
+- Fixed an issue where the logs did not properly capture the output of Driver installs.
 
 ---
 
