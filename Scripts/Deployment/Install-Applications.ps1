@@ -247,6 +247,8 @@ try {
         -2147024894 = "The application failed to initialize properly (0x80070646). This indicates a problem with the application's initialization, such as missing or corrupted dependencies, incorrect permissions, or issues with the Windows App Installer package."
     }
 
+    $OfficeFailed = $false
+
     foreach ($app in $Applications) {
         Write-DeployLog "Installing $app..."
         try {
@@ -266,13 +268,33 @@ try {
                     Write-DeployLog "Failed to install $app (exit code $exitCode)" -IsError
 
                 }
+                if ($app -eq "Microsoft.Office") {
+                    $OfficeFailed = $true
+                }
             }
         } catch {
             Write-DeployLog "Failed to install $app" -IsError
+            if ($app -eq "Microsoft.Office") {
+                $OfficeFailed = $true
+            }
         }
     }
 
-    Write-DeployLog "Installing msstore versions of apps...."
+    if ($OfficeFailed) {
+        Write-DeployLog "Winget failed to install Microsoft Office. Attempting direct download from CDN..."
+        $url = "https://officecdn.microsoft.com/pr/wsus/setup.exe"
+        $tempPath = Join-Path $env:TEMP "OfficeSetup.exe"
+        try {
+            Invoke-WebRequest -Uri $url -OutFile $tempPath -UseBasicParsing
+            Write-DeployLog "Downloaded Office setup to $tempPath"
+            Start-Process -FilePath $tempPath -ArgumentList "/passive" -Wait
+            Write-DeployLog "Office installation completed from direct link."
+        } catch {
+            Write-DeployLog "Failed to install Office from direct link: $($_.Exception.Message)" -IsError
+        }
+    }
+
+    Write-DeployLog "Installing Microsoft Store versions of the applications listed above..."
     foreach ($app in $MsStoreApplications) {
         Write-DeployLog "Installing msstore $app..."
         try {
