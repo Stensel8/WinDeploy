@@ -82,7 +82,7 @@ Function Write-DeployLog {
     }
 
     if ($IsError) {
-        # Avoid noisy error records and stack traces in the console
+        # Avoid noisy and spammy error records and stack traces in the console
         Write-Warning $Message
     } else {
         Write-Output $Message
@@ -202,7 +202,7 @@ try {
     for ($attempt = 1; $attempt -le 3; $attempt++) {
         try {
             Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/Scripts/Archived/Fix-Spotlight.ps1" -OutFile $fixScriptPath -UseBasicParsing -ErrorAction Stop
-            Write-DeployLog "Downloaded Fix-Spotlight.ps1 to $fixScriptPath as an optional script to fix missing Spotlight options on the system."
+            Write-DeployLog "Downloaded Fix-Spotlight.ps1 to $fixScriptPath as an optional script to fix missing Spotlight options on the system. This can be run manually if needed."
             $downloaded = $true
             break
         } catch {
