@@ -112,12 +112,20 @@ $scriptExecutionContext = Get-ScriptDisplay
 Write-DeployLog "Deployment started. Execution context: $scriptExecutionContext"
 
 # Check if running in Windows Terminal (where left-click doesn't pause)
-$isWindowsTerminal = $env:WT_SESSION -ne $null
+$isWindowsTerminal = $null -ne $env:WT_SESSION
 
-# Clear screen and show warning banner only for PowerShell console
+# Clear screen and show banner and warning
 Clear-Host
+Write-Host "============================================================" -ForegroundColor Cyan
+Write-Host "            Windows Deployment Automation Toolkit" -ForegroundColor Yellow
+Write-Host "============================================================" -ForegroundColor Cyan
+if ($version) {
+    Write-Host "Version: $version" -ForegroundColor Green
+}
+Write-Host ""
+Write-Host "Running in PowerShell 7 as Administrator" -ForegroundColor Green
+Write-Host ""
 if (-not $isWindowsTerminal) {
-    Write-Host ""
     Write-Host "=========================================" -ForegroundColor Cyan
     Write-Host "          DEPLOYMENT WARNING" -ForegroundColor Yellow
     Write-Host "=========================================" -ForegroundColor Cyan
@@ -215,10 +223,17 @@ foreach ($step in $deploymentSteps) {
 
     if ($scriptAvailable) {
         $argumentList = "-ExecutionPolicy Bypass -File `"$localPath`""
-        $proc = Start-Process pwsh -ArgumentList $argumentList -Wait -NoNewWindow -PassThru
-        if ($proc.ExitCode -ne 0) {
-            Write-Warning "$($step.Name) completed with errors (Exit Code: $($proc.ExitCode))"
-            $allSuccessful = $false
+        try {
+            $proc = Start-Process pwsh -ArgumentList $argumentList -Wait -NoNewWindow -PassThru
+            if ($proc.ExitCode -ne 0) {
+                Write-Warning "$($step.Name) completed with errors (Exit Code: $($proc.ExitCode))"
+                $allSuccessful = $false
+            }
+        } catch {
+            if ($proc -and !$proc.HasExited) {
+                Stop-Process -Id $proc.Id -Force
+            }
+            throw
         }
     } else {
         Write-Warning "Skipping $($step.Name) - script unavailable"

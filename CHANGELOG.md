@@ -13,10 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Additional fallback to CDN if Microsoft 365 apps fail to install via Winget.
 - Added additional error messages during application installation to keep users informed of the process status.
 - Memory integrity will now be enabled during hardening if supported by the system.
+- Extra Try/Catch blocks around critical sections to improve error handling.
 
 ### Changed
-- Updated startup banner according to session (Admin/Non-Admin, PS Version, Pwsh 5 / Pwsh 7, Windows Terminal / Not in Windows Terminal). This way users know exactly how the script is being executed and what the controls are. Also added a 15 second timer to give users time to cancel if they started the script by mistake.
----
+- Enhanced the startup banner to reflect session details, such as admin/non-admin status, PowerShell version (5 or 7), and Windows Terminal usage. This informs users about script execution and available controls. Also added a 15-second timer to allow cancellation if the script was launched unintentionally.
 
 ## [0.5.4] - 2025-11-19
 
