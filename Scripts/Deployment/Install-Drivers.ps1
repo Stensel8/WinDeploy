@@ -134,25 +134,28 @@ try {
 
             if ($dcu) {
                 Write-DeployLog "Scanning for driver updates..."
-                $scanOutput = & $dcu /scan 2>&1
+                $scanOutput = & $dcu /scan -silent -outputLog="C:\WinDeploy\Logs\dcu_scan.log" 2>&1
                 $scanExitCode = $LASTEXITCODE
                 if ($scanOutput) {
                     Write-DeployLog ($scanOutput -join "`n")
                 }
-                if ($scanExitCode -eq 0) {
-                    Write-DeployLog "Installing driver updates..."
-                    $applyOutput = & $dcu /applyUpdates /reboot=disable /silent 2>&1
-                    $applyExitCode = $LASTEXITCODE
-                    if ($applyOutput) {
-                        Write-DeployLog ($applyOutput -join "`n")
-                    }
-                    if ($applyExitCode -eq 0 -or $applyExitCode -eq 1 -or $applyExitCode -eq 2 -or $applyExitCode -eq 5 -or $applyExitCode -eq 500) {
-                        Write-DeployLog "Driver updates completed."
+                $successCodes = @(0,1,2,5,500)
+                if ($scanExitCode -in $successCodes) {
+                    if ($scanExitCode -eq 500) {
+                        Write-DeployLog "No driver updates available."
                     } else {
-                        Write-DeployLog "Driver updates failed with exit code $applyExitCode."
+                        Write-DeployLog "Installing driver updates..."
+                        $applyOutput = & $dcu /applyUpdates -reboot=disable -silent -outputLog="C:\WinDeploy\Logs\dcu_apply.log" 2>&1
+                        $applyExitCode = $LASTEXITCODE
+                        if ($applyOutput) {
+                            Write-DeployLog ($applyOutput -join "`n")
+                        }
+                        if ($applyExitCode -in $successCodes) {
+                            Write-DeployLog "Driver updates completed."
+                        } else {
+                            Write-DeployLog "Driver updates failed with exit code $applyExitCode."
+                        }
                     }
-                } elseif ($scanExitCode -eq 500) {
-                    Write-DeployLog "No driver updates available."
                 } else {
                     Write-DeployLog "Scan failed with exit code $scanExitCode."
                 }

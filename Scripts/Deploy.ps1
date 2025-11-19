@@ -45,8 +45,6 @@ if (!$releaseTag) {
     exit 1
 }
 
-Write-Output "Using release: $releaseTag"
-
 # Read version
 $version = $null
 try {

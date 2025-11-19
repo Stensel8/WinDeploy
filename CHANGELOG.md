@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Additional security hardening based on CISO recommendations.
+- Additional Winget exit codes to better understand installation results.
 
 ### Changed
 - Merged Autorun disable options into Harden-Windows.ps1 for better maintainability and understandability.
@@ -19,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved handling of situations where the script was not run as admin and PowerShell 7 was not present on the system.
 - Implemented PSScriptAnalyzer suggestions to enhance code quality and best practices.
 - Improved GitHub API usage: Scripts now perform more attempts to obtain a good release.
+- Fixed an issue where the deployment tried to use the wrong command to silently update a Dell device driver.
 
 ---
 

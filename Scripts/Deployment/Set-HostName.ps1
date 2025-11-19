@@ -29,7 +29,6 @@ try {
 
     $Current = (Get-CimInstance -ClassName Win32_ComputerSystem).Name
     Write-DeployLog "Current: $Current | New: $Hostname"
-    Write-Output "Current hostname: $Current | Target: $Hostname"
 
     if ($Current -eq $Hostname) {
         Write-DeployLog "Already correct."
