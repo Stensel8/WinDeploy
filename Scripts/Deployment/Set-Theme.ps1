@@ -41,11 +41,12 @@ try {
             # Set keys in loaded hive
             $RegOutDef1 = reg add "HKU\TempDefault\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v AppsUseLightTheme /t REG_DWORD /d 0 /f 2>&1
             $RegOutDef2 = reg add "HKU\TempDefault\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v SystemUsesLightTheme /t REG_DWORD /d 0 /f 2>&1
+            $RegOutDef3 = reg add "HKU\TempDefault\Control Panel\Desktop" /v Wallpaper /t REG_SZ /d "C:\Windows\Web\Wallpaper\Windows\img19.jpg" /f 2>&1
             $UnloadOut = reg unload "HKU\TempDefault" 2>&1
             if ($LASTEXITCODE -eq 0 -and $UnloadOut -notmatch "error") {
-                Write-DeployLog "Default hive updated successfully. Outputs: $RegOutDef1 $RegOutDef2"
+                Write-DeployLog "Default hive updated successfully. Outputs: $RegOutDef1 $RegOutDef2 $RegOutDef3"
             } else {
-                $DefFail = "Default hive unload failed: $UnloadOut. Reg outputs: $RegOutDef1 $RegOutDef2"
+                $DefFail = "Default hive unload failed: $UnloadOut. Reg outputs: $RegOutDef1 $RegOutDef2 $RegOutDef3"
                 Write-DeployLog $DefFail -IsError
                 Write-Error $DefFail
             }
@@ -62,20 +63,36 @@ try {
     Write-DeployLog "Setting HKCU keys..."
     $RegOutCU1 = reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v AppsUseLightTheme /t REG_DWORD /d 0 /f 2>&1
     $RegOutCU2 = reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v SystemUsesLightTheme /t REG_DWORD /d 0 /f 2>&1
+    $RegOutCU3 = reg add "HKCU\Control Panel\Desktop" /v Wallpaper /t REG_SZ /d "C:\Windows\Web\Wallpaper\Windows\img19.jpg" /f 2>&1
     if ($LASTEXITCODE -eq 0) {
         Write-DeployLog "HKCU keys set successfully."
-        Write-Output "Dark mode configured - logoff/reboot for full effect."
+        # Apply wallpaper immediately
+        try {
+            Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+public class WinAPI {
+    [DllImport("user32.dll", CharSet = CharSet.Auto)]
+    public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
+}
+"@
+            [WinAPI]::SystemParametersInfo(0x0014, 0, "C:\Windows\Web\Wallpaper\Windows\img19.jpg", 0x01)
+            Write-DeployLog "Wallpaper applied immediately."
+        } catch {
+            Write-DeployLog "Failed to apply wallpaper immediately: $($_.Exception.Message)" -IsError
+        }
+        Write-Output "Dark mode and wallpaper configured - logoff/reboot for full effect."
     } else {
-        $CUFail = "HKCU failed: $RegOutCU1 $RegOutCU2"
+        $CUFail = "HKCU failed: $RegOutCU1 $RegOutCU2 $RegOutCU3"
         Write-DeployLog $CUFail -IsError
         Write-Error $CUFail
     }
 
-    Write-DeployLog "SUCCESS: Dark mode process done."
+    Write-DeployLog "SUCCESS: Dark mode and wallpaper process done."
     exit 0
 } catch {
     $CatchErr = $_.Exception.Message
     Write-DeployLog "Unexpected error during setup: $CatchErr" -IsError
-    Write-Output "Dark mode partial setup."
+    Write-Output "Dark mode and wallpaper partial setup."
     exit 0
 }
