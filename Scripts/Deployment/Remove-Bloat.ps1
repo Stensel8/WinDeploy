@@ -57,7 +57,6 @@ $BloatwareList = @(
     "9P1J8S7CCWWT",
     "MicrosoftCorporationII.MicrosoftFamily",
     "Microsoft.WindowsAlarms",
-    "Microsoft.ScreenSketch",
     "Microsoft.Wallet",
     "Microsoft.NetworkSpeedTest",
     "Microsoft.MicrosoftJournal",

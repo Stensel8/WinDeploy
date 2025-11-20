@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.5.6] - 2025-11-20
+
+### Added
+- BitLocker enablement in Harden-Windows.ps1: Added registry policies to enable BitLocker and set XTS-AES-256 encryption, plus automated enabling on the OS drive with TPM protection and used-space-only encryption. Which is the recommended approach.
+
+### Changed
+- Enhanced bloatware removal: The Snipping Tool is no longer removed on Windows 11 systems, as it is now integrated into the core OS and provides better screenshot and video capture features compared to the legacy version.
+- Updated Set-Theme.ps1: Added desktop wallpaper configuration to set "C:\Windows\Web\Wallpaper\Windows\img19.jpg" for current and default users alongside dark mode settings.
+
+---
+
 ## [0.5.5] - 2025-11-20
 
 ### Added

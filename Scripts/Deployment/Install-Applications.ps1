@@ -38,7 +38,8 @@ try {
         #"XPDP273C0XHQH2", #Adobe Acrobat Reader (msstore) #Uncomment if you need Adobe Reader
         "XP8BT8DW290MPQ", # Microsoft Teams (msstore)
         "9N1F85V9T8BN", # Windows App (msstore)
-        "9WZDNCRFJ3PZ" # Company Portal (msstore)
+        "9WZDNCRFJ3PZ", # Company Portal (msstore)
+        "9MZ95KL8MR0L" # Install this Windows app for improved screenshotting and recording capabilities.
     )
 
     # Winget error codes that you may come across during installation. Note that these are not documented all well by Micrsoft. They documenent some of them, but not all.
@@ -289,7 +290,7 @@ try {
             Invoke-WebRequest -Uri $setupUrl -OutFile $setupPath -UseBasicParsing
             Write-DeployLog "Downloaded Office setup to $setupPath"
 
-            # Create config.xml for Dutch M365 Apps
+            # Create config.xml for Dutch M365 Apps. Note that we exclude old, legacy apps like Groove and Lync. Microsoft is deprecating these apps.
             $configContent = @'
 <Configuration>
   <Add OfficeClientEdition="64" Channel="Current">
