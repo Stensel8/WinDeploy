@@ -53,14 +53,18 @@ try {
     $SiteID = "EnterYourIDHere"
     $installed = $false
 
-    # Check if Datto RMM is already installed and running
-    $cagServicePath = "C:\Program Files (x86)\CentraStage\CagService.exe"
-    $cagService = Get-Service -Name "CagService" -ErrorAction SilentlyContinue
-    if ((Test-Path $cagServicePath) -and $cagService) {
-        if ($cagService.Status -eq 'Running') {
+    # Check if Datto RMM is already installed
+    Write-DeployLog "Checking if RMM agent is already installed..."
+    $dirExists = Test-Path "C:\Program Files (x86)\CentraStage"
+    $regExists = Test-Path "HKLM:\SOFTWARE\CentraStage"
+    Write-DeployLog "Directory 'C:\Program Files (x86)\CentraStage' exists: $dirExists"
+    Write-DeployLog "Registry 'HKLM:\SOFTWARE\CentraStage' exists: $regExists"
+    if ($dirExists -and $regExists) {
+        $cagService = Get-Service -Name "CagService" -ErrorAction SilentlyContinue
+        if ($cagService -and $cagService.Status -eq 'Running') {
             Write-DeployLog "Datto RMM is already installed and running. Skipping installation."
             $installed = $true
-        } elseif ($cagService.Status -eq 'Stopped') {
+        } elseif ($cagService -and $cagService.Status -eq 'Stopped') {
             Write-DeployLog "Datto RMM is installed but stopped. Starting service..."
             try {
                 Start-Service -Name "CagService" -ErrorAction Stop
@@ -69,9 +73,16 @@ try {
             } catch {
                 Write-DeployLog "Failed to start existing Datto RMM service: $($_.Exception.Message)" -IsError
             }
+        } else {
+            Write-DeployLog "Datto RMM indicators present but service not found. Proceeding with installation."
         }
     }
+    if (-not $installed) {
+        if ($SiteID -eq "EnterYourIDHere") {
+            Write-DeployLog "SiteID not configured in expected variable"
+        }
         # Check for RMM agent on removable drives (USB)
+        Write-DeployLog "Checking for USBs containing *Agent*.exe...."
         $removableDrives = Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DriveType -eq 2 }  # DriveType 2 = Removable
         foreach ($drive in $removableDrives) {
             $agentFiles = Get-ChildItem -Path $drive.DeviceID -Filter "*agent*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -81,10 +92,15 @@ try {
                 try {
                     # Install from USB
                     Write-DeployLog "Installing RMM agent from USB..."
-                    Start-Process -FilePath $agentPath -ArgumentList "/S" -Wait -WindowStyle Hidden
-                    Write-DeployLog "RMM agent installed from USB."
-                    $installed = $true
-                    Wait-ForRMMService
+                    Start-Process -FilePath $agentPath -ArgumentList "/S" -WindowStyle Hidden
+                    Start-Sleep -Seconds 10
+                    if ((Test-Path "C:\Program Files (x86)\CentraStage") -and (Test-Path "HKLM:\SOFTWARE\CentraStage")) {
+                        Write-DeployLog "RMM agent installed from USB."
+                        $installed = $true
+                        Wait-ForRMMService
+                    } else {
+                        Write-DeployLog "Installation indicators not found after USB install." -IsError
+                    }
                 } catch {
                     Write-DeployLog "Failed to install RMM agent from USB: $($_.Exception.Message)" -IsError
                 }
@@ -105,17 +121,23 @@ try {
                     Write-DeployLog "Downloaded RMM installer to $InstallerPath"
 
                     # Install silently
-                    Start-Process -FilePath $InstallerPath -ArgumentList "/S" -Wait -WindowStyle Hidden
-                    Write-DeployLog "RMM agent installed via download."
-                    $installed = $true
-                    Wait-ForRMMService
+                    Start-Process -FilePath $InstallerPath -ArgumentList "/S" -WindowStyle Hidden
+                    Start-Sleep -Seconds 10
+                    if ((Test-Path "C:\Program Files (x86)\CentraStage") -and (Test-Path "HKLM:\SOFTWARE\CentraStage")) {
+                        Write-DeployLog "RMM agent installed via download."
+                        $installed = $true
+                        Wait-ForRMMService
+                    } else {
+                        Write-DeployLog "Installation indicators not found after download install." -IsError
+                    }
                 } catch {
                     Write-DeployLog "Failed to download or install RMM agent: $($_.Exception.Message)" -IsError
                 }
             } else {
-                Write-DeployLog "SiteID not configured, skipping download."
+                Write-DeployLog "SiteID not configured in expected variable"
             }
         }
+    }
 
     if ($installed) {
         Write-DeployLog "SUCCESS: RMM agent installation done."
@@ -125,6 +147,6 @@ try {
     exit 0
 } catch {
     Write-DeployLog "Error: $($_.Exception.Message)" -IsError
-    Write-Error "RMM agent installation partial - continuing."
+    Write-Error "RMM agent installation Failed - continuing."
     exit 0
 }
