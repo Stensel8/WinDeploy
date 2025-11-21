@@ -20,6 +20,34 @@ Function Write-DeployLog {
     if ($IsError) { Write-Error $Message } else { Write-Output $Message }
 }
 
+Function Wait-ForRMMService {
+    param([int]$TimeoutSeconds = 60)
+    Write-DeployLog "Waiting for RMM service to start..."
+    $startTime = Get-Date
+    do {
+        $cagService = Get-Service -Name "CagService" -ErrorAction SilentlyContinue
+        if ($cagService) {
+            if ($cagService.Status -eq 'Running') {
+                Write-DeployLog "RMM service is running."
+                return $true
+            } elseif ($cagService.Status -eq 'Stopped') {
+                Write-DeployLog "Starting RMM service..."
+                try {
+                    Start-Service -Name "CagService" -ErrorAction Stop
+                    Write-DeployLog "RMM service started."
+                    return $true
+                } catch {
+                    Write-DeployLog "Failed to start RMM service: $($_.Exception.Message)" -IsError
+                }
+            }
+        }
+        Start-Sleep -Seconds 5
+        $elapsed = (Get-Date) - $startTime
+    } while ($elapsed.TotalSeconds -lt $TimeoutSeconds)
+    Write-DeployLog "Timeout waiting for RMM service." -IsError
+    return $false
+}
+
 try {
     # Site ID for fallback download (replace with your actual site ID)
     $SiteID = "EnterYourIDHere"
@@ -28,10 +56,21 @@ try {
     # Check if Datto RMM is already installed and running
     $cagServicePath = "C:\Program Files (x86)\CentraStage\CagService.exe"
     $cagService = Get-Service -Name "CagService" -ErrorAction SilentlyContinue
-    if ((Test-Path $cagServicePath) -and ($cagService -and $cagService.Status -eq 'Running')) {
-        Write-DeployLog "Datto RMM is already installed and running. Skipping installation."
-        $installed = $true
-    } else {
+    if ((Test-Path $cagServicePath) -and $cagService) {
+        if ($cagService.Status -eq 'Running') {
+            Write-DeployLog "Datto RMM is already installed and running. Skipping installation."
+            $installed = $true
+        } elseif ($cagService.Status -eq 'Stopped') {
+            Write-DeployLog "Datto RMM is installed but stopped. Starting service..."
+            try {
+                Start-Service -Name "CagService" -ErrorAction Stop
+                Write-DeployLog "Datto RMM service started."
+                $installed = $true
+            } catch {
+                Write-DeployLog "Failed to start existing Datto RMM service: $($_.Exception.Message)" -IsError
+            }
+        }
+    }
         # Check for RMM agent on removable drives (USB)
         $removableDrives = Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DriveType -eq 2 }  # DriveType 2 = Removable
         foreach ($drive in $removableDrives) {
@@ -45,6 +84,7 @@ try {
                     Start-Process -FilePath $agentPath -ArgumentList "/S" -Wait -WindowStyle Hidden
                     Write-DeployLog "RMM agent installed from USB."
                     $installed = $true
+                    Wait-ForRMMService
                 } catch {
                     Write-DeployLog "Failed to install RMM agent from USB: $($_.Exception.Message)" -IsError
                 }
@@ -68,6 +108,7 @@ try {
                     Start-Process -FilePath $InstallerPath -ArgumentList "/S" -Wait -WindowStyle Hidden
                     Write-DeployLog "RMM agent installed via download."
                     $installed = $true
+                    Wait-ForRMMService
                 } catch {
                     Write-DeployLog "Failed to download or install RMM agent: $($_.Exception.Message)" -IsError
                 }
@@ -75,7 +116,6 @@ try {
                 Write-DeployLog "SiteID not configured, skipping download."
             }
         }
-    }
 
     if ($installed) {
         Write-DeployLog "SUCCESS: RMM agent installation done."

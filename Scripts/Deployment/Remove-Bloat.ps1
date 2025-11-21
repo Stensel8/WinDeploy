@@ -15,7 +15,7 @@ Function Write-DeployLog {
     $scriptName = [System.IO.Path]::GetFileNameWithoutExtension([System.IO.Path]::GetFileName($MyInvocation.ScriptName))
     $logFile = Join-Path $logDir "$scriptName.log"
     $Message | Out-File -FilePath $logFile -Append
-    if ($IsError) { Write-Error $Message } else { Write-Output $Message }
+    if ($IsError) { Write-Error $Message } else { Write-Host $Message }
 }
 
 # Expanded list for common bloatware (inspired by WinDeploy Remove-Bloat.ps1, excluding Get Help)
@@ -149,11 +149,19 @@ try {
 
     $Removed = 0
 
+    # Get all provisioned packages once
+    try {
+        $ProvisionedPackages = Get-AppxProvisionedPackage -Online
+    } catch {
+        $ProvisionedPackages = $null
+        Write-DeployLog "Failed to retrieve provisioned packages: $($_.Exception.Message)" -IsError
+    }
+
     # Remove provisioned (for new users)
     Write-DeployLog "Removing provisioned packages..."
     foreach ($App in $BloatwareList) {
-        $Pkgs = Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -like "*$App*" }
-        if ($Pkgs) {
+        if ($ProvisionedPackages) {
+            $Pkgs = $ProvisionedPackages | Where-Object { $_.DisplayName -like "*$App*" }
             foreach ($Pkg in $Pkgs) {
                 Remove-AppxProvisionedPackage -Online -PackageName $Pkg.PackageName -ErrorAction SilentlyContinue | Out-Null
                 if ($?) {
@@ -169,11 +177,19 @@ try {
         # No logging if no packages found (suppressed as requested)
     }
 
+    # Get all installed packages once
+    try {
+        $InstalledPackages = Get-AppxPackage -AllUsers
+    } catch {
+        $InstalledPackages = $null
+        Write-DeployLog "Failed to retrieve installed packages: $($_.Exception.Message)" -IsError
+    }
+
     # Remove installed
     Write-DeployLog "Removing installed packages..."
     foreach ($App in $BloatwareList) {
-        $Pkgs = Get-AppxPackage -AllUsers -ErrorAction SilentlyContinue | Where-Object { $_.Name -like "*$App*" }
-        if ($Pkgs) {
+        if ($InstalledPackages) {
+            $Pkgs = $InstalledPackages | Where-Object { $_.Name -like "*$App*" }
             foreach ($Pkg in $Pkgs) {
                 Remove-AppxPackage -Package $Pkg.PackageFullName -AllUsers -ErrorAction SilentlyContinue | Out-Null
                 if ($?) {
@@ -198,7 +214,7 @@ try {
     $SuccessMsg = "SUCCESS: Removed $Removed apps."
     Write-DeployLog $SuccessMsg
     # Note: Bloatware may be reinstalled with future Windows Updates. For more control, consider using Winutil: https://github.com/ChrisTitusTech/winutil
-    Write-DeployLog "Note: Bloatware may be reinstalled with future Windows Updates. For more control, consider using Winutil: https://github.com/ChrisTitusTech/winutil"
+    Write-DeployLog "Note: Bloatware may be reinstalled with future Windows Updates. For more control, consider using Winutil: `e]8;;https://github.com/ChrisTitusTech/winutil`e\https://github.com/ChrisTitusTech/winutil`e]8;;`e\"
     exit 0
 } catch {
     $ErrMsg = $_.Exception.Message
