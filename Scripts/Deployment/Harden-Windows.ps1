@@ -1,4 +1,4 @@
-# ============================================================================
+﻿# ============================================================================
 # Harden-Windows.ps1
 # Applies security hardenings to Windows 11 systems.
 # Compatible: Datto RMM | User/Admin context (post-install).
@@ -115,7 +115,7 @@ foreach ($config in $registryConfigs) {
 # Enable BitLocker
 try {
     $tpm = Get-Tpm -ErrorAction Stop
-    
+
     if (-not $tpm.TpmPresent) {
         throw "TPM not present"
     }
@@ -125,7 +125,7 @@ try {
     if (-not $tpm.TpmActivated) {
         throw "TPM not activated"
     }
-    
+
     if (-not $tpm.TpmOwned) {
         Write-DeployLog "Initializing TPM ownership..."
         Initialize-Tpm -AllowClear -AllowPhysicalPresence -ErrorAction Stop
@@ -152,12 +152,12 @@ try {
     & powercfg /setacvalueindex SCHEME_CURRENT SUB_NONE CONSOLELOCK 1 2>&1 | Out-Null
     & powercfg /setdcvalueindex SCHEME_CURRENT SUB_NONE CONSOLELOCK 1 2>&1 | Out-Null
     & powercfg /setactive SCHEME_CURRENT 2>&1 | Out-Null
-    
+
     Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "ScreenSaverIsSecure" -Value "1" -ErrorAction Stop
     Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "ScreenSaveTimeOut" -Value "$screenSaverTimeoutSeconds" -ErrorAction Stop
     Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "ScreenSaveActive" -Value "1" -ErrorAction Stop
     Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "SCRNSAVE.EXE" -Value "" -ErrorAction Stop
-    
+
     $appliedConfigs += "Power/lock settings configured"
 } catch {
     Write-DeployLog "Power settings failed: $($_.Exception.Message)" -IsError
