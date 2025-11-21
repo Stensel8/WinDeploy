@@ -36,4 +36,4 @@ To run all deployment scripts in sequence, execute `Start.ps1` from the root of 
 .\Scripts\Start.ps1
 ```
 
-Note: `Start.ps1` runs the scripts in this order: Drivers, RMM Agent, Windows Hardening, Applications, Bloatware Removal, Theme, Hostname, Windows Updates.
+Note: `Start.ps1` runs the scripts in this order: RMM Agent, Drivers, Windows Hardening, Applications, Bloatware Removal, Theme, Hostname, Windows Updates.

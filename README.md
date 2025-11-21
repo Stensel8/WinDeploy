@@ -65,8 +65,8 @@ graph TD
     D -->|Yes| G[Download Deploy.ps1]
     F --> G
     G --> H[Launch Deploy.ps1]
-    H --> I[Update Drivers]
-    I --> J[Install RMM Agent]
+    H --> I[Install RMM Agent]
+    I --> J[Update Drivers]
     J --> K[Windows Hardening]
     K --> L[Install Applications]
     L --> M[Remove Bloatware]

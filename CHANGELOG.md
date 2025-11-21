@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Updated URLs in Harden-Windows.ps1 links to correct and more relevant sources.
+- Changed the order of script execution so the RMM Agent is installed first.
 
 ### Fixed
 - Bitlocker enablement issue: Sometimes Bitlocker failed to enable due to the TPM not being ready.
