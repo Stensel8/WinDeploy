@@ -50,13 +50,23 @@ try {
                 try {
                     # Install from USB
                     Write-DeployLog "Installing RMM agent from USB..."
-                    Start-Process -FilePath $agentPath -ArgumentList "/S" -WindowStyle Hidden
-                    Start-Sleep -Seconds 15
-                    if ((Test-Path "C:\Program Files (x86)\CentraStage") -and (Test-Path "HKLM:\SOFTWARE\CentraStage")) {
-                        Write-DeployLog "RMM agent installed from USB."
-                        $installed = $true
-                    } else {
-                        Write-DeployLog "Installation indicators not found after USB install." -IsError
+                    Start-Process pwsh -ArgumentList "-Command & '$agentPath' /S" -WindowStyle Hidden
+                    # Wait for installation indicators
+                    $timeout = 60
+                    $counter = 0
+                    Write-Output "Counting to 60...."
+                    do {
+                        $counter++
+                        Write-Output "$counter.."
+                        if ((Test-Path "C:\Program Files (x86)\CentraStage") -and (Test-Path "HKLM:\SOFTWARE\CentraStage")) {
+                            Write-Output "Agent found. Continuing deployment."
+                            $installed = $true
+                            break
+                        }
+                        Start-Sleep -Seconds 1
+                    } while ($counter -lt $timeout)
+                    if (-not $installed) {
+                        Write-DeployLog "Installation indicators not found after USB install within $timeout seconds." -IsError
                     }
                 } catch {
                     Write-DeployLog "Failed to install RMM agent from USB: $($_.Exception.Message)" -IsError
@@ -77,14 +87,24 @@ try {
                     $WebClient.DownloadFile($Url, $InstallerPath)
                     Write-DeployLog "Downloaded RMM installer to $InstallerPath"
 
-                    # Install silently
-                    Start-Process -FilePath $InstallerPath -ArgumentList "/S" -WindowStyle Hidden
-                    Start-Sleep -Seconds 15
-                    if ((Test-Path "C:\Program Files (x86)\CentraStage") -and (Test-Path "HKLM:\SOFTWARE\CentraStage")) {
-                        Write-DeployLog "RMM agent installed via download."
-                        $installed = $true
-                    } else {
-                        Write-DeployLog "Installation indicators not found after download install." -IsError
+                    # Install silently in separate process
+                    Start-Process pwsh -ArgumentList "-Command & '$InstallerPath' /S" -WindowStyle Hidden
+                    # Wait for installation indicators
+                    $timeout = 60
+                    $counter = 0
+                    Write-Output "Counting to 60...."
+                    do {
+                        $counter++
+                        Write-Output "$counter.."
+                        if ((Test-Path "C:\Program Files (x86)\CentraStage") -and (Test-Path "HKLM:\SOFTWARE\CentraStage")) {
+                            Write-Output "Agent found. Continuing deployment."
+                            $installed = $true
+                            break
+                        }
+                        Start-Sleep -Seconds 1
+                    } while ($counter -lt $timeout)
+                    if (-not $installed) {
+                        Write-DeployLog "Installation indicators not found after download install within $timeout seconds." -IsError
                     }
                 } catch {
                     Write-DeployLog "Failed to download or install RMM agent: $($_.Exception.Message)" -IsError
@@ -95,11 +115,6 @@ try {
         }
     }
 
-    if ($installed) {
-        Write-DeployLog "SUCCESS: RMM agent installation done."
-    } else {
-        Write-DeployLog "RMM agent installation skipped or failed."
-    }
     exit 0
 } catch {
     Write-DeployLog "Error: $($_.Exception.Message)" -IsError
