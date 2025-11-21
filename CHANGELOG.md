@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Bitlocker enablement issue: Sometimes Bitlocker failed to enable due to the TPM not being ready.
 - Fixed an issue with RMM Agents not installing correctly. [#11](https://github.com/Stensel8/WinDeploy/issues/11)
+- Fixed a rare hang where deployment would stall after detecting the RMM installer on USB. The installer was being invoked via PowerShell incorrectly which could prevent it from receiving silent switches; changed to run the installer directly and wait for completion, added longer timeouts and improved logging.
 
 ## [0.5.6] - 2025-11-20
 

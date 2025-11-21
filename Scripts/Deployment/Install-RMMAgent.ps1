@@ -25,20 +25,32 @@ try {
     $SiteID = "EnterYourIDHere"
     $installed = $false
 
-    # Check if Datto RMM is already installed
+    # Check if Datto RMM is already installed (by filesystem/registry or service)
     Write-DeployLog "Checking if RMM agent is already installed..."
+
+    Function Get-RMMAgentInstalled {
+        # Check by filesystem + registry
+        if ((Test-Path "C:\Program Files (x86)\CentraStage") -and (Test-Path "HKLM:\SOFTWARE\CentraStage")) { return $true }
+        # Check for Datto service (CagService is Datto's service name in many distributions)
+        if (Get-Service -Name 'CagService' -ErrorAction SilentlyContinue) { return $true }
+        return $false
+    }
+
     $dirExists = Test-Path "C:\Program Files (x86)\CentraStage"
     $regExists = Test-Path "HKLM:\SOFTWARE\CentraStage"
     Write-DeployLog "Directory 'C:\Program Files (x86)\CentraStage' exists: $dirExists"
     Write-DeployLog "Registry 'HKLM:\SOFTWARE\CentraStage' exists: $regExists"
-    if ($dirExists -and $regExists) {
+
+    if (Get-RMMAgentInstalled) {
         Write-DeployLog "Datto RMM is already installed. Skipping installation."
         $installed = $true
     }
+
     if (-not $installed) {
         if ($SiteID -eq "EnterYourIDHere") {
             Write-DeployLog "SiteID not configured in expected variable"
         }
+
         # Check for RMM agent on removable drives (USB)
         Write-DeployLog "Checking for USBs containing *Agent*.exe...."
         $removableDrives = Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DriveType -eq 2 }  # DriveType 2 = Removable
@@ -48,23 +60,25 @@ try {
                 $agentPath = $agentFiles.FullName
                 Write-DeployLog "Found RMM agent on USB: $agentPath"
                 try {
-                    # Install from USB
+                    # Install from USB - simpler approach (Datto-style) and don't rely on installer exit codes
                     Write-DeployLog "Installing RMM agent from USB..."
-                    Start-Process pwsh -ArgumentList "-Command & '$agentPath' /S" -WindowStyle Hidden
-                    # Wait for installation indicators
-                    $timeout = 60
+                    try { & "$agentPath" '/S' | Out-Null } catch { Write-DeployLog "Call operator failed to start installer: $($_.Exception.Message)" -IsError }
+
+                    # Wait (poll) for installation indicators (give installer more time)
+                    $timeout = 300
                     $counter = 0
-                    Write-Output "Counting to 60...."
+                    Write-Output "Counting to $timeout...."
                     do {
                         $counter++
                         Write-Output "$counter.."
-                        if ((Test-Path "C:\Program Files (x86)\CentraStage") -and (Test-Path "HKLM:\SOFTWARE\CentraStage")) {
+                        if (Get-RMMAgentInstalled) {
                             Write-Output "Agent found. Continuing deployment."
                             $installed = $true
                             break
                         }
                         Start-Sleep -Seconds 1
                     } while ($counter -lt $timeout)
+
                     if (-not $installed) {
                         Write-DeployLog "Installation indicators not found after USB install within $timeout seconds." -IsError
                     }
@@ -76,33 +90,42 @@ try {
         }
 
         if (-not $installed) {
-            # Fallback: Download from Datto
+            # Fallback: Download from Datto (only if SiteID configured)
             if ($SiteID -ne "EnterYourIDHere") {
                 Write-DeployLog "No RMM agent found on USB. Attempting download..."
                 $Url = "https://pinotage.rmm.datto.com/download-agent/windows/$SiteID"
                 $InstallerPath = "$env:TEMP\AgentInstall.exe"
 
                 try {
+                    # Ensure TLS1.2 for secure download
+                    try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch { Write-DeployLog "Failed to set TLS1.2 - proceeding with default security protocol: $($_.Exception.Message)" -IsError }
+
                     $WebClient = New-Object System.Net.WebClient
                     $WebClient.DownloadFile($Url, $InstallerPath)
                     Write-DeployLog "Downloaded RMM installer to $InstallerPath"
 
-                    # Install silently in separate process
-                    Start-Process pwsh -ArgumentList "-Command & '$InstallerPath' /S" -WindowStyle Hidden
+                    # Install downloaded package (simple synchronous call) and do not rely on installer exit codes
+                    Write-DeployLog "Running downloaded installer..."
+                    try { & "$InstallerPath" '/S' | Out-Null } catch { Write-DeployLog "Downloaded installer returned error on call operator: $($_.Exception.Message)" -IsError }
+
+                    # Remove installer after attempting install
+                    try { Remove-Item -Path $InstallerPath -Force -ErrorAction SilentlyContinue } catch { Write-DeployLog "Failed to remove installer at $InstallerPath: $($_.Exception.Message)" -IsError }
+
                     # Wait for installation indicators
-                    $timeout = 60
+                    $timeout = 300
                     $counter = 0
-                    Write-Output "Counting to 60...."
+                    Write-Output "Counting to $timeout...."
                     do {
                         $counter++
                         Write-Output "$counter.."
-                        if ((Test-Path "C:\Program Files (x86)\CentraStage") -and (Test-Path "HKLM:\SOFTWARE\CentraStage")) {
+                        if (Get-RMMAgentInstalled) {
                             Write-Output "Agent found. Continuing deployment."
                             $installed = $true
                             break
                         }
                         Start-Sleep -Seconds 1
                     } while ($counter -lt $timeout)
+
                     if (-not $installed) {
                         Write-DeployLog "Installation indicators not found after download install within $timeout seconds." -IsError
                     }
