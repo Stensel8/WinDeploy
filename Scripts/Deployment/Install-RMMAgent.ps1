@@ -51,7 +51,7 @@ try {
                     # Install from USB
                     Write-DeployLog "Installing RMM agent from USB..."
                     Start-Process -FilePath $agentPath -ArgumentList "/S" -WindowStyle Hidden
-                    Start-Sleep -Seconds 10
+                    Start-Sleep -Seconds 15
                     if ((Test-Path "C:\Program Files (x86)\CentraStage") -and (Test-Path "HKLM:\SOFTWARE\CentraStage")) {
                         Write-DeployLog "RMM agent installed from USB."
                         $installed = $true
@@ -79,7 +79,7 @@ try {
 
                     # Install silently
                     Start-Process -FilePath $InstallerPath -ArgumentList "/S" -WindowStyle Hidden
-                    Start-Sleep -Seconds 10
+                    Start-Sleep -Seconds 15
                     if ((Test-Path "C:\Program Files (x86)\CentraStage") -and (Test-Path "HKLM:\SOFTWARE\CentraStage")) {
                         Write-DeployLog "RMM agent installed via download."
                         $installed = $true
