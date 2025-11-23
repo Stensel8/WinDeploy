@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.5.7] - 2025-11-21
+
+### Added
+- Additional security messages in Harden-Windows.ps1: Can be manually enabled by the user via GUI.
+- Informational links to each hardening item in Harden-Windows.ps1 output for more details.
+
+### Changed
+- Updated URLs in Harden-Windows.ps1 links to correct and more relevant sources.
+- Changed the order of script execution so the RMM Agent is installed first.
+
+### Fixed
+- Bitlocker enablement issue: Sometimes Bitlocker failed to enable due to the TPM not being ready.
+- Fixed an issue with RMM Agents not installing correctly. [#11](https://github.com/Stensel8/WinDeploy/issues/11)
+- Fixed a rare hang where deployment would stall after detecting the RMM installer on USB. The installer was being invoked via PowerShell incorrectly which could prevent it from receiving silent switches; changed to run the installer directly and wait for completion, added longer timeouts and improved logging.
+
 ## [0.5.6] - 2025-11-20
 
 ### Added

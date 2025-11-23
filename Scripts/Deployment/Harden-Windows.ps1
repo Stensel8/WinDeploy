@@ -1,4 +1,4 @@
-# ============================================================================
+﻿# ============================================================================
 # Harden-Windows.ps1
 # Applies security hardenings to Windows 11 systems.
 # Compatible: Datto RMM | User/Admin context (post-install).
@@ -14,238 +14,209 @@ Function Write-DeployLog {
     param([string]$Message, [switch]$IsError)
     $logDir = "C:\WinDeploy\Logs"
     if (!(Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir -Force | Out-Null }
-    $scriptName = [System.IO.Path]::GetFileNameWithoutExtension([System.IO.Path]::GetFileName($MyInvocation.ScriptName))
+    $scriptName = [System.IO.Path]::GetFileNameWithoutExtension($PSCommandPath)
     $logFile = Join-Path $logDir "$scriptName.log"
-    $Message | Out-File -FilePath $logFile -Append
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    "$timestamp - $Message" | Out-File -FilePath $logFile -Append
     if ($IsError) { Write-Error $Message } else { Write-Output $Message }
 }
 
 #region Configuration
-# Registry configurations for security hardenings
 $registryConfigs = @(
-    # Disable AutoRun for all drive types (0xFF = all drives)
     @{
         Path = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer"
         Name = "NoDriveTypeAutoRun"
-        Value = 255  # 0xFF in decimal - disables all drive types
+        Value = 255
         Type = "DWord"
-        Description = "Disable AutoRun for all drive types"
+        Description = "AutoRun disabled"
     },
-
-    # Block autorun.inf handler
     @{
         Path = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\IniFileMapping\Autorun.inf"
         Name = "(Default)"
         Value = "@SYS:DoesNotExist"
         Type = "String"
-        Description = "Block autorun.inf execution"
+        Description = "Autorun.inf blocked"
     },
-
-
-    # Disable automatic app download with new devices
     @{
         Path = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Device Installer"
         Name = "DisableCoInstallers"
         Value = 1
         Type = "DWord"
-        Description = "Disable co-installers for devices"
+        Description = "Device co-installers disabled"
     },
-
-    # Disable SMBv1
     @{
         Path = "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters"
         Name = "SMB1"
         Value = 0
         Type = "DWord"
-        Description = "Disable SMBv1"
+        Description = "SMBv1 disabled - https://learn.microsoft.com/en-us/windows-server/storage/file-server/troubleshoot/detect-enable-and-disable-smbv1-v2-v3?tabs=server"
     },
-
-    # Disable LLMNR
     @{
-        Path = "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient"
-        Name = "EnableMulticast"
+        Path = "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters"
+        Name = "SMB2"
         Value = 0
         Type = "DWord"
-        Description = "Disable LLMNR"
+        Description = "SMBv2 disabled - https://learn.microsoft.com/en-us/windows-server/storage/file-server/troubleshoot/detect-enable-and-disable-smbv1-v2-v3?tabs=server"
     },
-
-    # Disable NetBIOS name release
-    @{
-        Path = "HKLM:\SYSTEM\CurrentControlSet\Services\NetBT\Parameters"
-        Name = "NoNameReleaseOnDemand"
-        Value = 1
-        Type = "DWord"
-        Description = "Disable NetBIOS name release on demand"
-    },
-
-    # Disable Windows Script Host
     @{
         Path = "HKLM:\SOFTWARE\Microsoft\Windows Script Host\Settings"
         Name = "Enabled"
         Value = 0
         Type = "DWord"
-        Description = "Disable Windows Script Host"
+        Description = "Windows Script Host disabled"
     },
-
-    # Harden UAC
-    @{
-        Path = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"
-        Name = "ConsentPromptBehaviorAdmin"
-        Value = 2
-        Type = "DWord"
-        Description = "Harden UAC prompt behavior"
-    },
-
-    # Telemetry disable is commented out because it interferes with Intune's Device Health Attestation (DHA).
-    # DHA requires telemetry data to assess endpoint health, security posture, and compliance.
-    # Disabling telemetry can break DHA reporting, preventing proper monitoring in Intune.
-    # @{
-    #     Path = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection"
-    #     Name = "AllowTelemetry"
-    #     Value = 0
-    #     Type = "DWord"
-    #     Description = "Disable Windows telemetry"
-    # },
-
-    # Enable Memory Integrity
-    @{
-        Path = "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity"
-        Name = "Enabled"
-        Value = 1
-        Type = "DWord"
-        Description = "Enable Memory Integrity"
-    },
-
-    # Enable BitLocker
     @{
         Path = "HKLM:\SOFTWARE\Policies\Microsoft\FVE"
         Name = "EnableBDE"
         Value = 1
         Type = "DWord"
-        Description = "Enable BitLocker"
+        Description = "BitLocker policy enabled"
     },
-
-    # Set BitLocker encryption method to XTS-AES-256
     @{
         Path = "HKLM:\SOFTWARE\Policies\Microsoft\FVE"
         Name = "EncryptionMethod"
         Value = 7
         Type = "DWord"
-        Description = "Set BitLocker encryption method to XTS-AES-256"
+        Description = "BitLocker XTS-AES-256 set"
+        Silent = $true
     }
 )
 
-# Power settings configurations
 $monitorTimeoutMinutes = 10
 $standbyTimeoutMinutes = 30
-$screenSaverTimeoutSeconds = 900  # 15 minutes
-
-# Verification paths
-$verifyPathAutoRun = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer"
-$verifyPathMemoryIntegrity = "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity"
+$screenSaverTimeoutSeconds = 900
 #endregion
 
-try {
+Write-DeployLog "Starting Windows hardening process..."
+$appliedConfigs = @()
+$failedConfigs = @()
 
-    # Apply all registry configurations
-    foreach ($config in $registryConfigs) {
-        Write-DeployLog "Configuring: $($config.Description)"
-        try {
-            if (!(Test-Path $config.Path)) {
-                New-Item -Path $config.Path -Force | Out-Null
-            }
-            Set-ItemProperty -Path $config.Path -Name $config.Name -Value $config.Value -Type $config.Type
-            Write-DeployLog "  Successfully set: $($config.Path)\$($config.Name)"
-        } catch {
-            Write-DeployLog "  Failed to set: $($config.Path)\$($config.Name) - $($_.Exception.Message)" -IsError
-        }
-    }
-
-    Write-DeployLog ""
-    Write-DeployLog "AutoRun and security hardenings applied:"
-    Write-DeployLog "  - All drive types AutoRun disabled"
-    Write-DeployLog "  - autorun.inf execution blocked"
-    Write-DeployLog "  - Automatic app installations disabled"
-    Write-DeployLog "  - SMBv1 disabled"
-    Write-DeployLog "  - LLMNR disabled"
-    Write-DeployLog "  - NetBIOS name release disabled"
-    Write-DeployLog "  - Windows Script Host (VBS) disabled"
-    Write-DeployLog "  - UAC hardened"
-    Write-DeployLog "  - Memory Integrity enabled"
-    Write-DeployLog "  - BitLocker enabled with XTS-AES-256 encryption. Make sure to back up your recovery keys."
-
-    # Enable BitLocker on OS drive
-    Write-DeployLog ""
-    Write-DeployLog "Enabling BitLocker on OS drive..."
-    $bitLockerStatus = Get-BitLockerVolume -MountPoint "C:"
-    if ($bitLockerStatus.ProtectionStatus -eq "Off") {
-        try {
-            Enable-BitLocker -MountPoint "C:" -TpmProtector -EncryptionMethod XtsAes256 -UsedSpaceOnly
-            Write-DeployLog "  BitLocker encryption started in the background on C: drive"
-        } catch {
-            Write-DeployLog "  Failed to enable BitLocker: $($_.Exception.Message)" -IsError
-        }
-    } else {
-        Write-DeployLog "  BitLocker is already enabled or encrypting on C: drive"
-    }
-
-    # Apply power settings for security
-    Write-DeployLog ""
-    Write-DeployLog "Configuring power settings for security..."
+# Apply registry configurations
+foreach ($config in $registryConfigs) {
     try {
-        # Turn off display after specified minutes on AC and DC
-        & powercfg /change monitor-timeout-ac $monitorTimeoutMinutes
-        & powercfg /change monitor-timeout-dc $monitorTimeoutMinutes
-        Write-DeployLog "  - Display timeout set to $monitorTimeoutMinutes minutes"
-
-        # Put computer to sleep after specified minutes on AC and DC
-        & powercfg /change standby-timeout-ac $standbyTimeoutMinutes
-        & powercfg /change standby-timeout-dc $standbyTimeoutMinutes
-        Write-DeployLog "  - Sleep timeout set to $standbyTimeoutMinutes minutes"
-
-        # Require password on wake from sleep
-        & powercfg /setacvalueindex SCHEME_CURRENT SUB_NONE CONSOLELOCK 1
-        & powercfg /setdcvalueindex SCHEME_CURRENT SUB_NONE CONSOLELOCK 1
-        & powercfg /setactive SCHEME_CURRENT
-        Write-DeployLog "  - Password required on wake from sleep"
-
-        # Enable lock after specified seconds without screensaver
-        Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "ScreenSaverIsSecure" -Value "1"
-        Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "ScreenSaveTimeOut" -Value "$screenSaverTimeoutSeconds"
-        Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "ScreenSaveActive" -Value "1"
-        Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "SCRNSAVE.EXE" -Value ""  # No screensaver, just lock
-        Write-DeployLog "  - Lock after $($screenSaverTimeoutSeconds / 60) minutes of inactivity (no screensaver)"
+        if (!(Test-Path $config.Path)) {
+            New-Item -Path $config.Path -Force -ErrorAction Stop | Out-Null
+        }
+        Set-ItemProperty -Path $config.Path -Name $config.Name -Value $config.Value -Type $config.Type -ErrorAction Stop
+        if (-not ($config.ContainsKey('Silent') -and $config['Silent'])) {
+            $appliedConfigs += $config.Description
+        }
     } catch {
-        Write-DeployLog "  Failed to configure power settings: $($_.Exception.Message)" -IsError
+        $errorMsg = "$($config.Description) - $($_.Exception.Message)"
+        if ($config.ContainsKey('SkipOnError') -and $config['SkipOnError']) {
+            Write-DeployLog "Skipped: $errorMsg"
+        } else {
+            Write-DeployLog "Failed: $errorMsg" -IsError
+            $failedConfigs += $config.Description
+        }
     }
-    Write-DeployLog ""
+}
 
-    # Verify AutoRun configuration
-    Write-DeployLog "Verifying AutoRun configuration..."
+# Enable BitLocker
+try {
+    $tpm = Get-Tpm -ErrorAction Stop
 
-    $currentValue = Get-ItemProperty -Path $verifyPathAutoRun -Name "NoDriveTypeAutoRun" -ErrorAction SilentlyContinue
+    if (-not $tpm.TpmPresent) {
+        throw "TPM not present"
+    }
+    if (-not $tpm.TpmEnabled) {
+        throw "TPM not enabled"
+    }
+    if (-not $tpm.TpmActivated) {
+        throw "TPM not activated"
+    }
 
-    if ($currentValue.NoDriveTypeAutoRun -eq 255) {
-        Write-DeployLog "Verification successful: AutoRun is disabled for all drive types"
+    if (-not $tpm.TpmOwned) {
+        Write-DeployLog "Initializing TPM ownership..."
+        Initialize-Tpm -AllowClear -AllowPhysicalPresence -ErrorAction Stop
+    }
+
+    $bitLockerStatus = Get-BitLockerVolume -MountPoint "C:" -ErrorAction Stop
+    if ($bitLockerStatus.ProtectionStatus -eq "Off") {
+        Enable-BitLocker -MountPoint "C:" -TpmProtector -EncryptionMethod XtsAes256 -UsedSpaceOnly -ErrorAction Stop
+        $appliedConfigs += "BitLocker encryption started"
     } else {
-        Write-DeployLog "Warning: Verification failed. Current value: $($currentValue.NoDriveTypeAutoRun)" -IsError
+        $appliedConfigs += "BitLocker already active"
     }
-
-    Write-DeployLog ""
-    Write-DeployLog "Verifying Memory Integrity configuration..."
-    $currentValueMI = Get-ItemProperty -Path $verifyPathMemoryIntegrity -Name "Enabled" -ErrorAction SilentlyContinue
-    if ($currentValueMI.Enabled -eq 1) {
-        Write-DeployLog "Verification successful: Memory Integrity is enabled"
-    } else {
-        Write-DeployLog "Warning: Memory Integrity may not be enabled. Current value: $($currentValueMI.Enabled)" -IsError
-    }
-
-    Write-DeployLog ""
-    Write-DeployLog "Windows hardening process completed successfully"
-    Write-DeployLog "System restart required for Memory Integrity to take effect"
-
-    Write-DeployLog "SUCCESS: Windows hardening done."
-
 } catch {
-    Write-DeployLog "Error: $_" -IsError
+    Write-DeployLog "BitLocker skipped: $($_.Exception.Message)" -IsError
+    $failedConfigs += "BitLocker"
+}
+
+# Configure power settings
+try {
+    & powercfg /change monitor-timeout-ac $monitorTimeoutMinutes 2>&1 | Out-Null
+    & powercfg /change monitor-timeout-dc $monitorTimeoutMinutes 2>&1 | Out-Null
+    & powercfg /change standby-timeout-ac $standbyTimeoutMinutes 2>&1 | Out-Null
+    & powercfg /change standby-timeout-dc $standbyTimeoutMinutes 2>&1 | Out-Null
+    & powercfg /setacvalueindex SCHEME_CURRENT SUB_NONE CONSOLELOCK 1 2>&1 | Out-Null
+    & powercfg /setdcvalueindex SCHEME_CURRENT SUB_NONE CONSOLELOCK 1 2>&1 | Out-Null
+    & powercfg /setactive SCHEME_CURRENT 2>&1 | Out-Null
+
+    Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "ScreenSaverIsSecure" -Value "1" -ErrorAction Stop
+    Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "ScreenSaveTimeOut" -Value "$screenSaverTimeoutSeconds" -ErrorAction Stop
+    Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "ScreenSaveActive" -Value "1" -ErrorAction Stop
+    Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "SCRNSAVE.EXE" -Value "" -ErrorAction Stop
+
+    $appliedConfigs += "Power/lock settings configured"
+} catch {
+    Write-DeployLog "Power settings failed: $($_.Exception.Message)" -IsError
+    $failedConfigs += "Power settings"
+}
+
+# Verification
+$verifications = @(
+    @{Path = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer"; Name = "NoDriveTypeAutoRun"; Expected = 255}
+)
+
+$verifyFailed = $false
+foreach ($verify in $verifications) {
+    try {
+        $value = (Get-ItemProperty -Path $verify.Path -Name $verify.Name -ErrorAction Stop).$($verify.Name)
+        if ($value -ne $verify.Expected) {
+            $verifyFailed = $true
+        }
+    } catch {
+        $verifyFailed = $true
+    }
+}
+
+# Links for more information
+$hardeningLinks = @{
+    "AutoRun disabled" = "https://en.wikipedia.org/wiki/AutoRun"
+    "Autorun.inf blocked" = "https://en.wikipedia.org/wiki/AutoRun"
+    "Device co-installers disabled" = "https://learn.microsoft.com/en-us/previous-versions/windows/drivers/install/co-installer-functionality"
+    "SMBv1 disabled" = "https://learn.microsoft.com/en-us/windows-server/storage/file-server/troubleshoot/detect-enable-and-disable-smbv1-v2-v3?tabs=server"
+    "Windows Script Host disabled" = "https://en.wikipedia.org/wiki/Windows_Script_Host"
+    "BitLocker policy enabled" = "https://learn.microsoft.com/en-us/windows/security/operating-system-security/data-protection/bitlocker/"
+    "BitLocker already active" = "https://learn.microsoft.com/en-us/windows/security/operating-system-security/data-protection/bitlocker/"
+    "Power/lock settings configured" = "https://learn.microsoft.com/en-us/windows/win32/power/power-management-portal"
+}
+
+# Summary output
+Write-Output ""
+Write-Output "Applied security hardenings:"
+foreach ($config in $appliedConfigs) {
+    $link = if ($hardeningLinks.ContainsKey($config)) { " - $($hardeningLinks[$config])" } else { "" }
+    Write-Output "  • $config$link"
+}
+
+if ($failedConfigs.Count -gt 0) {
+    Write-Output ""
+    Write-Output "Failed tasks:"
+    foreach ($failed in $failedConfigs) {
+        Write-Output "  • $failed"
+    }
+}
+
+Write-Output ""
+Write-Output "Note: For extra security, manually enable Tamper Protection and Memory Integrity in Windows Security Center."
+
+Write-Output ""
+if ($failedConfigs.Count -eq 0 -and -not $verifyFailed) {
+    Write-DeployLog "SUCCESS: All hardening tasks completed. Restart required for full effect."
+} elseif ($failedConfigs.Count -gt 0) {
+    Write-DeployLog "PARTIAL SUCCESS: Some tasks failed. Restart required." -IsError
+} else {
+    Write-DeployLog "SUCCESS: Tasks completed. Restart required."
 }

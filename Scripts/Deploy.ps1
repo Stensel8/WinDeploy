@@ -194,8 +194,8 @@ function Get-DeploymentScript {
 
 # Define deployment steps (customize as needed)
 $deploymentSteps = @(
-    @{ Name = "Driver Installation";        ScriptName = "Install-Drivers.ps1" }
     @{ Name = "RMM Agent Installation";     ScriptName = "Install-RMMAgent.ps1" }
+    @{ Name = "Driver Installation";        ScriptName = "Install-Drivers.ps1" }
     @{ Name = "Windows Hardening";          ScriptName = "Harden-Windows.ps1" }
     @{ Name = "Application Installation";   ScriptName = "Install-Applications.ps1" }
     @{ Name = "Bloatware Removal";          ScriptName = "Remove-Bloat.ps1" }
