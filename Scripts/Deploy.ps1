@@ -222,18 +222,43 @@ foreach ($step in $deploymentSteps) {
     $scriptAvailable = Get-DeploymentScript -ScriptName $step.ScriptName -LocalPath $localPath
 
     if ($scriptAvailable) {
-        $argumentList = "-ExecutionPolicy Bypass -File `"$localPath`""
         try {
-            $proc = Start-Process pwsh -ArgumentList $argumentList -Wait -NoNewWindow -PassThru
-            if ($proc.ExitCode -ne 0) {
-                Write-Warning "$($step.Name) completed with errors (Exit Code: $($proc.ExitCode))"
-                $allSuccessful = $false
+            # Special handling for RMM Agent - run async and check indicators
+            if ($step.ScriptName -eq "Install-RMMAgent.ps1") {
+                Write-Output "Starting RMM Agent installation (async)..."
+                $job = Start-Job -ScriptBlock {
+                    param($scriptPath)
+                    & $scriptPath
+                } -ArgumentList $localPath
+                
+                # Wait max 30 seconds for job to complete
+                $timeout = 30
+                $elapsed = 0
+                while ($job.State -eq 'Running' -and $elapsed -lt $timeout) {
+                    Start-Sleep -Seconds 1
+                    $elapsed++
+                }
+                
+                # Check if job completed
+                if ($job.State -eq 'Running') {
+                    Write-Output "RMM installation continuing in background..."
+                    Remove-Job $job -Force
+                } else {
+                    $jobResult = Receive-Job $job
+                    $jobResult | ForEach-Object { Write-Output $_ }
+                    Remove-Job $job
+                }
+            } else {
+                # Normal execution for all other scripts
+                & $localPath
+                if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) {
+                    Write-Warning "$($step.Name) completed with errors (Exit Code: $LASTEXITCODE)"
+                    $allSuccessful = $false
+                }
             }
         } catch {
-            if ($proc -and !$proc.HasExited) {
-                Stop-Process -Id $proc.Id -Force
-            }
-            throw
+            Write-Warning "$($step.Name) failed: $_"
+            $allSuccessful = $false
         }
     } else {
         Write-Warning "Skipping $($step.Name) - script unavailable"
