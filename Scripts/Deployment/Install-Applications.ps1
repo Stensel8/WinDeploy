@@ -29,8 +29,8 @@ try {
         "Microsoft.Teams",
         "Microsoft.OneDrive",
         "7zip.7zip",
-        "Microsoft.WindowsApp",
-        "Microsoft.CompanyPortal"
+        "Microsoft.WindowsApp"
+        #"Microsoft.CompanyPortal" - Problematic package at this moment. Microsoft messed up the package. Use msstore version below instead. (exit code -2147024894)
     )
 
     #Note: Some applications fail to install. This is why we have a separate list for msstore apps.
