@@ -88,8 +88,7 @@ Before creating Device Preparation Policies, ensure you have set up any required
 
    Example image: ![Intune scripts](./Intune%20configuration/Intune-scripts.png)
 
-**Note on OOBE Script**: For customizing the Out-of-Box Experience (OOBE), refer to the [Skip-OOBEPrivacy-Intune.ps1](./Scripts/Intune/Platform%20scripts/Skip-OOBEPrivacy-Intune.ps1) script. This can be added to Device Preparation Policies to skip privacy questions and accelerate provisioning.
-
+**Note on OOBE Script**: For customizing the Out-of-Box Experience (OOBE), refer to the [Skip-OOBEPrivacy-Intune.ps1](../Scripts/Intune/Platform%20scripts/Skip-OOBEPrivacy-Intune.ps1) script. This can be added to Device Preparation Policies to skip privacy questions and accelerate provisioning.
 
 ### 7. Configure MDM Enrollment for User Groups
 1. Go to the Microsoft Intune admin center at [https://intune.microsoft.com](https://intune.microsoft.com).
@@ -180,3 +179,4 @@ Finally, ensure users are added to the appropriate groups created earlier. This 
 - If the "Intune Provisioning Client" is not found, ensure Intune is properly set up in your tenant and that you have the necessary licenses.
 - Verify group configurations in the Microsoft Entra portal.
 - For permission issues, contact your Microsoft Entra administrator.
+

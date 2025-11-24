@@ -14,6 +14,16 @@
 
 Zero-touch Windows deployment with automatic driver updates, application installation, bloatware removal, and system configuration. Deploy via USB, network, RMM agents, or AutoUnattend.xml.
 
+## Deployment options
+
+Choose how you want to deploy WinDeploy — pick the path that fits your environment.
+
+| Local (USB / One-liner) | Intune / Autopilot |
+|---|---|
+| Deploy locally via USB, [`autounattend.xml`](Docs/autounattend.xml), or [one-liner script](#quick-start). | Deploy via [Intune Autopilot](Docs/Intune-Autopilot-Setup.md), targeting usergroups. |
+| [![Get started - Local](https://img.shields.io/badge/Get%20started-Local-blue?style=for-the-badge)](#quick-start) | [![Get started - Intune](https://img.shields.io/badge/Get%20started-Intune-brightgreen?style=for-the-badge)](Docs/Intune-Autopilot-Setup.md) |
+
+
 ![Terminal showing begin of deployment](Docs/Deployment_Flow.png)
 
 ![Terminal showing a short demo of the deployment process](Docs/WinDeploy-Demo.gif)
