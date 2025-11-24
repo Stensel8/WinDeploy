@@ -24,13 +24,25 @@ Choose how you want to deploy WinDeploy — pick the path that fits your environ
 | [![Get started - Local](https://img.shields.io/badge/Get%20started-Local-blue?style=for-the-badge)](#quick-start) | [![Get started - Intune](https://img.shields.io/badge/Get%20started-Intune-brightgreen?style=for-the-badge)](Docs/Intune-Autopilot-Setup.md) |
 
 
-![Terminal showing begin of deployment](Docs/Deployment_Flow.png)
+<!-- Images shown as a compact 2x2 collage to reduce vertical scrolling -->
+<div style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-width:980px; margin:auto;">
+    <div style="overflow:hidden;">
+        <img src="Docs/Deployment_Flow.png" alt="Terminal showing begin of deployment" style="width:100%; height:auto; display:block; border-radius:6px;">
+    </div>
+    <div style="overflow:hidden;">
+        <img src="Docs/WinDeploy-Demo.gif" alt="Terminal showing a short demo of the deployment process" style="width:100%; height:auto; display:block; border-radius:6px;">
+    </div>
+    <div style="overflow:hidden;">
+        <img src="Docs/Deployment_Success.png" alt="Terminal showing successful deployment" style="width:100%; height:auto; display:block; border-radius:6px;">
+    </div>
+    <div style="overflow:hidden;">
+        <img src="Docs/Expected_Result.png" alt="Clean Windows after successful deployment" style="width:100%; height:auto; display:block; border-radius:6px;">
+    </div>
+</div>
 
-![Terminal showing a short demo of the deployment process](Docs/WinDeploy-Demo.gif)
-
-![Terminal showing successful deployment](Docs/Deployment_Success.png)
-
-![Clean Windows after successful deployment](Docs/Expected_Result.png)
+<p align="center" style="margin-top:8px; color:var(--color-text-secondary, #666666);">
+    <em>Compact view of the deployment flow — top-left = start, top-right = short demo, bottom-left = success, bottom-right = expected clean Windows.</em>
+</p>
 
 
 ---
@@ -40,13 +52,12 @@ Choose how you want to deploy WinDeploy — pick the path that fits your environ
 **Prerequisites:** Windows 11 Pro 24H2+, PowerShell 7, internet connection
 
 ### Option 1: USB Deployment (Fresh installs)
-```powershell
-# 1. Create bootable Windows 11 USB
-# 2. Copy autounattend.xml to USB root
-# 3. (Optional) Copy RMM agent as Agent.exe to USB root
-# 4. Boot from USB with network connected. Make sure to keep the USB drive connected until deployment is complete.
-# 5. Wait - everything happens automatically
-```
+1. Create bootable Windows 11 USB
+2. Copy autounattend.xml to USB root
+3. (Optional) Copy RMM agent as Agent.exe to USB root
+4. Boot from USB with network connected. Make sure to keep the USB drive connected until deployment is complete.
+5. Wait - everything happens automatically
+
 
 ### Option 2: Direct Execution (Existing or fresh installs)
 ```powershell
