@@ -24,25 +24,20 @@ Choose how you want to deploy WinDeploy — pick the path that fits your environ
 | [![Get started - Local](https://img.shields.io/badge/Get%20started-Local-blue?style=for-the-badge)](#quick-start) | [![Get started - Intune](https://img.shields.io/badge/Get%20started-Intune-brightgreen?style=for-the-badge)](Docs/Intune-Autopilot-Setup.md) |
 
 
-<!-- Images shown as a compact 2x2 collage to reduce vertical scrolling -->
-<div style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-width:980px; margin:auto;">
-    <div style="overflow:hidden;">
-        <img src="Docs/Deployment_Flow.png" alt="Terminal showing begin of deployment" style="width:100%; height:auto; display:block; border-radius:6px;">
-    </div>
-    <div style="overflow:hidden;">
-        <img src="Docs/WinDeploy-Demo.gif" alt="Terminal showing a short demo of the deployment process" style="width:100%; height:auto; display:block; border-radius:6px;">
-    </div>
-    <div style="overflow:hidden;">
-        <img src="Docs/Deployment_Success.png" alt="Terminal showing successful deployment" style="width:100%; height:auto; display:block; border-radius:6px;">
-    </div>
-    <div style="overflow:hidden;">
-        <img src="Docs/Expected_Result.png" alt="Clean Windows after successful deployment" style="width:100%; height:auto; display:block; border-radius:6px;">
-    </div>
-</div>
+<details>
+<summary>View deployment screenshots</summary>
 
-<p align="center" style="margin-top:8px; color:var(--color-text-secondary, #666666);">
-    <em>Compact view of the deployment flow — top-left = start, top-right = short demo, bottom-left = success, bottom-right = expected clean Windows.</em>
-</p>
+<br>
+
+| Deployment Start | Live Demo |
+|-----------------|-----------|
+| <img src="Docs/Deployment_Flow.png" alt="Deployment start" width="400" height="225"> | <img src="Docs/WinDeploy-Demo.gif" alt="Deployment demo" width="400" height="225"> |
+
+| Successful Completion | Expected Result |
+|----------------------|-----------------|
+| <img src="Docs/Deployment_Success.png" alt="Deployment success" width="400" height="225"> | <img src="Docs/Expected_Result.png" alt="Clean Windows" width="400" height="225"> |
+
+</details>
 
 
 ---
