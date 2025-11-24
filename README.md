@@ -24,7 +24,7 @@ Choose how you want to deploy WinDeploy — pick the path that fits your environ
 | [![Get started - Local](https://img.shields.io/badge/Get%20started-Local-blue?style=for-the-badge)](#quick-start) | [![Get started - Intune](https://img.shields.io/badge/Get%20started-Intune-brightgreen?style=for-the-badge)](Docs/Intune-Autopilot-Setup.md) |
 
 
-<details>
+<details open>
 <summary>View deployment screenshots</summary>
 
 <br>
