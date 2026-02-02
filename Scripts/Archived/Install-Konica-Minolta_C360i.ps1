@@ -1,0 +1,258 @@
+<#
+KONICA MINOLTA C360i PRINTER INSTALLATION SCRIPT
+
+This script automatically installs the Konica Minolta C360i printer.
+
+What it does:
+- Installs printer drivers
+- Creates a network printer port
+- Installs the printer
+- Configures default settings
+
+Usage:
+.\Install-Konica-Minolta_C360i.ps1
+
+#>
+
+# ============================================
+# SETTINGS (customizable)
+# ============================================
+
+$PrinterIP = "172.16.11.97"               # Printer IP address
+$PrinterName = "Konica_Printer_Hal"       # Name in Windows
+$PrinterLocation = "Begane grond"         # Location description
+$DriverFolder = "."                       # Driver folder (current directory)
+$DriverName = "KONICA MINOLTA C360iSeriesPCL"    # Official driver name
+
+# Log file location
+$LogFile = "C:\ProgramData\Logs\KonicaPrinter.log"
+
+# ============================================
+# CHECK: Script must run as Administrator
+# ============================================
+# Right-click PowerShell and select "Run as Administrator"
+# Then navigate to the script folder and run it
+
+$IsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
+if (-not $IsAdmin) {
+    Write-Host ""
+    Write-Host "ERROR: This script requires Administrator privileges!" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "How to fix:" -ForegroundColor Yellow
+    Write-Host "1. Right-click PowerShell and select 'Run as Administrator'" -ForegroundColor White
+    Write-Host "2. Navigate to the script folder: cd C:\Path\To\Script" -ForegroundColor White
+    Write-Host "3. Run the script: .\Install-Konica-Minolta_C360i.ps1" -ForegroundColor White
+    Write-Host ""
+    pause
+    exit 1
+}
+
+# ============================================
+# DETECT SYSTEM ARCHITECTURE
+# ============================================
+
+$Architecture = $env:PROCESSOR_ARCHITECTURE
+if ($Architecture -eq "ARM64") {
+    $ArchFolder = "ARM"
+} elseif ($Architecture -eq "AMD64" -or $Architecture -eq "x64") {
+    $ArchFolder = "Win11-X64"
+} else {
+    Write-Host "ERROR: Unsupported architecture: $Architecture" -ForegroundColor Red
+    Write-Host "Supported architectures: ARM64, AMD64, x64" -ForegroundColor Yellow
+    pause
+    exit 1
+}
+
+# ============================================
+# FUNCTION: Write to log file
+# ============================================
+
+function Write-Log {
+    param([string]$Message, [string]$Type = "INFO")
+    
+    $Time = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $LogMessage = "[$Time] [$Type] $Message"
+    
+    # Create log folder if it doesn't exist
+    $LogFolder = Split-Path $LogFile -Parent
+    if (-not (Test-Path $LogFolder)) {
+        New-Item -ItemType Directory -Path $LogFolder -Force | Out-Null
+    }
+    
+    # Write to log file
+    Add-Content -Path $LogFile -Value $LogMessage
+    
+    # Display on screen
+    $Color = switch ($Type) {
+        "ERROR" { "Red" }
+        "WARNING" { "Yellow" }
+        default { "White" }
+    }
+    Write-Host $LogMessage -ForegroundColor $Color
+}
+
+# ============================================
+# START INSTALLATION
+# ============================================
+
+try {
+    Write-Log "========================================"  "INFO"
+    Write-Log "Starting Konica Minolta C360i installation" "INFO"
+    Write-Log "========================================"   "INFO"
+    
+    # Get current username
+    $Username = (whoami).Split('\')[-1].ToLower()
+    Write-Log "User: $Username"
+    Write-Log "Printer IP: $PrinterIP"
+    Write-Log "Printer name: $PrinterName"
+    Write-Log "System architecture: $Architecture"
+    Write-Log "Selected driver folder: $ArchFolder"
+    
+    # Convert relative path to absolute path
+    if (-not [System.IO.Path]::IsPathRooted($DriverFolder)) {
+        $DriverFolder = Join-Path (Get-Location) $DriverFolder
+        $DriverFolder = [System.IO.Path]::GetFullPath($DriverFolder)
+    }
+    
+    # Append architecture-specific subfolder
+    $DriverFolder = Join-Path $DriverFolder $ArchFolder
+    
+    Write-Log "Driver folder: $DriverFolder"
+    
+    # Check if driver folder exists
+    if (-not (Test-Path $DriverFolder)) {
+        throw "Driver folder not found: $DriverFolder"
+    }
+    
+    # ============================================
+    # STEP 1: Install drivers in Windows
+    # ============================================
+    
+    Write-Log "Step 1: Installing drivers..." "INFO"
+    
+    # Find .inf file in driver folder
+    $InfFile = Get-ChildItem -Path $DriverFolder -Filter "*.inf" | Select-Object -First 1
+    
+    if (-not $InfFile) {
+        throw "No .inf file found in driver folder"
+    }
+    
+    Write-Log "INF file found: $($InfFile.Name)"
+    
+    # Install driver with PnPUtil
+    $PnpUtil = "$env:SystemRoot\System32\pnputil.exe"
+    if ($env:PROCESSOR_ARCHITEW6432) {
+        $PnpUtil = "$env:SystemRoot\Sysnative\pnputil.exe"  # For 32-bit PowerShell on 64-bit Windows
+    }
+    
+    Write-Log "Adding drivers to Windows..."
+    & $PnpUtil /add-driver "$($InfFile.FullName)" /install
+    Start-Sleep -Seconds 3
+    
+    # ============================================
+    # STEP 2: Activate printer driver
+    # ============================================
+    
+    Write-Log "Step 2: Activating printer driver..." "INFO"
+    
+    Add-PrinterDriver -Name $DriverName
+    
+    # Check if driver is installed
+    $DriverCheck = Get-PrinterDriver -Name $DriverName -ErrorAction SilentlyContinue
+    if (-not $DriverCheck) {
+        throw "Driver not found after installation"
+    }
+    
+    Write-Log "Driver successfully installed"
+    
+    # ============================================
+    # STEP 3: Create printer port
+    # ============================================
+    
+    Write-Log "Step 3: Creating printer port..." "INFO"
+    
+    $PortName = "IP_$($PrinterIP.Replace('.', '_'))"
+    
+    # Check if port already exists
+    $ExistingPort = Get-PrinterPort -Name $PortName -ErrorAction SilentlyContinue
+    if (-not $ExistingPort) {
+        Write-Log "Creating new printer port: $PortName"
+        Add-PrinterPort -Name $PortName -PrinterHostAddress $PrinterIP
+    } else {
+        Write-Log "Printer port already exists: $PortName"
+    }
+    
+    # ============================================
+    # STEP 4: Install printer
+    # ============================================
+    
+    Write-Log "Step 4: Installing printer..." "INFO"
+    
+    # Remove old printer if it exists
+    $OldPrinter = Get-Printer -Name $PrinterName -ErrorAction SilentlyContinue
+    if ($OldPrinter) {
+        Write-Log "Removing old printer..."
+        Remove-Printer -Name $PrinterName -Confirm:$false
+        Start-Sleep -Seconds 2
+    }
+    
+    # Add new printer
+    Add-Printer -Name $PrinterName `
+                -DriverName $DriverName `
+                -PortName $PortName `
+                -Location $PrinterLocation `
+                -Shared `
+                -ShareName $PrinterName
+    
+    Write-Log "Printer added successfully"
+    
+    # ============================================
+    # STEP 5: Configure printer settings
+    # ============================================
+    
+    Write-Log "Step 5: Configuring printer settings..." "INFO"
+    
+    Set-PrintConfiguration -PrinterName $PrinterName `
+                          -PaperSize A4 `
+                          -Color $false `
+                          -DuplexingMode OneSided
+    
+    Write-Log "Settings applied (A4, black and white, one-sided)"
+    
+    # ============================================
+    # STEP 6: Configure authentication
+    # ============================================
+    
+    Write-Log "Step 6: Configuring user authentication..." "INFO"
+    
+    $RegPath = "HKCU:\Software\KONICA MINOLTA\$DriverName\$PrinterName\Authentication"
+    
+    if (-not (Test-Path $RegPath)) {
+        New-Item -Path $RegPath -Force | Out-Null
+    }
+    
+    Set-ItemProperty -Path $RegPath -Name "UserName" -Value $Username -Force
+    Write-Log "Authentication configured for: $Username"
+    
+    # ============================================
+    # COMPLETE
+    # ============================================
+    
+    Write-Log "========================================" "INFO"
+    Write-Log "Installation completed successfully!" "INFO"
+    Write-Log "========================================" "INFO"
+    
+    Write-Log "Sleeping for 10 seconds to ensure all processes are finalized..." "INFO"
+    Start-Sleep -Seconds 10
+    
+    exit 0
+
+} catch {
+    # Error occurred
+    Write-Log "========================================" "ERROR"
+    Write-Log "Installation failed: $($_.Exception.Message)" "ERROR"
+    Write-Log "========================================" "ERROR"
+    
+    exit 1
+}

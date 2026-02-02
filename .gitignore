@@ -1,0 +1,50 @@
+# PowerShell
+*.ps1xml
+
+# Logs
+*.log
+Logs/
+*.log.*
+
+# Temporary files
+*.tmp
+*.temp
+Temp/
+tmp/
+
+# Build artifacts
+bin/
+obj/
+out/
+
+# IDE
+.vscode/
+.vs/
+*.suo
+*.user
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Deployment artifacts
+Download/
+*.exe
+*.msi
+Agent.exe
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Test files
+test/
+tests/
+*.test.ps1
+
+# Branding update script (temporary)
+Update-Branding.ps1
+/.claude
