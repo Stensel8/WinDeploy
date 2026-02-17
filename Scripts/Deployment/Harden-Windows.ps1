@@ -165,6 +165,7 @@ try {
     if ($bitLockerStatus.ProtectionStatus -eq "Off") {
         Enable-BitLocker -MountPoint "C:" -TpmProtector -EncryptionMethod XtsAes256 -UsedSpaceOnly -ErrorAction Stop
         $appliedConfigs += "BitLocker encryption started"
+        Write-Output "WARNING: BitLocker will be enabled after the next reboot. Make sure to export your BitLocker recovery key!"
     } else {
         $appliedConfigs += "BitLocker already active"
     }

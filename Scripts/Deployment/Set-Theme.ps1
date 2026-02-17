@@ -78,7 +78,7 @@ public class WinAPI {
         } catch {
             Write-DeployLog "Failed to apply wallpaper immediately: $($_.Exception.Message)" -IsError
         }
-        Write-Output "Dark mode en wallpaper ingesteld. Log opnieuw in of herstart voor volledig effect."
+        Write-Output "Dark mode and wallpaper configured. Log off or reboot for full effect."
     } else {
         $CUFail = "Current user (HKCU) theme keys failed: $RegOutCU1 $RegOutCU2 $RegOutCU3"
         Write-DeployLog $CUFail -IsError
@@ -89,6 +89,6 @@ public class WinAPI {
 } catch {
     $CatchErr = $_.Exception.Message
     Write-DeployLog "Unexpected error during setup: $CatchErr" -IsError
-    Write-Output "Dark mode en wallpaper gedeeltelijk ingesteld."
+    Write-Output "Dark mode and wallpaper partially configured."
     exit 0
 }

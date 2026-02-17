@@ -253,6 +253,31 @@ try {
     foreach ($app in $Applications) {
         $alias = $app.Alias
         $name = $app.Name
+        # Improved Office detection
+        if ($alias -eq "Microsoft.Office") {
+            $officeDetected = $false
+            # Check registry for Office/M365
+            $officeRegPaths = @(
+                "HKLM:\SOFTWARE\Microsoft\Office\ClickToRun\Configuration",
+                "HKLM:\SOFTWARE\Microsoft\Office\16.0\Common\InstallRoot",
+                "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
+            )
+            foreach ($regPath in $officeRegPaths) {
+                if (Test-Path $regPath) {
+                    $officeDetected = $true
+                    break
+                }
+            }
+            # Check installed products via CIM
+            $officeCim = Get-CimInstance -ClassName Win32_Product -Filter "Name LIKE '%Office%' OR Name LIKE '%Microsoft 365%'" -ErrorAction SilentlyContinue
+            if ($officeCim) {
+                $officeDetected = $true
+            }
+            if ($officeDetected) {
+                Write-DeployLog "Office/M365 already detected on system. Skipping $name ($alias) installation."
+                continue
+            }
+        }
         Write-DeployLog "Installing $name ($alias)..."
         try {
             $output = & winget install --id $alias --accept-package-agreements --accept-source-agreements 2>&1
