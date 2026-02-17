@@ -126,8 +126,6 @@ This approach works with any RMM solution that supports silent installation (e.g
 - **Dell**: Latitude, OptiPlex, Precision, XPS series
 - **HP**: EliteBook, ProBook, EliteDesk, ProDesk, ZBook series
 
-To view all models, check [Supported Dell devices](Docs/SupportedDellDevices.json) or [Supported HP devices](Docs/SupportedHPDevices.json).
-
 ---
 
 ## Logging
