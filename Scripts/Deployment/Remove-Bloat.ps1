@@ -213,6 +213,18 @@ try {
 
     $SuccessMsg = "SUCCESS: Removed $Removed apps."
     Write-DeployLog $SuccessMsg
+
+    # =============================
+    # Windows tweaks: Spotlight fix
+    # =============================
+    Write-Output ""
+    Write-Output "========================================"
+    Write-Output "  Windows tweaks: Spotlight"
+    Write-Output "========================================"
+    Write-Output "If you are experiencing issues with Windows Spotlight, ensure that Start menu recommendations are enabled."
+    Write-Output "If you are still experiencing issues and like to use the spotlight features for dynamic wallpapers, use the Fix-Spotlight.ps1 script."
+    Write-Output "This script is available as an optional download: C:\WinDeploy\Download\Fix-Spotlight.ps1"
+
     # Note: Bloatware may be reinstalled with future Windows Updates. For more control, consider using Winutil: https://github.com/ChrisTitusTech/winutil
     Write-DeployLog "Note: Bloatware may be reinstalled with future Windows Updates. For more control, consider using Winutil: `e]8;;https://github.com/ChrisTitusTech/winutil`e\https://github.com/ChrisTitusTech/winutil`e]8;;`e\"
     exit 0

@@ -22,24 +22,24 @@ Function Write-DeployLog {
 
 try {
 
+
     $Applications = @(
-        "Microsoft.VCRedist.2015+.x64",
-        "Microsoft.Office",
-        #"Adobe.Acrobat.Reader.64-bit", #Uncomment if you need Adobe Reader
-        "Microsoft.Teams",
-        "Microsoft.OneDrive",
-        "7zip.7zip",
-        "Microsoft.WindowsApp"
-        #"Microsoft.CompanyPortal" - Problematic package at this moment. Microsoft messed up the package. Use msstore version below instead. (exit code -2147024894)
+        @{Alias="Microsoft.VCRedist.2015+.x64"; Name="Microsoft Visual C++ 2015+ x64 Redistributable"},
+        @{Alias="Microsoft.Office"; Name="Microsoft Office"},
+        #@{Alias="Adobe.Acrobat.Reader.64-bit"; Name="Adobe Acrobat Reader 64-bit"},
+        @{Alias="Microsoft.Teams"; Name="Microsoft Teams"},
+        @{Alias="Microsoft.OneDrive"; Name="Microsoft OneDrive"},
+        @{Alias="7zip.7zip"; Name="7-Zip"},
+        @{Alias="Microsoft.WindowsApp"; Name="Windows App"}
+        #@{Alias="Microsoft.CompanyPortal"; Name="Company Portal"} # Problematic package at this moment.
     )
 
     #Note: Some applications fail to install. This is why we have a separate list for msstore apps.
     $MsStoreApplications = @(
-        #"XPDP273C0XHQH2", #Adobe Acrobat Reader (msstore) #Uncomment if you need Adobe Reader
-        "XP8BT8DW290MPQ", # Microsoft Teams (msstore)
-        "9N1F85V9T8BN", # Windows App (msstore)
-        "9WZDNCRFJ3PZ", # Company Portal (msstore)
-        "9MZ95KL8MR0L" # Install this Windows app for improved screenshotting and recording capabilities.
+        @{Alias="XP8BT8DW290MPQ"; Name="Microsoft Teams (msstore)"},
+        @{Alias="9N1F85V9T8BN"; Name="Windows App (msstore)"},
+        @{Alias="9WZDNCRFJ3PZ"; Name="Company Portal (msstore)"},
+        @{Alias="9MZ95KL8MR0L"; Name="Screenshot/Recording App (msstore)"}
     )
 
     # Winget error codes that you may come across during installation. Note that these are not documented all well by Micrsoft. They documenent some of them, but not all.
@@ -251,31 +251,28 @@ try {
     $OfficeFailed = $false
 
     foreach ($app in $Applications) {
-        Write-DeployLog "Installing $app..."
+        $alias = $app.Alias
+        $name = $app.Name
+        Write-DeployLog "Installing $name ($alias)..."
         try {
-            $output = & winget install --id $app --accept-package-agreements --accept-source-agreements 2>&1
+            $output = & winget install --id $alias --accept-package-agreements --accept-source-agreements 2>&1
             $exitCode = $LASTEXITCODE
             if ($exitCode -eq 0 -or $output -match "already installed|No available upgrade") {
-                Write-DeployLog "Installed $app"
+                Write-DeployLog "Installed $name ($alias)"
             } else {
                 $description = $WingetErrorDescriptions[$exitCode]
-
                 if ($description) {
-
-                    Write-DeployLog "Failed to install $app - $description (exit code $exitCode)" -IsError
-
+                    Write-DeployLog "Failed to install $name ($alias) - $description (exit code $exitCode)" -IsError
                 } else {
-
-                    Write-DeployLog "Failed to install $app (exit code $exitCode)" -IsError
-
+                    Write-DeployLog "Failed to install $name ($alias) (exit code $exitCode)" -IsError
                 }
-                if ($app -eq "Microsoft.Office") {
+                if ($alias -eq "Microsoft.Office") {
                     $OfficeFailed = $true
                 }
             }
         } catch {
-            Write-DeployLog "Failed to install $app" -IsError
-            if ($app -eq "Microsoft.Office") {
+            Write-DeployLog "Failed to install $name ($alias)" -IsError
+            if ($alias -eq "Microsoft.Office") {
                 $OfficeFailed = $true
             }
         }
@@ -331,27 +328,24 @@ try {
 
     Write-DeployLog "Installing Microsoft Store versions of the applications listed above..."
     foreach ($app in $MsStoreApplications) {
-        Write-DeployLog "Installing msstore $app..."
+        $alias = $app.Alias
+        $name = $app.Name
+        Write-DeployLog "Installing msstore $name ($alias)..."
         try {
-            $output = & winget install --id $app --accept-package-agreements --accept-source-agreements 2>&1
+            $output = & winget install --id $alias --accept-package-agreements --accept-source-agreements 2>&1
             $exitCode = $LASTEXITCODE
             if ($exitCode -eq 0 -or $output -match "already installed|No available upgrade") {
-                Write-DeployLog "Installed msstore $app"
+                Write-DeployLog "Installed msstore $name ($alias)"
             } else {
                 $description = $WingetErrorDescriptions[$exitCode]
-
                 if ($description) {
-
-                    Write-DeployLog "Failed to install msstore $app - $description (exit code $exitCode)" -IsError
-
+                    Write-DeployLog "Failed to install msstore $name ($alias) - $description (exit code $exitCode)" -IsError
                 } else {
-
-                    Write-DeployLog "Failed to install msstore $app (exit code $exitCode)" -IsError
-
+                    Write-DeployLog "Failed to install msstore $name ($alias) (exit code $exitCode)" -IsError
                 }
             }
         } catch {
-            Write-DeployLog "Failed to install msstore $app" -IsError
+            Write-DeployLog "Failed to install msstore $name ($alias)" -IsError
         }
     }
 

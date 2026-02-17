@@ -29,68 +29,14 @@ try {
 
     Write-DeployLog "System: $manufacturer $model"
 
-    # Load supported devices
-    $supportedDellDevices = @()
-    $supportedHPDevices = @()
 
-    $version = "testing"
-
-    $dellPath = "C:\WinDeploy\Download\SupportedDellDevices.json"
-    $hpPath = "C:\WinDeploy\Download\SupportedHPDevices.json"
-
-    # Ensure download directory exists
-    $downloadDir = Split-Path $dellPath
-    if (!(Test-Path $downloadDir)) {
-        New-Item -ItemType Directory -Path $downloadDir -Force | Out-Null
-    }
-
-    # Try to copy from local repo first
-    $dellLocal = Join-Path $PSScriptRoot "..\..\Docs\SupportedDellDevices.json"
-    $hpLocal = Join-Path $PSScriptRoot "..\..\Docs\SupportedHPDevices.json"
-
-    if (Test-Path $dellLocal) {
-        Copy-Item $dellLocal $dellPath -Force
-        Write-DeployLog "Copied SupportedDellDevices.json from local repo"
-    } elseif (!(Test-Path $dellPath)) {
-        $url = "https://raw.githubusercontent.com/Stensel8/WinDeploy/$version/Docs/SupportedDellDevices.json"
-        try {
-            Invoke-WebRequest -Uri $url -OutFile $dellPath -UseBasicParsing -ErrorAction Stop
-            Write-DeployLog "Downloaded SupportedDellDevices.json"
-        } catch {
-            Write-Warning "Failed to download SupportedDellDevices.json"
-        }
-    }
-
-    if (Test-Path $hpLocal) {
-        Copy-Item $hpLocal $hpPath -Force
-        Write-DeployLog "Copied SupportedHPDevices.json from local repo"
-    } elseif (!(Test-Path $hpPath)) {
-        $url = "https://raw.githubusercontent.com/Stensel8/WinDeploy/$version/Docs/SupportedHPDevices.json"
-        try {
-            Invoke-WebRequest -Uri $url -OutFile $hpPath -UseBasicParsing -ErrorAction Stop
-            Write-DeployLog "Downloaded SupportedHPDevices.json"
-        } catch {
-            Write-Warning "Failed to download SupportedHPDevices.json"
-        }
-    }
-
-    if (Test-Path $dellPath) {
-        try {
-            $supportedDellDevices = Get-Content $dellPath -Raw | ConvertFrom-Json | Where-Object { -not $_.StartsWith("//") }
-            Write-DeployLog "Loaded Dell list from $dellPath"
-        } catch {
-            Write-Warning "Failed to load Dell device list"
-        }
-    }
-
-    if (Test-Path $hpPath) {
-        try {
-            $supportedHPDevices = Get-Content $hpPath -Raw | ConvertFrom-Json | Where-Object { -not $_.StartsWith("//") }
-            Write-DeployLog "Loaded HP list from $hpPath"
-        } catch {
-            Write-Warning "Failed to load HP device list"
-        }
-    }
+    # Embed supported device lists (no more JSON dependency)
+    $supportedDellDevices = @(
+        "Latitude", "OptiPlex", "Precision", "XPS", "Venue", "Vostro"
+    )
+    $supportedHPDevices = @(
+        "EliteBook", "ProBook", "ZBook", "EliteDesk", "ProDesk", "EliteOne", "ProOne", "Z2", "Z4", "Z6", "Z8", "Elite Mini", "Elite Tower", "Elite SFF", "Engage One"
+    )
 
     # Check if supported
     $isSupported = $false

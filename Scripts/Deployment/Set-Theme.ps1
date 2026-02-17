@@ -21,21 +21,20 @@ Function Write-DeployLog {
 try {
 
     # System-wide (HKLM)
-    Write-DeployLog "Setting HKLM keys..."
+    Write-DeployLog "Setting system (HKLM) theme keys..."
     $RegOutLM = reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v AppsUseLightTheme /t REG_DWORD /d 0 /f 2>&1
     $RegOutLM2 = reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v SystemUsesLightTheme /t REG_DWORD /d 0 /f 2>&1
     if ($LASTEXITCODE -eq 0) {
-        Write-DeployLog "HKLM keys set successfully."
+        Write-DeployLog "System (HKLM) theme keys set successfully."
     } else {
-        $LMFail = "HKLM failed: $RegOutLM $RegOutLM2"
+        $LMFail = "System (HKLM) theme keys failed: $RegOutLM $RegOutLM2"
         Write-DeployLog $LMFail -IsError
-        Write-Error $LMFail
     }
 
-    # Default user hive (for new users) - with better access check
+    # Default user hive (for new users)
     $DefaultHive = "C:\Users\Default\NTUSER.DAT"
     if (Test-Path $DefaultHive -PathType Leaf) {
-        Write-DeployLog "Loading default hive..."
+        Write-DeployLog "Loading default user hive..."
         $LoadOut = reg load "HKU\TempDefault" "$DefaultHive" 2>&1
         if ($LASTEXITCODE -eq 0) {
             # Set keys in loaded hive
@@ -44,28 +43,26 @@ try {
             $RegOutDef3 = reg add "HKU\TempDefault\Control Panel\Desktop" /v Wallpaper /t REG_SZ /d "C:\Windows\Web\Wallpaper\Windows\img19.jpg" /f 2>&1
             $UnloadOut = reg unload "HKU\TempDefault" 2>&1
             if ($LASTEXITCODE -eq 0 -and $UnloadOut -notmatch "error") {
-                Write-DeployLog "Default hive updated successfully. Outputs: $RegOutDef1 $RegOutDef2 $RegOutDef3"
+                Write-DeployLog "Default user hive updated successfully."
             } else {
-                $DefFail = "Default hive unload failed: $UnloadOut. Reg outputs: $RegOutDef1 $RegOutDef2 $RegOutDef3"
+                $DefFail = "Default user hive unload failed: $UnloadOut."
                 Write-DeployLog $DefFail -IsError
-                Write-Error $DefFail
             }
         } else {
-            $LoadFail = "Hive load failed: $LoadOut - skipping default user."
+            $LoadFail = "Default user hive load failed: $LoadOut - skipping."
             Write-DeployLog $LoadFail -IsError
-            Write-Error $LoadFail
         }
     } else {
-        Write-DeployLog "Default hive not found or not a file - skipping."
+        Write-DeployLog "Default user hive not found or not a file - skipping."
     }
 
     # Current user (HKCU fallback)
-    Write-DeployLog "Setting HKCU keys..."
+    Write-DeployLog "Setting current user (HKCU) theme keys..."
     $RegOutCU1 = reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v AppsUseLightTheme /t REG_DWORD /d 0 /f 2>&1
     $RegOutCU2 = reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v SystemUsesLightTheme /t REG_DWORD /d 0 /f 2>&1
     $RegOutCU3 = reg add "HKCU\Control Panel\Desktop" /v Wallpaper /t REG_SZ /d "C:\Windows\Web\Wallpaper\Windows\img19.jpg" /f 2>&1
     if ($LASTEXITCODE -eq 0) {
-        Write-DeployLog "HKCU keys set successfully."
+        Write-DeployLog "Current user (HKCU) theme keys set successfully."
         # Apply wallpaper immediately
         try {
             Add-Type -TypeDefinition @"
@@ -81,11 +78,10 @@ public class WinAPI {
         } catch {
             Write-DeployLog "Failed to apply wallpaper immediately: $($_.Exception.Message)" -IsError
         }
-        Write-Output "Dark mode and wallpaper configured - logoff/reboot for full effect."
+        Write-Output "Dark mode en wallpaper ingesteld. Log opnieuw in of herstart voor volledig effect."
     } else {
-        $CUFail = "HKCU failed: $RegOutCU1 $RegOutCU2 $RegOutCU3"
+        $CUFail = "Current user (HKCU) theme keys failed: $RegOutCU1 $RegOutCU2 $RegOutCU3"
         Write-DeployLog $CUFail -IsError
-        Write-Error $CUFail
     }
 
     Write-DeployLog "SUCCESS: Dark mode and wallpaper process done."
@@ -93,6 +89,6 @@ public class WinAPI {
 } catch {
     $CatchErr = $_.Exception.Message
     Write-DeployLog "Unexpected error during setup: $CatchErr" -IsError
-    Write-Output "Dark mode and wallpaper partial setup."
+    Write-Output "Dark mode en wallpaper gedeeltelijk ingesteld."
     exit 0
 }

@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.6.1] - 2026-02-17
+
+### Added
+- Intune enrollment detection: Windows hardening is now skipped if the device is already enrolled in Intune.
+- Dedicated section for the Windows Spotlight fix under "Windows tweaks" with user instructions and reference to Fix-Spotlight.ps1.
+
+### Changed
+- Office/M365 is no longer installed via Winget if an Office or M365 package is already detected on the system.
+- Dropped support for Windows 11 24H2; only 25H2+ (build 26200+) is now supported.
+- Driver lists for Dell and HP are now embedded directly in the script for improved reliability (no more external JSON files).
+- Application installation output now shows both the app name and its alias/ID for improved clarity.
+- Theme configuration logging/output has been cleaned up to avoid duplicate or confusing messages.
+- Hostname script now provides a clear message if no serial number is found (e.g., in a VM).
+
+### Fixed
+- Improved error handling for missing serial number during hostname setup.
+- Various minor improvements to logging, error handling, and user messages.
+
+---
+
 ## [0.6.0] - 2026-02-02
 
 ### Changed

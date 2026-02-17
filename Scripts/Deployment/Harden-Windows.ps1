@@ -10,6 +10,36 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Continue'
 
+# Check for Intune enrollment (pre-check)
+function Test-IntuneEnrollment {
+    $enrollments = Get-ChildItem -Path 'HKLM:\SOFTWARE\Microsoft\Enrollments' -ErrorAction SilentlyContinue
+    if ($enrollments.Count -eq 0) { return $false }
+    foreach ($enrollment in $enrollments) {
+        $guid = $enrollment.PSChildName
+        $erm = "HKLM:\SOFTWARE\Microsoft\EnterpriseResourceManager\Tracked\$guid"
+        $policy = "HKLM:\SOFTWARE\Microsoft\PolicyManager\Providers\$guid"
+        $omadm = "HKLM:\SOFTWARE\Microsoft\Provisioning\OMADM\Accounts\$guid"
+        $task = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree\Microsoft\Windows\EnterpriseMgmt\$guid"
+        if ((Test-Path $erm) -and (Test-Path $policy) -and (Test-Path $omadm) -and (Test-Path $task)) {
+            return $true
+        }
+    }
+    return $false
+}
+
+if (Test-IntuneEnrollment) {
+    Write-Output "Device is already enrolled in Intune. Skipping hardening."
+    exit 0
+}
+
+# Only support Windows 11 25H2+ (build 26200+)
+$os = Get-CimInstance Win32_OperatingSystem
+$build = [int]$os.BuildNumber
+if ($build -lt 26200) {
+    Write-Output "ERROR: Only Windows 11 25H2 (build 26200+) and newer are supported. Current build: $build. Exiting."
+    exit 1
+}
+
 Function Write-DeployLog {
     param([string]$Message, [switch]$IsError)
     $logDir = "C:\WinDeploy\Logs"
