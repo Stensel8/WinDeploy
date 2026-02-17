@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PowerShell 7.0+](https://img.shields.io/badge/PowerShell-7.0+-blue.svg)](https://github.com/PowerShell/PowerShell)
 [![Windows 11](https://img.shields.io/badge/Windows-11-0078D6.svg)](https://www.microsoft.com/windows)
-[![Windows 24H2/25H2](https://img.shields.io/badge/Windows-24H2/25H2-0078D6.svg)](https://www.microsoft.com/windows)
+[![Windows 25H2](https://img.shields.io/badge/Windows-25H2-0078D6.svg)](https://www.microsoft.com/windows)
 
 
 [![PSScriptAnalyzer](https://github.com/Stensel8/WinDeploy/actions/workflows/powershell.yml/badge.svg)](https://github.com/Stensel8/WinDeploy/actions/workflows/powershell.yml)
@@ -40,7 +40,7 @@ Choose how you want to deploy WinDeploy — pick the path that fits your environ
 
 ## Quick Start
 
-**Prerequisites:** Windows 11 Pro 24H2+, PowerShell 7, internet connection
+**Prerequisites:** Windows 11 Pro 25H2+, PowerShell 7, internet connection
 
 ### Option 1: USB Deployment (Fresh installs)
 1. Create bootable Windows 11 USB

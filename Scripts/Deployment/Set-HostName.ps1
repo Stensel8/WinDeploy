@@ -23,7 +23,13 @@ Write-Output "Setting hostname."
 try {
     Write-DeployLog "=== Hostname Setup ==="
 
+
     $Serial = (Get-CimInstance -ClassName Win32_BIOS).SerialNumber -replace '[^A-Z0-9]', ''
+    if ([string]::IsNullOrWhiteSpace($Serial) -or $Serial.Length -lt 5) {
+        Write-DeployLog "No valid serial number found. Unable to set hostname automatically. Please set the hostname manually." -IsError:$true
+        Write-Output "No serial number found. Please set the computer name manually."
+        exit 1
+    }
     $LastFive = $Serial.Substring($Serial.Length - 5).ToUpper()
     $Hostname = "PC-$LastFive"
 
