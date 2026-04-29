@@ -43,6 +43,7 @@ jobs:
           $files = Get-ChildItem -Path . -Filter '*.ps1' -Recurse
 
           foreach ($file in $files) {
+            $parseErrors = $null
             $null = [System.Management.Automation.Language.Parser]::ParseFile(
               $file.FullName, [ref]$null, [ref]$parseErrors
             )
@@ -87,7 +88,8 @@ jobs:
         run: |
           # Check that key functions exist and are syntactically valid
           $content = Get-Content Scripts/Start.ps1 -Raw
-          $ast = [System.Management.Automation.Language.Parser]::ParseInput($content, [ref]$null, [ref]$errors)
+          $parseErrors = $null
+          $ast = [System.Management.Automation.Language.Parser]::ParseInput($content, [ref]$null, [ref]$parseErrors)
 
           $functions = $ast.FindAll({ $args[0] -is [System.Management.Automation.Language.FunctionDefinitionAst] }, $true)
           $functionNames = $functions.Name
