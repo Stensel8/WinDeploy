@@ -1,18 +1,18 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Renovate manages GitHub Actions docker:// image updates. Regular owner/repo@sha actions are handled by Dependabot.",
+  "description": "Renovate manages docker:// action images only. Regular GitHub Actions (uses: owner/repo@sha) are handled by Dependabot.",
   "extends": ["config:recommended"],
   "enabledManagers": ["github-actions"],
   "schedule": ["on monday"],
   "labels": ["dependencies", "ci"],
   "assignees": ["Stensel8"],
-  "commitMessagePrefix": "deps:",
+  "commitMessagePrefix": "ci:",
   "packageRules": [
     {
-      "description": "Auto-merge patch and digest updates that pass CI.",
-      "matchUpdateTypes": ["patch", "digest"],
-      "automerge": true,
-      "automergeType": "pr"
+      "description": "Disable Renovate for owner/repo@sha actions — Dependabot handles those.",
+      "matchManagers": ["github-actions"],
+      "matchDatasources": ["github-tags", "github-releases", "git-tags"],
+      "enabled": false
     },
     {
       "description": "Group all Docker-based action image updates into one PR.",
@@ -20,6 +20,12 @@
       "matchDatasources": ["docker"],
       "groupName": "Docker action images",
       "labels": ["dependencies", "ci"]
+    },
+    {
+      "description": "Auto-merge patch and digest updates that pass CI.",
+      "matchUpdateTypes": ["patch", "digest"],
+      "automerge": true,
+      "automergeType": "pr"
     }
   ]
 }

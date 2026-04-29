@@ -9,6 +9,7 @@
 [![Security scanning](https://github.com/Stensel8/WinDeploy/actions/workflows/security.yml/badge.svg)](https://github.com/Stensel8/WinDeploy/actions/workflows/security.yml)
 [![Validate scripts](https://github.com/Stensel8/WinDeploy/actions/workflows/validate.yml/badge.svg)](https://github.com/Stensel8/WinDeploy/actions/workflows/validate.yml)
 [![CodeQL](https://github.com/Stensel8/WinDeploy/actions/workflows/codeql.yml/badge.svg)](https://github.com/Stensel8/WinDeploy/actions/workflows/codeql.yml)
+[![Dependabot Updates](https://github.com/Stensel8/WinDeploy/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/Stensel8/WinDeploy/actions/workflows/dependabot/dependabot-updates)
 
 Zero-touch Windows deployment with automatic driver updates, application installation, bloatware removal, and system configuration. Deploy via USB, network, RMM agents, or AutoUnattend.xml.
 
