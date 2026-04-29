@@ -34,8 +34,12 @@ function Get-LatestRelease {
     return $null
 }
 
-# Get release tag
-$releaseTag = Get-LatestRelease
+# Get release tag — use $VersionTag if supplied, otherwise fetch latest
+if ($VersionTag) {
+    $releaseTag = $VersionTag
+} else {
+    $releaseTag = Get-LatestRelease
+}
 if (!$releaseTag) {
     Write-Host "ERROR: Failed to fetch latest release from GitHub." -ForegroundColor Red
     Write-Host "Releases are required for deployment. Please check:" -ForegroundColor Yellow
@@ -129,19 +133,22 @@ function Install-Pwsh7 {
         Write-Warning "MSI installation failed: $_"
     }
 
-    # Method 3: Direct MSI download
+    # Method 3: Direct MSI download using latest release from GitHub API
     Write-Host "Attempting direct MSI download..." -ForegroundColor Cyan
     try {
-        $msiUrl = "https://github.com/PowerShell/PowerShell/releases/download/v7.4.6/PowerShell-7.4.6-win-x64.msi"
+        $psRelease = Invoke-RestMethod -Uri "https://api.github.com/repos/PowerShell/PowerShell/releases/latest" -ErrorAction Stop
+        $psVersion = $psRelease.tag_name.TrimStart('v')
+        $msiAsset = $psRelease.assets | Where-Object { $_.name -like "*win-x64.msi" } | Select-Object -First 1
+        if (-not $msiAsset) { throw "MSI asset not found in latest PowerShell release" }
         $msiPath = Join-Path $env:TEMP "PowerShell-7.msi"
-        Invoke-WebRequest -Uri $msiUrl -OutFile $msiPath -UseBasicParsing
+        Invoke-WebRequest -Uri $msiAsset.browser_download_url -OutFile $msiPath -UseBasicParsing
         Start-Process msiexec.exe -ArgumentList "/i `"$msiPath`" /quiet /norestart" -Wait -NoNewWindow
         Remove-Item $msiPath -Force -ErrorAction SilentlyContinue
         Start-Sleep -Seconds 5
         Update-EnvironmentPath
         $path = Get-Pwsh7Path
         if ($path) {
-            Write-Host "PowerShell 7 installed successfully via direct MSI" -ForegroundColor Green
+            Write-Host "PowerShell $psVersion installed successfully via direct MSI" -ForegroundColor Green
             return $true
         }
     } catch {

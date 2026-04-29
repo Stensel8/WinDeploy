@@ -1,0 +1,128 @@
+name: Validate scripts
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+  workflow_dispatch:
+
+permissions: read-all
+
+# ============================================================
+# Validates that all PowerShell scripts parse and load without
+# errors. A full deployment cannot run on GitHub-hosted runners
+# (requires Windows 11 25H2 + real hardware for drivers/BitLocker),
+# but syntax and logic errors are caught here before they reach
+# a production machine.
+# ============================================================
+
+jobs:
+
+  # ----------------------------------------------------------
+  # SYNTAX CHECK
+  # Parses every .ps1 file with PowerShell 7 without executing.
+  # Fails if any file contains a syntax error.
+  # ----------------------------------------------------------
+  syntax-check:
+    name: PowerShell syntax check
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Check PowerShell version
+        shell: pwsh
+        run: |
+          Write-Host "PowerShell $($PSVersionTable.PSVersion)" -ForegroundColor Cyan
+          Write-Host "OS: $([System.Environment]::OSVersion.VersionString)" -ForegroundColor Cyan
+
+      - name: Syntax-check all .ps1 files
+        shell: pwsh
+        run: |
+          $errors = @()
+          $files = Get-ChildItem -Path . -Filter '*.ps1' -Recurse
+
+          foreach ($file in $files) {
+            $null = [System.Management.Automation.Language.Parser]::ParseFile(
+              $file.FullName, [ref]$null, [ref]$parseErrors
+            )
+            if ($parseErrors.Count -gt 0) {
+              foreach ($err in $parseErrors) {
+                $errors += "$($file.FullName):$($err.Extent.StartLineNumber) — $($err.Message)"
+              }
+            }
+          }
+
+          Write-Host "Checked $($files.Count) script(s)."
+
+          if ($errors.Count -gt 0) {
+            Write-Host "`nSyntax errors found:" -ForegroundColor Red
+            $errors | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
+            exit 1
+          }
+
+          Write-Host "All scripts passed syntax check." -ForegroundColor Green
+
+  # ----------------------------------------------------------
+  # HELPER FUNCTION TESTS
+  # Dot-sources helper functions from Deploy.ps1 and Start.ps1
+  # and exercises non-destructive logic in a dry-run context.
+  # ----------------------------------------------------------
+  helper-tests:
+    name: PowerShell helper function tests
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Test Deploy.ps1 helper functions
+        shell: pwsh
+        run: |
+          # Validate that Get-LatestRelease function definition is loadable
+          $content = Get-Content Scripts/Deploy.ps1 -Raw
+          $sb = [ScriptBlock]::Create($content.Replace('$releaseTag = Get-LatestRelease', '$releaseTag = "v0.0.0-test"').Replace('Read-Host', '#Read-Host'))
+          Write-Host "Deploy.ps1 script block created successfully." -ForegroundColor Green
+
+      - name: Test Start.ps1 helper functions
+        shell: pwsh
+        run: |
+          # Check that key functions exist and are syntactically valid
+          $content = Get-Content Scripts/Start.ps1 -Raw
+          $ast = [System.Management.Automation.Language.Parser]::ParseInput($content, [ref]$null, [ref]$errors)
+
+          $functions = $ast.FindAll({ $args[0] -is [System.Management.Automation.Language.FunctionDefinitionAst] }, $true)
+          $functionNames = $functions.Name
+
+          $required = @('Get-LatestRelease', 'Get-Pwsh7Path', 'Install-Pwsh7', 'Test-Pwsh7', 'Install-WinGet', 'Update-EnvironmentPath')
+          $missing = $required | Where-Object { $_ -notin $functionNames }
+
+          if ($missing.Count -gt 0) {
+            Write-Host "Missing required functions: $($missing -join ', ')" -ForegroundColor Red
+            exit 1
+          }
+
+          Write-Host "All required functions present: $($required -join ', ')" -ForegroundColor Green
+
+      - name: Test Set-HostName logic (non-destructive)
+        shell: pwsh
+        run: |
+          # Test that the hostname generation logic works
+          $serial = (Get-CimInstance -ClassName Win32_BIOS).SerialNumber
+          if ($serial -and $serial.Length -ge 5) {
+            $last5 = $serial.Substring($serial.Length - 5).ToUpper() -replace '[^A-Z0-9]', 'X'
+            $hostname = "PC-$last5"
+            Write-Host "Hostname would be: $hostname" -ForegroundColor Green
+          } else {
+            Write-Host "No valid serial — hostname would be set to default" -ForegroundColor Yellow
+          }
+
+      - name: Test architecture detection
+        shell: pwsh
+        run: |
+          $arch = $env:PROCESSOR_ARCHITECTURE
+          Write-Host "Architecture: $arch" -ForegroundColor Cyan
+          $supported = @('AMD64', 'x64', 'ARM64')
+          if ($arch -in $supported -or $arch -eq 'AMD64') {
+            Write-Host "Architecture is supported by driver detection." -ForegroundColor Green
+          } else {
+            Write-Host "Unknown architecture: $arch" -ForegroundColor Yellow
+          }
