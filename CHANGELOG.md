@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.7.1] - 2026-04-30
+
+### Fixed
+- Application installs now explicitly pass `--source winget` and `--source msstore` to their respective install commands. Fixes "Rest API internal error" failures caused by WinGet trying all sources (including the unauthenticated msstore REST source) when no source was specified.
+
+---
+
 ## [0.7.0] - 2026-04-30
 
 ### Added
@@ -214,6 +221,7 @@ First open-source release of WinDeploy - Windows Deployment Automation Toolkit. 
 ---
 
 
+[0.7.1]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.7.1
 [0.7.0]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.7.0
 [0.6.1]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.6.1
 [0.6.0]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.6.0

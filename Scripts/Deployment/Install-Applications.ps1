@@ -256,11 +256,10 @@ try {
         # Improved Office detection
         if ($alias -eq "Microsoft.Office") {
             $officeDetected = $false
-            # Check registry for Office/M365
+            # Check known Office registry paths first
             $officeRegPaths = @(
                 "HKLM:\SOFTWARE\Microsoft\Office\ClickToRun\Configuration",
-                "HKLM:\SOFTWARE\Microsoft\Office\16.0\Common\InstallRoot",
-                "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
+                "HKLM:\SOFTWARE\Microsoft\Office\16.0\Common\InstallRoot"
             )
             foreach ($regPath in $officeRegPaths) {
                 if (Test-Path $regPath) {
@@ -268,10 +267,25 @@ try {
                     break
                 }
             }
-            # Check installed products via CIM
-            $officeCim = Get-CimInstance -ClassName Win32_Product -Filter "Name LIKE '%Office%' OR Name LIKE '%Microsoft 365%'" -ErrorAction SilentlyContinue
-            if ($officeCim) {
-                $officeDetected = $true
+            # Search Uninstall keys for Office products (avoid Win32_Product - it hangs)
+            if (-not $officeDetected) {
+                $uninstallRoots = @(
+                    "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
+                    "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+                )
+                foreach ($root in $uninstallRoots) {
+                    if (Test-Path $root) {
+                        $keys = Get-ChildItem $root -ErrorAction SilentlyContinue
+                        foreach ($key in $keys) {
+                            $displayName = $key.GetValue("DisplayName")
+                            if ($displayName -match "Microsoft Office|Microsoft 365") {
+                                $officeDetected = $true
+                                break
+                            }
+                        }
+                    }
+                    if ($officeDetected) { break }
+                }
             }
             if ($officeDetected) {
                 Write-DeployLog "Office/M365 already detected on system. Skipping $name ($alias) installation."
@@ -280,7 +294,7 @@ try {
         }
         Write-DeployLog "Installing $name ($alias)..."
         try {
-            $output = & winget install --id $alias --accept-package-agreements --accept-source-agreements 2>&1
+            $output = & winget install --id $alias --source winget --accept-package-agreements --accept-source-agreements 2>&1
             $exitCode = $LASTEXITCODE
             if ($exitCode -eq 0 -or $output -match "already installed|No available upgrade") {
                 Write-DeployLog "Installed $name ($alias)"
@@ -357,7 +371,7 @@ try {
         $name = $app.Name
         Write-DeployLog "Installing msstore $name ($alias)..."
         try {
-            $output = & winget install --id $alias --accept-package-agreements --accept-source-agreements 2>&1
+            $output = & winget install --id $alias --source msstore --accept-package-agreements --accept-source-agreements 2>&1
             $exitCode = $LASTEXITCODE
             if ($exitCode -eq 0 -or $output -match "already installed|No available upgrade") {
                 Write-DeployLog "Installed msstore $name ($alias)"
