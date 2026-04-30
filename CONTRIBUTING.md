@@ -1,6 +1,6 @@
 # Contributing to WinDeploy
 
-Thanks — small, tested PRs help most.
+Thanks. Small, tested PRs help most.
 
 ### Quick start
 1. Fork → branch → change → PR.  

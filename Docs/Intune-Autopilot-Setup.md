@@ -36,7 +36,7 @@ These groups form the foundation. You can add more groups later for finer contro
     - Source: **Cloud**  
     - Type: **Security**  
 7. Under **Owners**, click **Add owners** and search for `Intune Provisioning Client` (service principal). Select it and click **Select**.  
-8. Leave **Members** empty — the group will be populated automatically with Autopilot Device Preparation devices later.  
+8. Leave **Members** empty. The group will be populated automatically with Autopilot Device Preparation devices later.  
 9. Click **Create** and verify the group in the **Groups** list (confirm owners and settings).
 
 ### 4. Create the Standard Users Group
@@ -86,12 +86,12 @@ Before creating Device Preparation Policies, ensure you have set up any required
 5. Configure the following settings (using Microsoft defaults where applicable):
 
    - **MDM user scope**: Select **Some** and choose both `Autopilot Device Preparation - Users` and `Autopilot Device Preparation - Local Admins`.  
-   - **MDM terms of use URL**: Keep default — https://portal.manage.microsoft.com/TermsofUse.aspx  
-   - **MDM discovery URL**: Keep default — https://enrollment.manage.microsoft.com/enrollmentserver/discovery.svc  
-   - **MDM compliance URL**: Keep default — https://portal.manage.microsoft.com/?portalAction=Compliance  
+   - **MDM terms of use URL**: Keep default. https://portal.manage.microsoft.com/TermsofUse.aspx  
+   - **MDM discovery URL**: Keep default. https://enrollment.manage.microsoft.com/enrollmentserver/discovery.svc  
+   - **MDM compliance URL**: Keep default. https://portal.manage.microsoft.com/?portalAction=Compliance  
    - **Windows Information Protection (WIP) user scope**: Select **Some** and choose both `Autopilot Device Preparation - Users` and `Autopilot Device Preparation - Local Admins`.  
    - **WIP terms of use URL**: Leave empty unless you have a custom URL.  
-   - **WIP discovery URL**: Keep default — https://wip.mam.manage.microsoft.com/Enroll  
+   - **WIP discovery URL**: Keep default. https://wip.mam.manage.microsoft.com/Enroll  
    - **WIP compliance URL**: Leave empty unless you have a custom URL.
 
    Example image: ![MDM and WIP settings](./Intune%20configuration/MDM_and_WIP-settings.png)

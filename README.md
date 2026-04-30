@@ -41,8 +41,8 @@ Zero-touch Windows deployment with automatic driver updates, application install
 1. Create bootable Windows 11 USB
 2. Copy `autounattend.xml` to USB root
 3. (Optional) Copy RMM agent as `Agent.exe` to USB root
-4. Boot from USB with network connected — keep USB connected until deployment completes
-5. Wait — everything happens automatically
+4. Boot from USB with network connected. Keep USB connected until deployment completes.
+5. Wait. Everything happens automatically.
 
 ### Option 2: Direct Execution
 ```powershell
@@ -89,7 +89,7 @@ graph TD
 ## Configuration
 
 ### Customize Application List
-Edit [`Scripts/Deployment/Install-Applications.ps1`](Scripts/Deployment/Install-Applications.ps1) (lines 20–30):
+Edit [`Scripts/Deployment/Install-Applications.ps1`](Scripts/Deployment/Install-Applications.ps1) (lines 20-30):
 ```powershell
 $Applications = @(
     "Microsoft.VCRedist.2015+.x64",
@@ -100,7 +100,7 @@ $Applications = @(
 ```
 
 ### Customize Bloatware List
-Edit [`Scripts/Deployment/Remove-Bloat.ps1`](Scripts/Deployment/Remove-Bloat.ps1) (lines 15–40):
+Edit [`Scripts/Deployment/Remove-Bloat.ps1`](Scripts/Deployment/Remove-Bloat.ps1) (lines 15-40):
 ```powershell
 $BloatwareList = @(
     "Microsoft.BingNews",
@@ -121,8 +121,8 @@ Place your agent installer as `Agent.exe` (or any `*agent*.exe`) on the USB driv
 ## Logging
 
 All operations are logged to `C:\WinDeploy\Logs\`:
-- `Start.log` — main entry point log
-- `Install-Drivers.log`, `Install-Applications.log`, etc. — per-script logs
+- `Start.log`. Main entry point log.
+- `Install-Drivers.log`, `Install-Applications.log`, etc. Per-script logs.
 
 View logs in real-time:
 ```powershell
@@ -194,7 +194,7 @@ winget-install
 
 ## Contributing & Support
 
-Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 - **Issues**: [GitHub Issues](https://github.com/Stensel8/WinDeploy/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Stensel8/WinDeploy/discussions)
