@@ -4,25 +4,21 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PowerShell 7.0+](https://img.shields.io/badge/PowerShell-7.0+-blue.svg)](https://github.com/PowerShell/PowerShell)
-[![Windows 11](https://img.shields.io/badge/Windows-11-0078D6.svg)](https://www.microsoft.com/windows)
-[![Windows 25H2](https://img.shields.io/badge/Windows-25H2-0078D6.svg)](https://www.microsoft.com/windows)
+[![Windows 11 25H2](https://img.shields.io/badge/Windows-11_25H2-0078D6.svg)](https://www.microsoft.com/windows)
 
-
-[![PSScriptAnalyzer](https://github.com/Stensel8/WinDeploy/actions/workflows/powershell.yml/badge.svg)](https://github.com/Stensel8/WinDeploy/actions/workflows/powershell.yml)
-[![DevSkim](https://github.com/Stensel8/WinDeploy/actions/workflows/devskim.yml/badge.svg)](https://github.com/Stensel8/WinDeploy/actions/workflows/devskim.yml)
+[![Security scanning](https://github.com/Stensel8/WinDeploy/actions/workflows/security.yml/badge.svg)](https://github.com/Stensel8/WinDeploy/actions/workflows/security.yml)
+[![Validate scripts](https://github.com/Stensel8/WinDeploy/actions/workflows/validate.yml/badge.svg)](https://github.com/Stensel8/WinDeploy/actions/workflows/validate.yml)
+[![CodeQL](https://github.com/Stensel8/WinDeploy/actions/workflows/codeql.yml/badge.svg)](https://github.com/Stensel8/WinDeploy/actions/workflows/codeql.yml)
 [![Dependabot Updates](https://github.com/Stensel8/WinDeploy/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/Stensel8/WinDeploy/actions/workflows/dependabot/dependabot-updates)
 
 Zero-touch Windows deployment with automatic driver updates, application installation, bloatware removal, and system configuration. Deploy via USB, network, RMM agents, or AutoUnattend.xml.
 
 ## Deployment options
 
-Choose how you want to deploy WinDeploy — pick the path that fits your environment.
-
 | Local USB / AutoUnattend.xml | Intune / Autopilot |
 |---|---|
 | Deploy locally via USB, [`autounattend.xml`](Docs/autounattend.xml), or [one-liner script](#quick-start). | Deploy via [Intune Autopilot](Docs/Intune-Autopilot-Setup.md), targeting specific user groups. |
 | [![Get started - Local](https://img.shields.io/badge/Get%20started-Local-blue?style=for-the-badge)](#quick-start) | [![Get started - Intune](https://img.shields.io/badge/Get%20started-Intune-brightgreen?style=for-the-badge)](Docs/Intune-Autopilot-Setup.md) |
-
 
 <details open>
 <summary>View deployment screenshots</summary>
@@ -35,7 +31,6 @@ Choose how you want to deploy WinDeploy — pick the path that fits your environ
 
 </details>
 
-
 ---
 
 ## Quick Start
@@ -44,19 +39,18 @@ Choose how you want to deploy WinDeploy — pick the path that fits your environ
 
 ### Option 1: USB Deployment (Fresh installs)
 1. Create bootable Windows 11 USB
-2. Copy autounattend.xml to USB root
-3. (Optional) Copy RMM agent as Agent.exe to USB root
-4. Boot from USB with network connected. Make sure to keep the USB drive connected until deployment is complete.
-5. Wait - everything happens automatically
+2. Copy `autounattend.xml` to USB root
+3. (Optional) Copy RMM agent as `Agent.exe` to USB root
+4. Boot from USB with network connected. Keep USB connected until deployment completes.
+5. Wait. Everything happens automatically.
 
-
-### Option 2: Direct Execution (Existing or fresh installs)
+### Option 2: Direct Execution
 ```powershell
 # Run as Administrator in PowerShell 7
 iex (irm "https://raw.githubusercontent.com/Stensel8/WinDeploy/$((irm https://api.github.com/repos/Stensel8/WinDeploy/releases/latest).tag_name)/Scripts/Start.ps1")
 ```
 
-### Option 3: Fastest method (Existing or fresh installs - one-liner)
+### Option 3: One-liner
 ```powershell
 # Run as Administrator in PowerShell 7
 iex (irm windeploy.stensel.nl)
@@ -88,13 +82,14 @@ graph TD
     P --> Q[Complete]
 ```
 
-Start.ps1 is the main entry point that ensures the system has PowerShell 7 and WinGet installed, handles elevation, and downloads/launchs Deploy.ps1. Deploy.ps1 orchestrates the actual deployment by downloading and executing each script in sequence.
+`Start.ps1` ensures PowerShell 7 and WinGet are available, handles elevation, and downloads `Deploy.ps1`. `Deploy.ps1` orchestrates the deployment by downloading and executing each script in sequence.
 
+---
 
 ## Configuration
 
 ### Customize Application List
-Edit `Scripts/Deployment/Install-Applications.ps1` (lines 20-30):
+Edit [`Scripts/Deployment/Install-Applications.ps1`](Scripts/Deployment/Install-Applications.ps1) (lines 20-30):
 ```powershell
 $Applications = @(
     "Microsoft.VCRedist.2015+.x64",
@@ -105,7 +100,7 @@ $Applications = @(
 ```
 
 ### Customize Bloatware List
-Edit `Scripts/Deployment/Remove-Bloat.ps1` (lines 15-40):
+Edit [`Scripts/Deployment/Remove-Bloat.ps1`](Scripts/Deployment/Remove-Bloat.ps1) (lines 15-40):
 ```powershell
 $BloatwareList = @(
     "Microsoft.BingNews",
@@ -115,12 +110,7 @@ $BloatwareList = @(
 ```
 
 ### Configure RMM Agent Installation
-The deployment supports automatic RMM/monitoring agent installation from USB:
-
-- Place your agent installer as `Agent.exe` (or any `*agent*.exe`) on the USB drive root.
-- The script will automatically detect and install it silently during deployment.
-
-This approach works with any RMM solution that supports silent installation (e.g., `/S` switch).
+Place your agent installer as `Agent.exe` (or any `*agent*.exe`) on the USB drive root. The script detects and installs it silently during deployment. Works with any RMM solution that supports silent installation (e.g., `/S` switch).
 
 ### Supported Devices (Drivers & Firmware)
 - **Dell**: Latitude, OptiPlex, Precision, XPS series
@@ -130,9 +120,9 @@ This approach works with any RMM solution that supports silent installation (e.g
 
 ## Logging
 
-All operations are logged:
-- **Main log**: `C:\WinDeploy\Logs\Start.log`
-- **Individual scripts**: `C:\WinDeploy\Logs\*.log` (e.g., Install-Drivers.log)
+All operations are logged to `C:\WinDeploy\Logs\`:
+- `Start.log`. Main entry point log.
+- `Install-Drivers.log`, `Install-Applications.log`, etc. Per-script logs.
 
 View logs in real-time:
 ```powershell
@@ -143,101 +133,74 @@ Get-Content "C:\WinDeploy\Logs\Start.log" -Wait -Tail 20
 
 ## Dependencies
 
-WinDeploy automatically installs and manages the following dependencies:
+WinDeploy automatically installs and manages all dependencies:
 
-### PowerShell Gallery (Auto-installed)
-- **[winget-install](https://www.powershellgallery.com/packages/winget-install)** (v5.2.1+) - PowerShell script for reliable WinGet installation by [asheroto](https://github.com/asheroto/winget-install)
-- **[PSWindowsUpdate](https://www.powershellgallery.com/packages/PSWindowsUpdate)** (v2.2.1.5+) - PowerShell module for Windows Update automation
-
-### Application Dependencies (Auto-installed via WinGet)
-- **Windows Package Manager (WinGet)** (v1.12.350+) - Installed via `winget-install` script
-- **Dell Command Update** (v5.5.0+) - Auto-installed for supported Dell devices
-- **HP Image Assistant** (v5.3.2+) - Auto-installed for supported HP devices
-
-**Note:** All dependencies are automatically detected and installed during deployment. No manual installation required.
+| Dependency | Source | Purpose |
+|---|---|---|
+| [winget-install](https://www.powershellgallery.com/packages/winget-install) | PowerShell Gallery | Reliable WinGet installation by [asheroto](https://github.com/asheroto/winget-install) |
+| [PSWindowsUpdate](https://www.powershellgallery.com/packages/PSWindowsUpdate) | PowerShell Gallery | Windows Update automation |
+| [Dell Command Update](https://www.dell.com/support/kbdoc/en-us/000177325/dell-command-update) | WinGet | Dell driver management |
+| [HP Image Assistant](https://ftp.hp.com/pub/caps-softpaq/cmit/HPIA.html) | WinGet | HP driver management |
 
 ---
 
 ## Troubleshooting
 
-### Common Issues
-
-**Script won't run due to execution policy error**
+**Script blocked by execution policy**
 ```powershell
-Set-ExecutionPolicy Bypass  # Allows the script to run for the current session
+Set-ExecutionPolicy Bypass -Scope Process
 ```
 
 **Windows Spotlight not working after deployment**
-If Windows Spotlight is disabled after running the deployment, run the `Fix-Spotlight.ps1` script to re-enable it:
 ```powershell
 # Run as Administrator
 & "C:\WinDeploy\Download\Fix-Spotlight.ps1"
 ```
-This script sets the necessary registry keys and restarts Explorer. Then, set the lock screen background to "Windows Spotlight" in Settings > Personalization > Lock screen.
+Then set lock screen to "Windows Spotlight" in Settings > Personalization > Lock screen.
 
 **WinGet not found**
-
-Install WinGet using the winget-install script from PowerShell Gallery (by AsherToto)
-Open PowerShell as Administrator and run:
 ```powershell
+# Run as Administrator
 Install-Script winget-install -Force
-```
-Follow the prompts to complete the installation (tap A to accept all or Y individually).
-Note: -Force is optional but recommended to update if outdated.
-
-Usage:
-```powershell
 winget-install
 ```
-If WinGet is already installed, use -Force to run anyway.
-The script is published on PowerShell Gallery under winget-install.
 
 **Drivers not installing**
-- Check if your device is supported: See [Docs/SupportedDellDevices.json](Docs/SupportedDellDevices.json) or [Docs/SupportedHPDevices.json](Docs/SupportedHPDevices.json).
-- Ensure you have an internet connection.
-- Review the logs: `C:\WinDeploy\Logs\Install-Drivers.log`.
+- Confirm internet connection
+- Check device is a supported Dell or HP model
+- Review `C:\WinDeploy\Logs\Install-Drivers.log`
 
 **Applications failing to install**
-- Confirm WinGet is working: Run `winget --version`.
-- Verify app IDs: Use `winget search <app-name>` to find the correct ID.
-- Check the logs: `C:\WinDeploy\Logs\Install-Applications.log`.
-
-Sometimes, app installations fail because WinGet has issues with certain packages. Many apps have both a standard version and a Microsoft Store (msstore) version. If the default ID doesn't work, try the msstore version.
-
-To find the msstore App ID:
-1. Run `winget search <app-name>` in PowerShell.
-2. Look for entries where the "Source" column shows "Microsoft Store".
-3. Or, go to [apps.microsoft.com](https://apps.microsoft.com), search for the app, and copy the App ID from the URL.
-
-For examples, see the images below:
+- Run `winget --version` to verify WinGet works
+- Use `winget search <app-name>` to verify the correct package ID
+- Check `C:\WinDeploy\Logs\Install-Applications.log`
+- If default ID fails, try the `msstore` source version:
+  1. Run `winget search <app-name>`
+  2. Find entries with `Source: msstore`
+  3. Or find the App ID at [apps.microsoft.com](https://apps.microsoft.com)
 
 ![Finding the msstore App ID](Docs/Finding-msstore-id.png)
 
-![Installing the msstore App](Docs/Installing-via-msstore.png)
+---
 
+## Credits
 
+- [PowerShell](https://github.com/PowerShell/PowerShell)
+- [WinGet](https://github.com/microsoft/winget-cli)
+- [PSWindowsUpdate](https://www.powershellgallery.com/packages/PSWindowsUpdate)
+- [winget-install](https://www.powershellgallery.com/packages/winget-install) by [asheroto](https://github.com/asheroto/winget-install)
+- [Dell Command Update](https://www.dell.com/support/kbdoc/en-us/000177325/dell-command-update)
+- [HP Image Assistant](https://ftp.hp.com/pub/caps-softpaq/cmit/HPIA.html) / [HP CMSL](https://developers.hp.com/hp-client-management/doc/client-management-script-library)
 
-## Credits & Acknowledgments
+## Contributing & Support
 
-### Built With
-- [PowerShell](https://github.com/PowerShell/PowerShell) - Microsoft's scripting language
-- [WinGet](https://github.com/microsoft/winget-cli) - Windows Package Manager
-- [PSWindowsUpdate](https://www.powershellgallery.com/packages/PSWindowsUpdate) - Windows Update automation module
-- [winget-install](https://www.powershellgallery.com/packages/winget-install) - WinGet installation script by [asheroto](https://github.com/asheroto/winget-install)
-- [Dell Command Update](https://www.dell.com/support/kbdoc/en-us/000177325/dell-command-update) - Dell driver management
-- [HP Image Assistant](https://ftp.hp.com/pub/caps-softpaq/cmit/HPIA.html) - HP driver management
-- [HP CMSL](https://developers.hp.com/hp-client-management/doc/client-management-script-library) - HP Client Management Script Library
-## Support & Contributing
-
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 - **Issues**: [GitHub Issues](https://github.com/Stensel8/WinDeploy/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Stensel8/WinDeploy/discussions)
-- **Pull Requests**: Always welcome!
-
 
 ## Disclaimer
 
-This software is provided "as is" without warranty of any kind. Always test deployments in a safe environment before production use. The authors are not responsible for any damage or data loss.
+Provided "as is" without warranty. Test in a safe environment before production use.
 
 ---

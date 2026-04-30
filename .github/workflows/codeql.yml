@@ -1,0 +1,44 @@
+name: CodeQL
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    - cron: '0 4 * * 1'  # Every Monday at 04:00 UTC
+
+# Default minimal permissions — each job overrides only what it needs.
+permissions: read-all
+
+# ============================================================
+# Overview of checks:
+#
+#  analyze-actions  → CodeQL static analysis on GitHub Actions workflows
+# ============================================================
+
+jobs:
+
+  # ----------------------------------------------------------
+  # GITHUB ACTIONS ANALYSIS
+  # Scans workflow YAML files for logic errors and misconfigurations.
+  # ----------------------------------------------------------
+  analyze-actions:
+    name: Analyze GitHub Actions (CodeQL)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # v4.35.2
+        with:
+          languages: actions
+          build-mode: none
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # v4.35.2
+        with:
+          category: "/language:actions"

@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.7.0] - 2026-04-30
+
+### Added
+- `SECURITY.md`. Private vulnerability disclosure via GitHub Security Advisories.
+- `.github/pull_request_template.md`. PR checklist for type, testing, and no hardcoded data.
+- `.github/PSScriptAnalyzerSettings.psd1`. Shared linter config for CI and local use.
+- `security.yml`. Consolidated security scanning: PSScriptAnalyzer, Trivy, DevSkim, Semgrep, actionlint. All actions SHA-pinned.
+- `codeql.yml`. CodeQL analysis for GitHub Actions workflows.
+- `validate.yml`. PowerShell syntax check and function existence tests on every push.
+- `dependency-review.yml`. Blocks HIGH and CRITICAL vulnerabilities in pull requests.
+- `stale.yml`. Marks issues and PRs stale after 30 days. Closes after 14 more.
+
+### Changed
+- `Docs/autounattend.xml`. Regenerated with Schneegans unattend-generator. Desktop wallpaper and lock screen now set to `img19.jpg` (Windows default blue) via the generator's native mechanism. `GetWallpaper.ps1` writes image bytes to disk. `SetWallpaper.ps1` applies via `SystemParametersInfo` WinAPI. Lock screen uses `PersonalizationCSP`. Dark mode enabled. Generator settings URL embedded in the XML comment for easy re-editing.
+- `Scripts/Start.ps1`. PowerShell 7 installer URL now resolved dynamically via GitHub API. No longer hardcoded to a specific version.
+- `Scripts/Start.ps1`. `$VersionTag` parameter now correctly overrides the resolved release tag.
+- `Scripts/Archived/Install-NetworkPrinter.ps1` (renamed from `Install-Konica-Minolta_C360i.ps1`). Removed hardcoded company IP, printer name, and location. All values are now required parameters. This script is an example for a Konica Minolta C360i network printer. Fork the repo and adapt it for your own device.
+- `Scripts/Archived/Uninstall-NetworkPrinter.ps1` (renamed from `Uninstall-Konica-Minolta_C360i.ps1`). Same treatment. Printer name and IP are now required parameters.
+- `renovate.json`. Renovate now manages `docker://` action images only. Dependabot handles `owner/repo@sha` actions.
+- `dependabot.yml`. Recreated for `github-actions` ecosystem only. Updates grouped by type.
+- `README.md`. Removed dead references to deleted JSON device lists. Updated CI badges. Added dependency table.
+
+### Removed
+- `powershell.yml`. Merged into `security.yml`.
+- `devskim.yml`. Merged into `security.yml`.
+
+---
+
 ## [0.6.1] - 2026-02-17
 
 ### Added
@@ -186,6 +214,7 @@ First open-source release of WinDeploy - Windows Deployment Automation Toolkit. 
 ---
 
 
+[0.7.0]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.7.0
 [0.6.1]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.6.1
 [0.6.0]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.6.0
 [0.5.5]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.5
