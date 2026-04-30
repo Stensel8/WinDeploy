@@ -1,14 +1,3 @@
-# Security Policy
-
-## Supported Versions
-
-Only the latest release receives security fixes.
-
-| Version | Supported |
-|---------|-----------|
-| Latest  | ✅ |
-| Older   | ❌ |
-
 ## Reporting a Vulnerability
 
 **Do not open a public GitHub issue for security vulnerabilities.**
