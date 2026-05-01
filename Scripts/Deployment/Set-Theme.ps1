@@ -38,9 +38,9 @@ try {
         $LoadOut = reg load "HKU\TempDefault" "$DefaultHive" 2>&1
         if ($LASTEXITCODE -eq 0) {
             # Set keys in loaded hive
-            $RegOutDef1 = reg add "HKU\TempDefault\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v AppsUseLightTheme /t REG_DWORD /d 0 /f 2>&1
-            $RegOutDef2 = reg add "HKU\TempDefault\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v SystemUsesLightTheme /t REG_DWORD /d 0 /f 2>&1
-            $RegOutDef3 = reg add "HKU\TempDefault\Control Panel\Desktop" /v Wallpaper /t REG_SZ /d "C:\Windows\Web\Wallpaper\Windows\img19.jpg" /f 2>&1
+            reg add "HKU\TempDefault\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v AppsUseLightTheme /t REG_DWORD /d 0 /f 2>&1 | Out-Null
+            reg add "HKU\TempDefault\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v SystemUsesLightTheme /t REG_DWORD /d 0 /f 2>&1 | Out-Null
+            reg add "HKU\TempDefault\Control Panel\Desktop" /v Wallpaper /t REG_SZ /d "C:\Windows\Web\Wallpaper\Windows\img19.jpg" /f 2>&1 | Out-Null
             $UnloadOut = reg unload "HKU\TempDefault" 2>&1
             if ($LASTEXITCODE -eq 0 -and $UnloadOut -notmatch "error") {
                 Write-DeployLog "Default user hive updated successfully."

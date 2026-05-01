@@ -34,7 +34,7 @@ function Get-LatestRelease {
     return $null
 }
 
-# Get release tag — use $VersionTag if supplied, otherwise fetch latest
+# Get release tag - use $VersionTag if supplied, otherwise fetch latest
 if ($VersionTag) {
     $releaseTag = $VersionTag
 } else {

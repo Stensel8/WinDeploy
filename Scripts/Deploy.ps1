@@ -230,7 +230,7 @@ foreach ($step in $deploymentSteps) {
                     param($scriptPath)
                     & $scriptPath
                 } -ArgumentList $localPath
-                
+
                 # Wait max 30 seconds for job to complete
                 $timeout = 30
                 $elapsed = 0
@@ -238,7 +238,7 @@ foreach ($step in $deploymentSteps) {
                     Start-Sleep -Seconds 1
                     $elapsed++
                 }
-                
+
                 # Check if job completed
                 if ($job.State -eq 'Running') {
                     Write-Output "RMM installation continuing in background..."

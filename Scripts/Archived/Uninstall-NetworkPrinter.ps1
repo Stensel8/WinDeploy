@@ -1,15 +1,21 @@
 <#
-KONICA MINOLTA C360i PRINTER REMOVAL SCRIPT
+NETWORK PRINTER REMOVAL SCRIPT (PLACEHOLDER / EXAMPLE)
 
-This script removes the Konica Minolta C360i printer.
+NOTE: This script was originally written to remove a Konica Minolta C360i in a
+specific environment. It is kept here as a working example and reference implementation.
+Feel free to adapt it for your own printer model and network setup.
+
+What needs to change for your environment:
+- Printer driver name (used by Remove-PrinterDriver)
+- Default parameter values ($PrinterName, $PrinterIP)
 
 What it does:
-- Removes the printer
-- Removes the network printer port
-- Cleans up registry settings
+- Removes the printer from Windows
+- Removes the TCP/IP network printer port
+- Cleans up leftover registry settings
 
 Usage:
-.\Uninstall-Konica-Minolta_C360i.ps1 -PrinterName "MyPrinter" -PrinterIP "192.168.1.100"
+.\Uninstall-NetworkPrinter.ps1 -PrinterName "MyPrinter" -PrinterIP "192.168.1.100"
 
 Parameters:
   -PrinterName   Name of the printer in Windows (required)
@@ -52,7 +58,7 @@ if (-not $IsAdmin) {
 # FUNCTION: Write to log file
 # ============================================
 
-function Write-Log {
+function Write-PrinterLog {
     param([string]$Message, [string]$Type = "INFO")
 
     $Time = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
@@ -79,9 +85,9 @@ function Write-Log {
 # ============================================
 
 try {
-    Write-Log "========================================" "INFO"
-    Write-Log "Starting printer removal" "INFO"
-    Write-Log "========================================" "INFO"
+    Write-PrinterLog "========================================" "INFO"
+    Write-PrinterLog "Starting printer removal" "INFO"
+    Write-PrinterLog "========================================" "INFO"
 
     # ============================================
     # STEP 1: Remove printer
@@ -90,11 +96,11 @@ try {
     $Printer = Get-Printer -Name $PrinterName -ErrorAction SilentlyContinue
 
     if ($Printer) {
-        Write-Log "Removing printer: $PrinterName"
+        Write-PrinterLog "Removing printer: $PrinterName"
         Remove-Printer -Name $PrinterName -Confirm:$false
-        Write-Log "Printer removed successfully"
+        Write-PrinterLog "Printer removed successfully"
     } else {
-        Write-Log "Printer not found: $PrinterName" "WARNING"
+        Write-PrinterLog "Printer not found: $PrinterName" "WARNING"
     }
 
     Start-Sleep -Seconds 2
@@ -107,30 +113,30 @@ try {
     $Port = Get-PrinterPort -Name $PortName -ErrorAction SilentlyContinue
 
     if ($Port) {
-        Write-Log "Removing printer port: $PortName"
+        Write-PrinterLog "Removing printer port: $PortName"
         Remove-PrinterPort -Name $PortName -Confirm:$false
-        Write-Log "Printer port removed successfully"
+        Write-PrinterLog "Printer port removed successfully"
     } else {
-        Write-Log "Printer port not found: $PortName" "WARNING"
+        Write-PrinterLog "Printer port not found: $PortName" "WARNING"
     }
 
     # ============================================
     # COMPLETE
     # ============================================
 
-    Write-Log "========================================" "INFO"
-    Write-Log "Removal completed successfully" "INFO"
-    Write-Log "========================================" "INFO"
+    Write-PrinterLog "========================================" "INFO"
+    Write-PrinterLog "Removal completed successfully" "INFO"
+    Write-PrinterLog "========================================" "INFO"
 
-    Write-Log "Sleeping for 10 seconds to ensure all processes are finalized..." "INFO"
+    Write-PrinterLog "Sleeping for 10 seconds to ensure all processes are finalized..." "INFO"
     Start-Sleep -Seconds 10
 
     exit 0
 
 } catch {
-    Write-Log "========================================" "ERROR"
-    Write-Log "Removal failed: $($_.Exception.Message)" "ERROR"
-    Write-Log "========================================" "ERROR"
+    Write-PrinterLog "========================================" "ERROR"
+    Write-PrinterLog "Removal failed: $($_.Exception.Message)" "ERROR"
+    Write-PrinterLog "========================================" "ERROR"
 
     exit 1
 }

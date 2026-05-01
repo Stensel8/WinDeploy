@@ -1,16 +1,23 @@
 <#
-KONICA MINOLTA C360i PRINTER INSTALLATION SCRIPT
+NETWORK PRINTER INSTALLATION SCRIPT (PLACEHOLDER / EXAMPLE)
 
-This script automatically installs the Konica Minolta C360i printer.
+NOTE: This script was originally written for a Konica Minolta C360i in a specific
+environment. It is kept here as a working example and reference implementation.
+Feel free to adapt it for your own printer model and network setup.
+
+What needs to change for your environment:
+- Driver folder path and INF file name
+- Printer model string (used by Add-PrinterDriver)
+- Default parameter values ($PrinterName, $PrinterLocation)
 
 What it does:
-- Installs printer drivers
-- Creates a network printer port
+- Installs printer drivers from a local folder
+- Creates a TCP/IP network printer port
 - Installs the printer
 - Configures default settings
 
 Usage:
-.\Install-Konica-Minolta_C360i.ps1 -PrinterIP "192.168.1.100" -PrinterName "MyPrinter" -PrinterLocation "Office Floor 1"
+.\Install-NetworkPrinter.ps1 -PrinterIP "192.168.1.100" -PrinterName "MyPrinter" -PrinterLocation "Office Floor 1"
 
 Parameters:
   -PrinterIP         IP address of the printer (required)
@@ -81,7 +88,7 @@ if ($Architecture -eq "ARM64") {
 # FUNCTION: Write to log file
 # ============================================
 
-function Write-Log {
+function Write-PrinterLog {
     param([string]$Message, [string]$Type = "INFO")
 
     $Time = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
@@ -108,17 +115,17 @@ function Write-Log {
 # ============================================
 
 try {
-    Write-Log "========================================"  "INFO"
-    Write-Log "Starting Konica Minolta C360i installation" "INFO"
-    Write-Log "========================================"   "INFO"
+    Write-PrinterLog "========================================"  "INFO"
+    Write-PrinterLog "Starting Konica Minolta C360i installation" "INFO"
+    Write-PrinterLog "========================================"   "INFO"
 
     # Get current username
     $Username = (whoami).Split('\')[-1].ToLower()
-    Write-Log "User: $Username"
-    Write-Log "Printer IP: $PrinterIP"
-    Write-Log "Printer name: $PrinterName"
-    Write-Log "System architecture: $Architecture"
-    Write-Log "Selected driver folder: $ArchFolder"
+    Write-PrinterLog "User: $Username"
+    Write-PrinterLog "Printer IP: $PrinterIP"
+    Write-PrinterLog "Printer name: $PrinterName"
+    Write-PrinterLog "System architecture: $Architecture"
+    Write-PrinterLog "Selected driver folder: $ArchFolder"
 
     # Convert relative path to absolute path
     if (-not [System.IO.Path]::IsPathRooted($DriverFolder)) {
@@ -129,7 +136,7 @@ try {
     # Append architecture-specific subfolder
     $DriverFolder = Join-Path $DriverFolder $ArchFolder
 
-    Write-Log "Driver folder: $DriverFolder"
+    Write-PrinterLog "Driver folder: $DriverFolder"
 
     # Check if driver folder exists
     if (-not (Test-Path $DriverFolder)) {
@@ -140,7 +147,7 @@ try {
     # STEP 1: Install drivers in Windows
     # ============================================
 
-    Write-Log "Step 1: Installing drivers..." "INFO"
+    Write-PrinterLog "Step 1: Installing drivers..." "INFO"
 
     # Find .inf file in driver folder
     $InfFile = Get-ChildItem -Path $DriverFolder -Filter "*.inf" | Select-Object -First 1
@@ -149,7 +156,7 @@ try {
         throw "No .inf file found in driver folder"
     }
 
-    Write-Log "INF file found: $($InfFile.Name)"
+    Write-PrinterLog "INF file found: $($InfFile.Name)"
 
     # Install driver with PnPUtil
     $PnpUtil = "$env:SystemRoot\System32\pnputil.exe"
@@ -157,7 +164,7 @@ try {
         $PnpUtil = "$env:SystemRoot\Sysnative\pnputil.exe"  # For 32-bit PowerShell on 64-bit Windows
     }
 
-    Write-Log "Adding drivers to Windows..."
+    Write-PrinterLog "Adding drivers to Windows..."
     & $PnpUtil /add-driver "$($InfFile.FullName)" /install
     Start-Sleep -Seconds 3
 
@@ -165,7 +172,7 @@ try {
     # STEP 2: Activate printer driver
     # ============================================
 
-    Write-Log "Step 2: Activating printer driver..." "INFO"
+    Write-PrinterLog "Step 2: Activating printer driver..." "INFO"
 
     Add-PrinterDriver -Name $DriverName
 
@@ -175,35 +182,35 @@ try {
         throw "Driver not found after installation"
     }
 
-    Write-Log "Driver successfully installed"
+    Write-PrinterLog "Driver successfully installed"
 
     # ============================================
     # STEP 3: Create printer port
     # ============================================
 
-    Write-Log "Step 3: Creating printer port..." "INFO"
+    Write-PrinterLog "Step 3: Creating printer port..." "INFO"
 
     $PortName = "IP_$($PrinterIP.Replace('.', '_'))"
 
     # Check if port already exists
     $ExistingPort = Get-PrinterPort -Name $PortName -ErrorAction SilentlyContinue
     if (-not $ExistingPort) {
-        Write-Log "Creating new printer port: $PortName"
+        Write-PrinterLog "Creating new printer port: $PortName"
         Add-PrinterPort -Name $PortName -PrinterHostAddress $PrinterIP
     } else {
-        Write-Log "Printer port already exists: $PortName"
+        Write-PrinterLog "Printer port already exists: $PortName"
     }
 
     # ============================================
     # STEP 4: Install printer
     # ============================================
 
-    Write-Log "Step 4: Installing printer..." "INFO"
+    Write-PrinterLog "Step 4: Installing printer..." "INFO"
 
     # Remove old printer if it exists
     $OldPrinter = Get-Printer -Name $PrinterName -ErrorAction SilentlyContinue
     if ($OldPrinter) {
-        Write-Log "Removing old printer..."
+        Write-PrinterLog "Removing old printer..."
         Remove-Printer -Name $PrinterName -Confirm:$false
         Start-Sleep -Seconds 2
     }
@@ -222,26 +229,26 @@ try {
 
     Add-Printer @PrinterParams
 
-    Write-Log "Printer added successfully"
+    Write-PrinterLog "Printer added successfully"
 
     # ============================================
     # STEP 5: Configure printer settings
     # ============================================
 
-    Write-Log "Step 5: Configuring printer settings..." "INFO"
+    Write-PrinterLog "Step 5: Configuring printer settings..." "INFO"
 
     Set-PrintConfiguration -PrinterName $PrinterName `
                           -PaperSize A4 `
                           -Color $false `
                           -DuplexingMode OneSided
 
-    Write-Log "Settings applied (A4, black and white, one-sided)"
+    Write-PrinterLog "Settings applied (A4, black and white, one-sided)"
 
     # ============================================
     # STEP 6: Configure authentication
     # ============================================
 
-    Write-Log "Step 6: Configuring user authentication..." "INFO"
+    Write-PrinterLog "Step 6: Configuring user authentication..." "INFO"
 
     $RegPath = "HKCU:\Software\KONICA MINOLTA\$DriverName\$PrinterName\Authentication"
 
@@ -250,25 +257,25 @@ try {
     }
 
     Set-ItemProperty -Path $RegPath -Name "UserName" -Value $Username -Force
-    Write-Log "Authentication configured for: $Username"
+    Write-PrinterLog "Authentication configured for: $Username"
 
     # ============================================
     # COMPLETE
     # ============================================
 
-    Write-Log "========================================" "INFO"
-    Write-Log "Installation completed successfully!" "INFO"
-    Write-Log "========================================" "INFO"
+    Write-PrinterLog "========================================" "INFO"
+    Write-PrinterLog "Installation completed successfully!" "INFO"
+    Write-PrinterLog "========================================" "INFO"
 
-    Write-Log "Sleeping for 10 seconds to ensure all processes are finalized..." "INFO"
+    Write-PrinterLog "Sleeping for 10 seconds to ensure all processes are finalized..." "INFO"
     Start-Sleep -Seconds 10
 
     exit 0
 
 } catch {
-    Write-Log "========================================" "ERROR"
-    Write-Log "Installation failed: $($_.Exception.Message)" "ERROR"
-    Write-Log "========================================" "ERROR"
+    Write-PrinterLog "========================================" "ERROR"
+    Write-PrinterLog "Installation failed: $($_.Exception.Message)" "ERROR"
+    Write-PrinterLog "========================================" "ERROR"
 
     exit 1
 }

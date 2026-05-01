@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.7.2] - 2026-05-01
+
+### Fixed
+- Removed unused `RegOutDef1/2/3` variable assignments in `Set-Theme.ps1` (PSScriptAnalyzer cleanup).
+- Renamed `Write-Log` to `Write-PrinterLog` in archived printer scripts to avoid shadowing the built-in PowerShell cmdlet.
+- Removed trailing whitespace from `Deploy.ps1`.
+- Replaced non-ASCII em dash in `Start.ps1` to resolve PSScriptAnalyzer BOM warning.
+
+### Docs
+- Added `README.md` to `Scripts/Archived/` explaining the purpose of archived scripts and that printer scripts are placeholder/example code.
+- Added `README.md` to `Scripts/Intune/Platform scripts/` with deployment instructions for Intune platform scripts.
+- Clarified headers in `Install-NetworkPrinter.ps1` and `Uninstall-NetworkPrinter.ps1` that these are example scripts to be adapted for your own printer.
+
+---
+
 ## [0.7.1] - 2026-04-30
 
 ### Fixed
@@ -221,6 +236,7 @@ First open-source release of WinDeploy - Windows Deployment Automation Toolkit. 
 ---
 
 
+[0.7.2]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.7.2
 [0.7.1]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.7.1
 [0.7.0]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.7.0
 [0.6.1]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.6.1
