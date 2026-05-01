@@ -25,7 +25,9 @@ try {
 
     $Applications = @(
         @{Alias="Microsoft.VCRedist.2015+.x64"; Name="Microsoft Visual C++ 2015+ x64 Redistributable"},
-        @{Alias="Microsoft.Office"; Name="Microsoft Office"},
+        # @{Alias="Microsoft.Office"; Name="Microsoft Office"},
+        # Disabled: Microsoft consistently breaks their own winget package (exit code -1978335226, "Running ShellExecute failed").
+        # Even Microsoft support has no clear explanation for why this fails. We use the CDN/ODT fallback instead, which is reliable.
         #@{Alias="Adobe.Acrobat.Reader.64-bit"; Name="Adobe Acrobat Reader 64-bit"},
         @{Alias="Microsoft.Teams"; Name="Microsoft Teams"},
         @{Alias="Microsoft.OneDrive"; Name="Microsoft OneDrive"},
