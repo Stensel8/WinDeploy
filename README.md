@@ -27,7 +27,7 @@ Zero-touch Windows deployment with automatic driver updates, application install
 
 | Deployment Start | Successful Completion |
 |-----------------|----------------------|
-| <img src="Docs/Deployment_Flow.png" alt="Deployment start" width="400" height="225"> | <img src="Docs/Deployment_Success.png" alt="Deployment success" width="400" height="225"> |
+| <img src="Docs/Deployment_Flow.avif" alt="Deployment start" width="400" height="225"> | <img src="Docs/Deployment_Success.avif" alt="Deployment success" width="400" height="225"> |
 
 </details>
 
@@ -179,7 +179,7 @@ winget-install
   2. Find entries with `Source: msstore`
   3. Or find the App ID at [apps.microsoft.com](https://apps.microsoft.com)
 
-![Finding the msstore App ID](Docs/Finding-msstore-id.png)
+![Finding the msstore App ID](Docs/Finding-msstore-id.avif)
 
 ---
 

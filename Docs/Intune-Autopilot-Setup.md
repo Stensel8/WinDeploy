@@ -74,7 +74,7 @@ Before creating Device Preparation Policies, ensure you have set up any required
 
 2. To create Scripts, navigate to **Home > Devices > Scripts and Remediations** in the Intune admin center.
 
-   Example image: ![Intune scripts](./Intune%20configuration/Intune-scripts.png)
+   Example image: ![Intune scripts](./Intune%20configuration/Intune-scripts.avif)
 
 **Note on OOBE Script**: For customizing the Out-of-Box Experience (OOBE), refer to the [Skip-OOBEPrivacy-Intune.ps1](../Scripts/Intune/Platform%20scripts/Skip-OOBEPrivacy-Intune.ps1) script. This can be added to Device Preparation Policies to skip privacy questions and accelerate provisioning.
 
@@ -94,7 +94,7 @@ Before creating Device Preparation Policies, ensure you have set up any required
    - **WIP discovery URL**: Keep default. https://wip.mam.manage.microsoft.com/Enroll  
    - **WIP compliance URL**: Leave empty unless you have a custom URL.
 
-   Example image: ![MDM and WIP settings](./Intune%20configuration/MDM_and_WIP-settings.png)
+   Example image: ![MDM and WIP settings](./Intune%20configuration/MDM_and_WIP-settings.avif)
 
 
 ### 8. Create Device Preparation Policies
@@ -103,22 +103,22 @@ Before creating Device Preparation Policies, ensure you have set up any required
 1. In the Intune admin center, go to **Devices > Windows > Windows enrollment > Device preparation policies**.
 2. Click **Create policy** and select **User-driven** mode (Automatic mode is in beta and not recommended due to potential issues).
 
-   ![Device Preparation](./Intune%20configuration/Device-Preparation-new_policy.png)
+   ![Device Preparation](./Intune%20configuration/Device-Preparation-new_policy.avif)
 
 #### Create Policies for Each User Group
 Create two separate policies:
 
 - One for standard users targeting the `Autopilot Device Preparation - Users` group.
 
-  ![Device Preparation standard user policy](./Intune%20configuration/Device-Preparation-new_policy-standarduser_1.png)
+  ![Device Preparation standard user policy](./Intune%20configuration/Device-Preparation-new_policy-standarduser_1.avif)
 - One for local admins targeting the `Autopilot Device Preparation - Local Admins` group.
 
-  ![Device Preparation local admin policy](./Intune%20configuration/Device-Preparation-new_policy-localadmin_1.png)
+  ![Device Preparation local admin policy](./Intune%20configuration/Device-Preparation-new_policy-localadmin_1.avif)
 
 #### Assign Devices to the Devices Group
 4. Assign the device to the `Autopilot Device Preparation - Devices` group created earlier.
 
-   ![Device Preparation device group assignment](./Intune%20configuration/Device-Preparation-new_policy-standarduser_2.png)
+   ![Device Preparation device group assignment](./Intune%20configuration/Device-Preparation-new_policy-standarduser_2.avif)
 
 #### Configure Deployment and OOBE Settings
 5. Configure **Deployment settings** and **Out-of-box experience (OOBE)** based on your needs. Recommended settings:
@@ -137,7 +137,7 @@ Create two separate policies:
 7. Assign the policy to the appropriate user group (`Autopilot Device Preparation - Users` or `Autopilot Device Preparation - Local Admins`).  
    Scope tags can be added if needed, but are not covered in this guide.
 
-   ![Device Preparation assignment](./Intune%20configuration/Device-Preparation-new_policy-standarduser_5.png)
+   ![Device Preparation assignment](./Intune%20configuration/Device-Preparation-new_policy-standarduser_5.avif)
 
 ### 9. Assigning Licenses to Groups
 To simplify license management, assign Intune licenses to the user groups created earlier. This eliminates the need to assign licenses individually to each user. By adding a user to one of these groups, they will automatically receive the required license and gain access to Intune and Autopilot functionality.
@@ -154,7 +154,7 @@ Finally, ensure users are added to the appropriate groups created earlier. This 
 4. Search for and select either `Autopilot Device Preparation - Users` or `Autopilot Device Preparation - Local Admins` based on the user's role.
 5. Click **Save** to confirm the changes.
 
-   ![Licenses and groups assigned to user in Microsoft 365 Admin Center](./Intune%20configuration/M365-Admin_center-licenses-groups-users.png)
+   ![Licenses and groups assigned to user in Microsoft 365 Admin Center](./Intune%20configuration/M365-Admin_center-licenses-groups-users.avif)
 
 
 ## Troubleshooting
