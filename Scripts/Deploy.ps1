@@ -227,9 +227,8 @@ foreach ($step in $deploymentSteps) {
             if ($step.ScriptName -eq "Install-RMMAgent.ps1") {
                 Write-Output "Starting RMM Agent installation (async)..."
                 $job = Start-Job -ScriptBlock {
-                    param($scriptPath)
-                    & $scriptPath
-                } -ArgumentList $localPath
+                    & $using:localPath
+                }
 
                 # Wait max 30 seconds for job to complete
                 $timeout = 30
