@@ -249,6 +249,7 @@ try {
     }
 
     $OfficeFailed = $false
+    $officeNowInstalled = $false
 
     foreach ($app in $Applications) {
         $alias = $app.Alias
@@ -256,10 +257,12 @@ try {
         # Improved Office detection
         if ($alias -eq "Microsoft.Office") {
             $officeDetected = $false
-            # Check known Office registry paths first
+            # Check known Office registry paths first (both 64-bit and 32-bit paths)
             $officeRegPaths = @(
                 "HKLM:\SOFTWARE\Microsoft\Office\ClickToRun\Configuration",
-                "HKLM:\SOFTWARE\Microsoft\Office\16.0\Common\InstallRoot"
+                "HKLM:\SOFTWARE\Microsoft\Office\16.0\Common\InstallRoot",
+                "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Office\ClickToRun\Configuration",
+                "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Office\16.0\Common\InstallRoot"
             )
             foreach ($regPath in $officeRegPaths) {
                 if (Test-Path $regPath) {
@@ -318,6 +321,39 @@ try {
     }
 
     if ($OfficeFailed) {
+        # Re-check if Office was actually installed despite winget's non-zero exit code
+        $officeNowInstalled = $false
+        $postCheckPaths = @(
+            "HKLM:\SOFTWARE\Microsoft\Office\ClickToRun\Configuration",
+            "HKLM:\SOFTWARE\Microsoft\Office\16.0\Common\InstallRoot",
+            "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Office\ClickToRun\Configuration",
+            "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Office\16.0\Common\InstallRoot"
+        )
+        foreach ($path in $postCheckPaths) {
+            if (Test-Path $path) { $officeNowInstalled = $true; break }
+        }
+        if (-not $officeNowInstalled) {
+            $uninstallRoots = @(
+                "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
+                "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+            )
+            foreach ($root in $uninstallRoots) {
+                if (Test-Path $root) {
+                    $keys = Get-ChildItem $root -ErrorAction SilentlyContinue
+                    foreach ($key in $keys) {
+                        if ($key.GetValue("DisplayName") -match "Microsoft Office|Microsoft 365") {
+                            $officeNowInstalled = $true; break
+                        }
+                    }
+                }
+                if ($officeNowInstalled) { break }
+            }
+        }
+        if ($officeNowInstalled) {
+            Write-DeployLog "Office/M365 detected after winget attempt. Skipping CDN fallback."
+        }
+    }
+    if ($OfficeFailed -and -not $officeNowInstalled) {
         Write-DeployLog "Winget failed to install Microsoft Office. Attempting direct download from CDN with custom configuration..."
         $setupUrl = "https://officecdn.microsoft.com/pr/wsus/setup.exe"
         $setupPath = Join-Path $env:TEMP "OfficeSetup.exe"
@@ -366,25 +402,31 @@ try {
     }
 
     Write-DeployLog "Installing Microsoft Store versions of the applications listed above..."
-    foreach ($app in $MsStoreApplications) {
-        $alias = $app.Alias
-        $name = $app.Name
-        Write-DeployLog "Installing msstore $name ($alias)..."
-        try {
-            $output = & winget install --id $alias --source msstore --accept-package-agreements --accept-source-agreements 2>&1
-            $exitCode = $LASTEXITCODE
-            if ($exitCode -eq 0 -or $output -match "already installed|No available upgrade") {
-                Write-DeployLog "Installed msstore $name ($alias)"
-            } else {
-                $description = $WingetErrorDescriptions[$exitCode]
-                if ($description) {
-                    Write-DeployLog "Failed to install msstore $name ($alias) - $description (exit code $exitCode)" -IsError
+    $msstoreTest = & winget search --source msstore --id "9WZDNCRFJ3PZ" --accept-source-agreements 2>&1
+    $msstoreAvailable = $LASTEXITCODE -eq 0 -and ($msstoreTest -notmatch "Rest API internal error")
+    if (-not $msstoreAvailable) {
+        Write-DeployLog "Microsoft Store is unavailable on this system (REST API error). Skipping all Store app installs." -IsError
+    } else {
+        foreach ($app in $MsStoreApplications) {
+            $alias = $app.Alias
+            $name = $app.Name
+            Write-DeployLog "Installing msstore $name ($alias)..."
+            try {
+                $output = & winget install --id $alias --source msstore --accept-package-agreements --accept-source-agreements 2>&1
+                $exitCode = $LASTEXITCODE
+                if ($exitCode -eq 0 -or $output -match "already installed|No available upgrade") {
+                    Write-DeployLog "Installed msstore $name ($alias)"
                 } else {
-                    Write-DeployLog "Failed to install msstore $name ($alias) (exit code $exitCode)" -IsError
+                    $description = $WingetErrorDescriptions[$exitCode]
+                    if ($description) {
+                        Write-DeployLog "Failed to install msstore $name ($alias) - $description (exit code $exitCode)" -IsError
+                    } else {
+                        Write-DeployLog "Failed to install msstore $name ($alias) (exit code $exitCode)" -IsError
+                    }
                 }
+            } catch {
+                Write-DeployLog "Failed to install msstore $name ($alias)" -IsError
             }
-        } catch {
-            Write-DeployLog "Failed to install msstore $name ($alias)" -IsError
         }
     }
 
