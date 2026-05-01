@@ -250,53 +250,9 @@ try {
         -2147024894 = "The application failed to initialize properly (0x80070646). This indicates a problem with the application's initialization, such as missing or corrupted dependencies, incorrect permissions, or issues with the Windows App Installer package."
     }
 
-    $OfficeFailed = $false
-    $officeNowInstalled = $false
-
     foreach ($app in $Applications) {
         $alias = $app.Alias
         $name = $app.Name
-        # Improved Office detection
-        if ($alias -eq "Microsoft.Office") {
-            $officeDetected = $false
-            # Check known Office registry paths first (both 64-bit and 32-bit paths)
-            $officeRegPaths = @(
-                "HKLM:\SOFTWARE\Microsoft\Office\ClickToRun\Configuration",
-                "HKLM:\SOFTWARE\Microsoft\Office\16.0\Common\InstallRoot",
-                "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Office\ClickToRun\Configuration",
-                "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Office\16.0\Common\InstallRoot"
-            )
-            foreach ($regPath in $officeRegPaths) {
-                if (Test-Path $regPath) {
-                    $officeDetected = $true
-                    break
-                }
-            }
-            # Search Uninstall keys for Office products (avoid Win32_Product - it hangs)
-            if (-not $officeDetected) {
-                $uninstallRoots = @(
-                    "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
-                    "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
-                )
-                foreach ($root in $uninstallRoots) {
-                    if (Test-Path $root) {
-                        $keys = Get-ChildItem $root -ErrorAction SilentlyContinue
-                        foreach ($key in $keys) {
-                            $displayName = $key.GetValue("DisplayName")
-                            if ($displayName -match "Microsoft Office|Microsoft 365") {
-                                $officeDetected = $true
-                                break
-                            }
-                        }
-                    }
-                    if ($officeDetected) { break }
-                }
-            }
-            if ($officeDetected) {
-                Write-DeployLog "Office/M365 already detected on system. Skipping $name ($alias) installation."
-                continue
-            }
-        }
         Write-DeployLog "Installing $name ($alias)..."
         try {
             $output = & winget install --id $alias --source winget --accept-package-agreements --accept-source-agreements 2>&1
@@ -310,53 +266,45 @@ try {
                 } else {
                     Write-DeployLog "Failed to install $name ($alias) (exit code $exitCode)" -IsError
                 }
-                if ($alias -eq "Microsoft.Office") {
-                    $OfficeFailed = $true
-                }
             }
         } catch {
             Write-DeployLog "Failed to install $name ($alias)" -IsError
-            if ($alias -eq "Microsoft.Office") {
-                $OfficeFailed = $true
-            }
         }
     }
 
-    if ($OfficeFailed) {
-        # Re-check if Office was actually installed despite winget's non-zero exit code
-        $officeNowInstalled = $false
-        $postCheckPaths = @(
-            "HKLM:\SOFTWARE\Microsoft\Office\ClickToRun\Configuration",
-            "HKLM:\SOFTWARE\Microsoft\Office\16.0\Common\InstallRoot",
-            "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Office\ClickToRun\Configuration",
-            "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Office\16.0\Common\InstallRoot"
+    # Office is installed via CDN/ODT directly — the Microsoft.Office winget package is unreliable.
+    $officeDetected = $false
+    $officeRegPaths = @(
+        "HKLM:\SOFTWARE\Microsoft\Office\ClickToRun\Configuration",
+        "HKLM:\SOFTWARE\Microsoft\Office\16.0\Common\InstallRoot",
+        "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Office\ClickToRun\Configuration",
+        "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Office\16.0\Common\InstallRoot"
+    )
+    foreach ($regPath in $officeRegPaths) {
+        if (Test-Path $regPath) { $officeDetected = $true; break }
+    }
+    if (-not $officeDetected) {
+        $uninstallRoots = @(
+            "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
+            "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
         )
-        foreach ($path in $postCheckPaths) {
-            if (Test-Path $path) { $officeNowInstalled = $true; break }
-        }
-        if (-not $officeNowInstalled) {
-            $uninstallRoots = @(
-                "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
-                "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
-            )
-            foreach ($root in $uninstallRoots) {
-                if (Test-Path $root) {
-                    $keys = Get-ChildItem $root -ErrorAction SilentlyContinue
-                    foreach ($key in $keys) {
-                        if ($key.GetValue("DisplayName") -match "Microsoft Office|Microsoft 365") {
-                            $officeNowInstalled = $true; break
-                        }
+        foreach ($root in $uninstallRoots) {
+            if (Test-Path $root) {
+                $keys = Get-ChildItem $root -ErrorAction SilentlyContinue
+                foreach ($key in $keys) {
+                    if ($key.GetValue("DisplayName") -match "Microsoft Office|Microsoft 365") {
+                        $officeDetected = $true; break
                     }
                 }
-                if ($officeNowInstalled) { break }
             }
-        }
-        if ($officeNowInstalled) {
-            Write-DeployLog "Office/M365 detected after winget attempt. Skipping CDN fallback."
+            if ($officeDetected) { break }
         }
     }
-    if ($OfficeFailed -and -not $officeNowInstalled) {
-        Write-DeployLog "Winget failed to install Microsoft Office. Attempting direct download from CDN with custom configuration..."
+
+    if ($officeDetected) {
+        Write-DeployLog "Office/M365 already detected on system. Skipping installation."
+    } else {
+        Write-DeployLog "Installing Microsoft Office via CDN/ODT..."
         $setupUrl = "https://officecdn.microsoft.com/pr/wsus/setup.exe"
         $setupPath = Join-Path $env:TEMP "OfficeSetup.exe"
         $configPath = Join-Path $env:TEMP "OfficeConfig.xml"
