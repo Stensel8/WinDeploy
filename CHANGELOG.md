@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.7.3] - 2026-05-01
+
+### Fixed
+- Office installation no longer triggers the CDN fallback when a 32-bit version of Microsoft 365 is already installed. Pre-install detection now also checks `WOW6432Node` registry paths for 32-bit Office installations.
+- Added a post-winget-failure re-check before the CDN fallback: if Office is present after winget exits with a non-zero code, the fallback is skipped entirely.
+- Disabled the `Microsoft.Office` winget package — Microsoft consistently breaks their own package (exit code -1978335226, "Running ShellExecute failed") and has no clear explanation for why. Office is now installed exclusively via CDN/ODT, which is reliable.
+- Microsoft Store app installs are now skipped with a single warning when the Store is unavailable (e.g. Windows Sandbox, LTSC, or policy-restricted environments). Previously, each Store app would fail individually with a `Rest API internal error`, producing noisy log output.
+- Fixed PSScriptAnalyzer warning in `Deploy.ps1`: `$localPath` in `Start-Job` ScriptBlock now correctly uses the `$using:` scope modifier instead of being passed via `param`/`-ArgumentList`.
+
+### Performance
+- Converted all documentation images from PNG to AVIF (CRF 35, libaom-av1) for significantly smaller file sizes.
+
+---
+
 ## [0.7.2] - 2026-05-01
 
 ### Fixed
@@ -236,6 +250,7 @@ First open-source release of WinDeploy - Windows Deployment Automation Toolkit. 
 ---
 
 
+[0.7.3]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.7.3
 [0.7.2]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.7.2
 [0.7.1]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.7.1
 [0.7.0]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.7.0
