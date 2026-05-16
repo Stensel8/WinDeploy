@@ -4,9 +4,6 @@
     "config:recommended"
   ],
   "timezone": "Europe/Amsterdam",
-  "schedule": [
-    "every day"
-  ],
   "forkProcessing": "enabled",
   "pinDigests": true,
   "assigneesFromCodeOwners": true,
