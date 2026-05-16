@@ -33,20 +33,9 @@
       "addLabels": [
         "github-actions"
       ]
-    },
-    {
-      "matchUpdateTypes": [
-        "patch",
-        "digest"
-      ],
-      "automerge": true,
-      "automergeType": "pr"
-    },
-    {
-      "matchUpdateTypes": [
-        "major"
-      ],
-      "automerge": false
     }
-  ]
+  ],
+  "automerge": true,
+  "automergeType": "pr",
+  "semanticCommits": "enabled"
 }
