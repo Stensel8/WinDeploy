@@ -1,4 +1,4 @@
-# ============================================================================
+﻿# ============================================================================
 # Install-Applications.ps1
 # Installs applications via WinGet package manager.
 # Standalone script - can be deployed via any management tool.
