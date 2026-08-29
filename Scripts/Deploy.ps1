@@ -1,5 +1,50 @@
+[CmdletBinding()]
+param(
+    # Skips every prompt (BitLocker, WinUtil tweaks, the final "press Enter").
+    # Use this for fully unattended runs such as autounattend.xml deployments.
+    [switch]$NonInteractive,
+
+    # Passed straight through to the steps that ask for confirmation.
+    [ValidateSet('Ask', 'Yes', 'No')]
+    [string]$BitLocker = 'Ask',
+
+    [ValidateSet('Ask', 'Yes', 'No')]
+    [string]$Tweaks = 'Ask'
+)
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Continue'
+
+if ($NonInteractive) {
+    if ($BitLocker -eq 'Ask') { $BitLocker = 'No' }
+    if ($Tweaks -eq 'Ask')    { $Tweaks = 'No' }
+}
+
+# Waits for Enter, but never longer than $TimeoutSeconds, so an unattended
+# deployment cannot sit on a prompt forever.
+function Wait-ForExit {
+    param([int]$TimeoutSeconds = 120)
+
+    if ($NonInteractive -or -not [Environment]::UserInteractive) { return }
+    try { $null = $Host.UI.RawUI.KeyAvailable } catch { return }
+
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    $lastShown = -1
+    while ((Get-Date) -lt $deadline) {
+        $remaining = [int][Math]::Ceiling(($deadline - (Get-Date)).TotalSeconds)
+        if ($remaining -ne $lastShown) {
+            Write-Host ("`rPress Enter to exit (closing automatically in {0}s)   " -f $remaining) -NoNewline
+            $lastShown = $remaining
+        }
+        if ($Host.UI.RawUI.KeyAvailable) {
+            $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+            Write-Host ""
+            return
+        }
+        Start-Sleep -Milliseconds 200
+    }
+    Write-Host ""
+}
 
 # Check for minimum PowerShell version
 if ($PSVersionTable.PSVersion.Major -lt 7) {
@@ -47,7 +92,7 @@ if (!$releaseTag) {
     Write-Output "  1. Your internet connection"
     Write-Output "  2. GitHub API accessibility"
     Write-Output "  3. Repository has published releases: github.com/Stensel8/WinDeploy/releases"
-    Read-Host "Press Enter to exit"
+    Wait-ForExit
     exit 1
 }
 
@@ -193,12 +238,14 @@ function Get-DeploymentScript {
 }
 
 # Define deployment steps (customize as needed)
+# Arguments are splatted into the step, so a step can be driven non-interactively.
 $deploymentSteps = @(
     @{ Name = "RMM Agent Installation";     ScriptName = "Install-RMMAgent.ps1" }
     @{ Name = "Driver Installation";        ScriptName = "Install-Drivers.ps1" }
-    @{ Name = "Windows Hardening";          ScriptName = "Harden-Windows.ps1" }
+    @{ Name = "Windows Hardening";          ScriptName = "Harden-Windows.ps1";  Arguments = @{ BitLocker = $BitLocker } }
     @{ Name = "Application Installation";   ScriptName = "Install-Applications.ps1" }
     @{ Name = "Bloatware Removal";          ScriptName = "Remove-Bloat.ps1" }
+    @{ Name = "Optional Tweaks (WinUtil)";  ScriptName = "Apply-Tweaks.ps1";    Arguments = @{ Tweaks = $Tweaks } }
     @{ Name = "Theme Configuration";        ScriptName = "Set-Theme.ps1" }
     @{ Name = "Hostname Configuration";     ScriptName = "Set-HostName.ps1" }
     @{ Name = "Windows Updates";            ScriptName = "Install-WindowsUpdates.ps1" }
@@ -223,37 +270,17 @@ foreach ($step in $deploymentSteps) {
 
     if ($scriptAvailable) {
         try {
-            # Special handling for RMM Agent - run async and check indicators
-            if ($step.ScriptName -eq "Install-RMMAgent.ps1") {
-                Write-Output "Starting RMM Agent installation (async)..."
-                $job = Start-Job -ScriptBlock {
-                    & $using:localPath
-                }
+            # Reset first: $LASTEXITCODE is undefined until something sets it
+            # (which throws under Set-StrictMode), and otherwise keeps the
+            # previous step's value when a step returns without calling exit.
+            $global:LASTEXITCODE = 0
 
-                # Wait max 30 seconds for job to complete
-                $timeout = 30
-                $elapsed = 0
-                while ($job.State -eq 'Running' -and $elapsed -lt $timeout) {
-                    Start-Sleep -Seconds 1
-                    $elapsed++
-                }
+            $stepArgs = if ($step.ContainsKey('Arguments')) { $step.Arguments } else { @{} }
+            & $localPath @stepArgs
 
-                # Check if job completed
-                if ($job.State -eq 'Running') {
-                    Write-Output "RMM installation continuing in background..."
-                    Remove-Job $job -Force
-                } else {
-                    $jobResult = Receive-Job $job
-                    $jobResult | ForEach-Object { Write-Output $_ }
-                    Remove-Job $job
-                }
-            } else {
-                # Normal execution for all other scripts
-                & $localPath
-                if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) {
-                    Write-Warning "$($step.Name) completed with errors (Exit Code: $LASTEXITCODE)"
-                    $allSuccessful = $false
-                }
+            if ($LASTEXITCODE -ne 0) {
+                Write-Warning "$($step.Name) completed with errors (Exit Code: $LASTEXITCODE)"
+                $allSuccessful = $false
             }
         } catch {
             Write-Warning "$($step.Name) failed: $_"
@@ -302,4 +329,4 @@ if ($allSuccessful) {
     Write-Output "Some deployment steps failed. Please review the output above."
 }
 Write-Output ""
-Read-Host "Press Enter to exit"
+Wait-ForExit

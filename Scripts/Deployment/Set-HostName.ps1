@@ -15,7 +15,7 @@ Function Write-DeployLog {
     $scriptName = [System.IO.Path]::GetFileNameWithoutExtension([System.IO.Path]::GetFileName($MyInvocation.ScriptName))
     $logFile = Join-Path $logDir "$scriptName.log"
     $Message | Out-File -FilePath $logFile -Append
-    if ($IsError) { Write-Error $Message } else { Write-Output $Message }
+    if ($IsError) { Write-Warning $Message } else { Write-Output $Message }
 }
 
 Write-Output "Setting hostname."

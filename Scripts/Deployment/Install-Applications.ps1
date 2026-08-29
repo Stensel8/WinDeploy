@@ -17,7 +17,7 @@ Function Write-DeployLog {
     $scriptName = [System.IO.Path]::GetFileNameWithoutExtension([System.IO.Path]::GetFileName($MyInvocation.ScriptName))
     $logFile = Join-Path $logDir "$scriptName.log"
     $Message | Out-File -FilePath $logFile -Append
-    if ($IsError) { Write-Error $Message } else { Write-Output $Message }
+    if ($IsError) { Write-Warning $Message } else { Write-Output $Message }
 }
 
 try {
@@ -181,13 +181,13 @@ try {
         -1978335100 = "The Microsoft Store package does not support download command."
         -1978335099 = "Failed to retrieve Microsoft Store package license. The Microsoft Entra Id account does not have required privilege."
         -1978335098 = "Downloaded zero byte installer; ensure that your network connection is working properly."
-        -1979335097 = "Failed installing one or more fonts."
-        -1979335096 = "Font file is not supported and cannot be installed."
-        -1979335095 = "Font package is already installed."
-        -1979335094 = "Font file not found."
-        -1979335093 = "Font uninstall failed. The font may not be in a good state. Try uninstalling after a restart."
-        -1979335092 = "Font validation failed."
-        -1979335091 = "Font rollback failed. The font may not be in a good state. Try uninstalling after a restart."
+        -1978335097 = "Failed installing one or more fonts."
+        -1978335096 = "Font file is not supported and cannot be installed."
+        -1978335095 = "Font package is already installed."
+        -1978335094 = "Font file not found."
+        -1978335093 = "Font uninstall failed. The font may not be in a good state. Try uninstalling after a restart."
+        -1978335092 = "Font validation failed."
+        -1978335091 = "Font rollback failed. The font may not be in a good state. Try uninstalling after a restart."
         -1978334975 = "Application is currently running. Exit the application then try again."
         -1978334974 = "Another installation is already in progress. Try again later."
         -1978334973 = "One or more file is being used. Exit the application then try again."
@@ -255,7 +255,7 @@ try {
         $name = $app.Name
         Write-DeployLog "Installing $name ($alias)..."
         try {
-            $output = & winget install --id $alias --source winget --accept-package-agreements --accept-source-agreements 2>&1
+            $output = & winget install --id $alias --exact --source winget --silent --disable-interactivity --accept-package-agreements --accept-source-agreements 2>&1
             $exitCode = $LASTEXITCODE
             if ($exitCode -eq 0 -or $output -match "already installed|No available upgrade") {
                 Write-DeployLog "Installed $name ($alias)"
@@ -324,7 +324,7 @@ try {
     </Product>
   </Add>
   <Updates Enabled="TRUE" />
-  <Display Level="Full" AcceptEULA="TRUE" />
+  <Display Level="None" AcceptEULA="TRUE" />
   <Property Name="FORCEAPPSHUTDOWN" Value="TRUE" />
 </Configuration>
 '@
@@ -362,7 +362,7 @@ try {
             $name = $app.Name
             Write-DeployLog "Installing msstore $name ($alias)..."
             try {
-                $output = & winget install --id $alias --source msstore --accept-package-agreements --accept-source-agreements 2>&1
+                $output = & winget install --id $alias --exact --source msstore --silent --disable-interactivity --accept-package-agreements --accept-source-agreements 2>&1
                 $exitCode = $LASTEXITCODE
                 if ($exitCode -eq 0 -or $output -match "already installed|No available upgrade") {
                     Write-DeployLog "Installed msstore $name ($alias)"

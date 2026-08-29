@@ -1,6 +1,11 @@
 param(
     [string]$VersionTag,
-    [switch]$Relaunched
+    [switch]$Relaunched,
+
+    # Forwarded to Deploy.ps1: skips every confirmation prompt. Used by the
+    # autounattend.xml / USB path, which runs in a hidden window where nobody
+    # can answer a prompt.
+    [switch]$NonInteractive
 )
 
 # Fetch latest release with retry logic
@@ -215,6 +220,7 @@ if (-not $isAdmin) {
 
     $versionArgs = ""
     if ($VersionTag) { $versionArgs = "-VersionTag '$VersionTag'" }
+    if ($NonInteractive) { $versionArgs = "$versionArgs -NonInteractive".Trim() }
 
     $scriptPath = $PSCommandPath
     if (-not $scriptPath) {
@@ -252,6 +258,7 @@ if (-not $isPwsh7) {
 
     $versionArgs = ""
     if ($VersionTag) { $versionArgs = "-VersionTag '$VersionTag'" }
+    if ($NonInteractive) { $versionArgs = "$versionArgs -NonInteractive".Trim() }
 
     $scriptPath = $PSCommandPath
     if (-not $scriptPath) {
@@ -346,7 +353,7 @@ Write-Host "Starting Deploy.ps1..." -ForegroundColor Yellow
 Write-Host ""
 
 try {
-    & $deployPath
+    & $deployPath -NonInteractive:$NonInteractive
 } catch {
     Write-Host "Deploy.ps1 failed: $_" -ForegroundColor Red
     Stop-Transcript

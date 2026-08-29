@@ -10,12 +10,12 @@ $ErrorActionPreference = 'Continue'
 
 Function Write-DeployLog {
     param([string]$Message, [switch]$IsError)
-    $logDir = Join-Path $env:TEMP "WinDeploy\Logs"
+    $logDir = "C:\WinDeploy\Logs"
     if (!(Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir -Force | Out-Null }
     $scriptName = [System.IO.Path]::GetFileNameWithoutExtension([System.IO.Path]::GetFileName($MyInvocation.ScriptName))
     $logFile = Join-Path $logDir "$scriptName.log"
     $Message | Out-File -FilePath $logFile -Append
-    if ($IsError) { Write-Error $Message } else { Write-Host $Message }
+    if ($IsError) { Write-Warning $Message } else { Write-Host $Message }
 }
 
 # Expanded list for common bloatware (inspired by WinDeploy Remove-Bloat.ps1, excluding Get Help)
@@ -80,6 +80,15 @@ $BloatwareList = @(
 
     # AI and Assistant
     "Microsoft.Copilot",
+    "Microsoft.Windows.Ai.Copilot.Provider",
+
+    # Newer 24H2/25H2 in-box apps
+    "Microsoft.Windows.DevHome",
+    "Microsoft.OutlookForWindows",
+    "Microsoft.Edge.GameAssist",
+    "MicrosoftWindows.CrossDevice",
+    "Microsoft.StartExperiencesApp",
+    "Microsoft.WindowsMeetNow",
 
     # System & Utility
     "Microsoft.PowerAutomateDesktop",
@@ -211,6 +220,25 @@ try {
 
 
 
+    # Stop Windows from silently re-installing suggested apps on the next
+    # feature update or for the next new user profile.
+    Write-DeployLog "Blocking automatic reinstall of consumer apps..."
+    $reinstallPolicies = @(
+        @{ Path = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent"; Name = "DisableWindowsConsumerFeatures";      Value = 1; Description = "Consumer features disabled" }
+        @{ Path = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent"; Name = "DisableConsumerAccountStateContent";  Value = 1; Description = "Consumer account state content disabled" }
+        @{ Path = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent"; Name = "DisableCloudOptimizedContent";        Value = 1; Description = "Cloud optimized content disabled" }
+        @{ Path = "HKLM:\SOFTWARE\Policies\Microsoft\WindowsStore";          Name = "AutoDownload";                        Value = 2; Description = "Store app auto-download disabled" }
+    )
+    foreach ($policy in $reinstallPolicies) {
+        try {
+            if (!(Test-Path $policy.Path)) { New-Item -Path $policy.Path -Force -ErrorAction Stop | Out-Null }
+            Set-ItemProperty -Path $policy.Path -Name $policy.Name -Value $policy.Value -Type DWord -ErrorAction Stop
+            Write-DeployLog "  $($policy.Description)"
+        } catch {
+            Write-DeployLog "  Failed: $($policy.Description) - $($_.Exception.Message)" -IsError
+        }
+    }
+
     $SuccessMsg = "SUCCESS: Removed $Removed apps."
     Write-DeployLog $SuccessMsg
 
@@ -224,7 +252,7 @@ try {
     Write-Output "This script is available as an optional download: C:\WinDeploy\Download\Fix-Spotlight.ps1"
 
     # Note: Bloatware may be reinstalled with future Windows Updates. For more control, consider using Winutil: https://github.com/ChrisTitusTech/winutil
-    Write-DeployLog "Note: Bloatware may be reinstalled with future Windows Updates. For more control, consider using Winutil: `e]8;;https://github.com/ChrisTitusTech/winutil`e\https://github.com/ChrisTitusTech/winutil`e]8;;`e\"
+    Write-DeployLog "Note: for further tweaks, the optional WinUtil step (Apply-Tweaks.ps1) uses https://github.com/ChrisTitusTech/winutil"
     exit 0
 } catch {
     $ErrMsg = $_.Exception.Message

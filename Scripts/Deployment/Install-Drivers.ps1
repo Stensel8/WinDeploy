@@ -17,7 +17,7 @@ Function Write-DeployLog {
     $scriptName = [System.IO.Path]::GetFileNameWithoutExtension([System.IO.Path]::GetFileName($MyInvocation.ScriptName))
     $logFile = Join-Path $logDir "$scriptName.log"
     $Message | Out-File -FilePath $logFile -Append
-    if ($IsError) { Write-Error $Message } else { Write-Output $Message }
+    if ($IsError) { Write-Warning $Message } else { Write-Output $Message }
 }
 
 try {
@@ -28,6 +28,10 @@ try {
     $model = $systemInfo.Model
 
     Write-DeployLog "System: $manufacturer $model"
+
+    # "*hp*" would also match e.g. "Sharp", so match HP as a whole token.
+    $isDell = $manufacturer -like "*dell*"
+    $isHP   = $manufacturer -like "*hewlett*" -or $manufacturer -match "(^|[^a-z])hp([^a-z]|$)"
 
 
     # Embed supported device lists (no more JSON dependency)
@@ -40,14 +44,14 @@ try {
 
     # Check if supported
     $isSupported = $false
-    if ($manufacturer -like "*dell*") {
+    if ($isDell) {
         Write-DeployLog "Checking Dell support..."
         $matchedPattern = $supportedDellDevices | Where-Object { $model -imatch "(?i)$([regex]::Escape($_) -replace '\\ ', '\\s+')" } | Select-Object -First 1
         if ($matchedPattern) {
             $isSupported = $true
             Write-DeployLog "Matched pattern: $matchedPattern"
         }
-    } elseif ($manufacturer -like "*hewlett*" -or $manufacturer -like "*hp*") {
+    } elseif ($isHP) {
         Write-DeployLog "Checking HP support..."
         $matchedPattern = $supportedHPDevices | Where-Object { $model -imatch "(?i)$([regex]::Escape($_) -replace '\\ ', '\\s+')" } | Select-Object -First 1
         if ($matchedPattern) {
@@ -61,7 +65,7 @@ try {
         exit 0
     }
 
-    if ($manufacturer -like "*dell*") {
+    if ($isDell) {
         Write-DeployLog "Supported Dell system detected. Installing Dell Command Update..."
         try {
             winget install --id Dell.CommandUpdate --silent --accept-package-agreements --accept-source-agreements
@@ -108,12 +112,19 @@ try {
             Write-DeployLog "Failed to install or run Dell Command Update"
             Write-Warning "Dell driver installation failed. Check logs for details."
         }
-    } elseif ($manufacturer -like "*hewlett*" -or $manufacturer -like "*hp*") {
+    } elseif ($isHP) {
         Write-DeployLog "HP system detected. Installing HP Client Management Script Library..."
         try {
             # Install HPCMSL module if not present
             if (-not (Get-Module -Name HPCMSL -ListAvailable)) {
-                Install-Module -Name HPCMSL -Force -AllowClobber -ErrorAction Stop
+                # Bootstrap the package plumbing first, otherwise Install-Module
+                # prompts for the NuGet provider and for trusting PSGallery -
+                # both of which stall an unattended deployment.
+                if (-not (Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction SilentlyContinue)) {
+                    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Scope AllUsers -Confirm:$false | Out-Null
+                }
+                Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted -ErrorAction SilentlyContinue
+                Install-Module -Name HPCMSL -Force -AllowClobber -AcceptLicense -Scope AllUsers -Confirm:$false -ErrorAction Stop
             }
             Import-Module HPCMSL -ErrorAction Stop
             Write-DeployLog "HPCMSL installed and imported."

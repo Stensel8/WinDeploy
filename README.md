@@ -74,15 +74,46 @@ graph TD
     H --> I[Install RMM Agent]
     I --> J[Update Drivers]
     J --> K[Windows Hardening]
-    K --> L[Install Applications]
+    K --> K2{Enable BitLocker?}
+    K2 -->|Y| K3[Encrypt C: + save recovery key]
+    K2 -->|N / timeout| L
+    K3 --> L
+    L[Install Applications]
     L --> M[Remove Bloatware]
-    M --> N[Apply Theme]
+    M --> M2{Run WinUtil tweaks?}
+    M2 -->|Y| M3[Apply WinUtil preset]
+    M2 -->|N / timeout| N
+    M3 --> N
+    N[Apply Theme]
     N --> O[Set Hostname]
     O --> P[Install Windows Updates]
     P --> Q[Complete]
 ```
 
 `Start.ps1` ensures PowerShell 7 and WinGet are available, handles elevation, and downloads `Deploy.ps1`. `Deploy.ps1` orchestrates the deployment by downloading and executing each script in sequence.
+
+### Interactive steps
+
+Two steps ask for confirmation before they run. Everything else is applied automatically.
+
+| Step | Prompt | If you answer N or do nothing |
+|---|---|---|
+| **BitLocker** (in `Harden-Windows.ps1`) | Encrypt `C:` with XTS-AES-256? | Skipped. The rest of the hardening is still applied. |
+| **WinUtil tweaks** (`Apply-Tweaks.ps1`) | Run the ChrisTitusTech WinUtil preset? | Skipped. The rest of the deployment continues. |
+
+Both prompts time out after 90 seconds and default to **No**, so an unattended deployment never stalls.
+
+To answer up front, or to skip both without waiting:
+
+```powershell
+# Fully unattended: no prompts, BitLocker and tweaks skipped
+.\Deploy.ps1 -NonInteractive
+
+# Unattended, but do enable BitLocker and apply the tweaks
+.\Deploy.ps1 -BitLocker Yes -Tweaks Yes
+```
+
+The `autounattend.xml` USB deployment passes `-NonInteractive` automatically.
 
 ---
 
@@ -118,11 +149,67 @@ Place your agent installer as `Agent.exe` (or any `*agent*.exe`) on the USB driv
 
 ---
 
+## Security hardening
+
+`Harden-Windows.ps1` applies these automatically:
+
+| Area | Setting |
+|---|---|
+| Removable media | AutoRun disabled, `autorun.inf` blocked |
+| SMB | SMBv1 feature removed, client + server signing required, insecure guest logons blocked |
+| Credentials | LSA protection (RunAsPPL), WDigest plaintext caching off, anonymous SAM/share enumeration restricted |
+| Network | LLMNR disabled (mitigates Responder-style poisoning) |
+| Code integrity | Memory integrity (HVCI) enabled |
+| Defender | 9 Attack Surface Reduction rules enabled |
+| Other | Device co-installers disabled, Windows Script Host disabled |
+| Screen lock | Secure screen saver after 15 minutes, console lock on resume (machine-wide policy) |
+
+Memory integrity, LSA protection and SMB signing take effect **after a restart**.
+
+> **Note:** Windows Script Host is disabled as part of the baseline. A small number of legacy MSI installers use VBScript custom actions and can fail because of it. If you hit that, re-enable it temporarily via `HKLM:\SOFTWARE\Microsoft\Windows Script Host\Settings\Enabled`.
+
+### BitLocker and the recovery key
+
+BitLocker is **opt-in** and asks for confirmation. When you answer **Y**:
+
+1. `C:` is encrypted with XTS-AES-256, used space only, bound to the TPM.
+2. A 48-digit **recovery password** is created — a TPM protector alone cannot be recovered.
+3. The key is written to your **Documents** folder as `BitLocker-Recovery-Key_<COMPUTERNAME>_<timestamp>.txt`.
+4. The key is printed on screen at the end of the hardening step.
+
+> **Write the recovery key down before the machine leaves your desk.** Move it into your password manager (or another secure location that is *not* this machine) and delete the file. Without it the drive cannot be recovered after a TPM clear, mainboard swap or firmware change.
+
+To run it non-interactively:
+
+```powershell
+.\Harden-Windows.ps1 -BitLocker Yes   # encrypt without prompting
+.\Harden-Windows.ps1 -BitLocker No    # skip BitLocker, apply everything else
+```
+
+---
+
+## Optional tweaks (WinUtil)
+
+`Apply-Tweaks.ps1` runs a [ChrisTitusTech WinUtil](https://github.com/ChrisTitusTech/winutil) preset. It asks for confirmation first, because it downloads and executes a third-party script from `christitus.com`.
+
+The default **Standard** preset creates a restore point, then disables activity history, location tracking, telemetry, consumer features (which is what stops Windows re-installing bloatware), Delivery Optimization and Explorer folder-type auto-discovery, sets non-essential services to manual, enables "End task" on the taskbar, and cleans up temp files.
+
+```powershell
+.\Apply-Tweaks.ps1 -Tweaks Yes                     # Standard preset, no prompt
+.\Apply-Tweaks.ps1 -Tweaks Yes -Preset Minimal     # fewer changes
+.\Apply-Tweaks.ps1 -Tweaks Yes -Preset Advanced    # also removes OneDrive, widgets, Windows AI
+.\Apply-Tweaks.ps1 -Tweaks No                      # skip
+```
+
+WinUtil runs in its own process, so a failure there cannot take down the rest of the deployment.
+
+---
+
 ## Logging
 
 All operations are logged to `C:\WinDeploy\Logs\`:
 - `Start.log`. Main entry point log.
-- `Install-Drivers.log`, `Install-Applications.log`, etc. Per-script logs.
+- `Install-Drivers.log`, `Install-Applications.log`, `Harden-Windows.log`, `Apply-Tweaks.log`, etc. Per-script logs.
 
 View logs in real-time:
 ```powershell
