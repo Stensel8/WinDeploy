@@ -56,16 +56,24 @@ function Read-YesNoWithTimeout {
     $default = [bool]$DefaultYes
     $defaultLabel = if ($default) { 'Y' } else { 'N' }
 
-    if (-not [Environment]::UserInteractive) {
-        Write-Output "$Question [Y/N] -> non-interactive session, using default: $defaultLabel"
+    # Work out whether anyone can actually answer. UserInteractive alone is not
+    # enough: it is $true for any process in a user session, including one
+    # started with a redirected stdin or from a scheduled task, where waiting
+    # out the full timeout would stall the deployment for nothing.
+    $interactive = [Environment]::UserInteractive
+    if ($interactive) {
+        try { if ([Console]::IsInputRedirected) { $interactive = $false } } catch { $interactive = $false }
+    }
+    if ($interactive) {
+        # Hosts without a real console (ISE, some job runners) throw here.
+        try { $null = $Host.UI.RawUI.KeyAvailable } catch { $interactive = $false }
+    }
+    if (-not $interactive) {
+        Write-Host "$Question [Y/N] -> no interactive console, using default: $defaultLabel" -ForegroundColor Cyan
         return $default
     }
 
-    try { $null = $Host.UI.RawUI.KeyAvailable } catch {
-        Write-Output "$Question [Y/N] -> no console available, using default: $defaultLabel"
-        return $default
-    }
-
+    # Drain anything already buffered so a stray keypress doesn't answer for us.
     try {
         while ($Host.UI.RawUI.KeyAvailable) { $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown') }
     } catch {
@@ -76,7 +84,9 @@ function Read-YesNoWithTimeout {
     $lastShown = -1
     while ((Get-Date) -lt $deadline) {
         $remaining = [int][Math]::Ceiling(($deadline - (Get-Date)).TotalSeconds)
-        if ($remaining -ne $lastShown) {
+        # Repaint every 5s rather than every second: Start.ps1 runs a transcript,
+        # and a once-per-second countdown fills the log with redraw lines.
+        if ($lastShown -lt 0 -or ($lastShown - $remaining) -ge 5) {
             Write-Host ("`r{0} [Y/N] (default {1} in {2}s)   " -f $Question, $defaultLabel, $remaining) -NoNewline -ForegroundColor Yellow
             $lastShown = $remaining
         }

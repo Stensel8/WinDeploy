@@ -26,6 +26,7 @@ function Wait-ForExit {
     param([int]$TimeoutSeconds = 120)
 
     if ($NonInteractive -or -not [Environment]::UserInteractive) { return }
+    try { if ([Console]::IsInputRedirected) { return } } catch { return }
     try { $null = $Host.UI.RawUI.KeyAvailable } catch { return }
 
     $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
