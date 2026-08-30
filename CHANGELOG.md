@@ -10,33 +10,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.8.0] - 2026-08-29
 
 ### Added
-- `Scripts/Deployment/Apply-Tweaks.ps1`. New optional deployment step that applies a [ChrisTitusTech WinUtil](https://github.com/ChrisTitusTech/winutil) preset (`Standard` by default). Asks for Y/N confirmation first, since it downloads and executes a third-party script, and lists exactly what the preset changes before you answer. Runs WinUtil in its own process so a failure there cannot take down the deployment.
-- BitLocker now creates a **recovery password protector** and saves it to the operator's Documents folder, then prints it on screen with a warning to store it safely. Previously only a TPM protector was created, which meant an encrypted drive was unrecoverable after a TPM clear, mainboard swap or firmware change — while the script told the operator to "export your BitLocker recovery key" that never existed.
-- BitLocker is now opt-in via a Y/N prompt (`-BitLocker Ask|Yes|No`). All other hardening still applies unconditionally.
+- `Scripts/Deployment/Apply-Tweaks.ps1`. Optional step that applies a [WinUtil](https://github.com/ChrisTitusTech/winutil) preset (`Standard` by default) after a Y/N prompt, listing what the preset changes before you answer. Runs in its own process so a failure there cannot take down the deployment.
+- BitLocker now creates a recovery password protector, saves it to the operator's Documents folder and prints it on screen. Previously only a TPM protector was created, leaving the drive unrecoverable after a TPM clear, mainboard swap or firmware change — while the script told the operator to export a recovery key that never existed.
+- BitLocker is opt-in via a Y/N prompt (`-BitLocker Ask|Yes|No`). All other hardening still applies unconditionally.
 - `-NonInteractive` switch on `Deploy.ps1` and `Start.ps1`, forwarded from `autounattend.xml`, so the USB path stays zero-touch.
-- Modern hardening: LSA protection (RunAsPPL), WDigest plaintext credential caching disabled, anonymous SAM/share enumeration restricted, SMB client + server signing required, insecure SMB guest logons blocked, LLMNR disabled, memory integrity (HVCI) enabled, SMBv1 feature removed, and 9 Defender Attack Surface Reduction rules.
-- `Remove-Bloat.ps1` now actually implements the "prevents reinstall" its header promised, via `DisableWindowsConsumerFeatures` and related CloudContent/Store policies.
+- Hardening extended with LSA protection (RunAsPPL), WDigest plaintext caching disabled, anonymous SAM/share enumeration restricted, SMB client and server signing required, insecure SMB guest logons blocked, LLMNR disabled, memory integrity (HVCI) enabled, SMBv1 feature removed, and 9 Defender Attack Surface Reduction rules.
+- `Remove-Bloat.ps1` now implements the "prevents reinstall" its header promised, via `DisableWindowsConsumerFeatures` and related CloudContent/Store policies.
 
 ### Fixed
-- **`Docs/autounattend.xml` never launched WinDeploy.** The first-logon script was generated as `unattend-02.cmd` but contained PowerShell (`iex (irm ...)`), which `cmd.exe` cannot run. It is now a `.ps1`, and the generator URL in the header comment was corrected to `FirstLogonScriptType1=Ps1` so regenerating reproduces the fix.
-- **`Harden-Windows.ps1` disabled SMB2 *and* SMB3.** The `SMB2 = 0` value under `LanmanServer\Parameters` turns off every remaining SMB version, breaking file and printer sharing. Microsoft explicitly advises against it. Removed, and replaced with SMB signing and guest-logon hardening.
-- **`Test-IntuneEnrollment` crashed under `Set-StrictMode`** when the `Enrollments` key was absent: `Get-ChildItem -ErrorAction SilentlyContinue` returns `$null`, and `$null.Count` throws.
-- **`Deploy.ps1` crashed under `Set-StrictMode`** on the first step, because `$LASTEXITCODE` is undefined until something sets it. It also never reset between steps, so one failing step marked every later step as failed. Now reset to `0` before each step.
-- **Screen lock settings were written to the wrong profile.** `ScreenSaveActive` / `ScreenSaverIsSecure` were set under `HKCU`, which during deployment belongs to the deployment account, not the end user. Now written to the machine-wide policy hive. `SCRNSAVE.EXE` was also set to an empty string, which means Windows never starts a screen saver and the secure lock never triggers — it now points at `scrnsave.scr`.
-- **Applications could show installer UI during a zero-touch deployment.** `winget install` was missing `--silent`; it now also passes `--exact` and `--disable-interactivity`.
-- **Office installed interactively.** The ODT configuration used `<Display Level="Full" />`; now `None`.
-- **Windows Updates without a KB number were skipped.** `Install-WindowsUpdate -KB $update.KB` cannot install driver and definition updates, which have no KB. Replaced with a single `Get-WindowsUpdate -Install` pass, which is also considerably faster.
+- `Docs/autounattend.xml` never launched WinDeploy. The first-logon script was generated as `unattend-02.cmd` but contained PowerShell, which `cmd.exe` cannot run. It is now a `.ps1`, and the generator URL in the header comment was corrected to `FirstLogonScriptType1=Ps1` so regenerating reproduces the fix.
+- `Harden-Windows.ps1` set `SMB2 = 0` under `LanmanServer\Parameters`, which disables SMB2 and SMB3 and breaks file and printer sharing. Microsoft advises against it. Removed and replaced with SMB signing and guest-logon hardening.
+- `Test-IntuneEnrollment` crashed under `Set-StrictMode` when the `Enrollments` key was absent: `Get-ChildItem -ErrorAction SilentlyContinue` returns `$null`, and `$null.Count` throws.
+- `Deploy.ps1` crashed under `Set-StrictMode` on the first step, because `$LASTEXITCODE` is undefined until something sets it. It also never reset between steps, so one failing step marked every later step as failed. Now reset to `0` before each step.
+- Screen lock settings were written to `HKCU`, which during deployment belongs to the deployment account rather than the end user. Now written to the machine-wide policy hive. `SCRNSAVE.EXE` was also empty, so Windows never started a screen saver and the secure lock never triggered; it now points at `scrnsave.scr`.
+- `winget install` was missing `--silent`, so applications could show installer UI mid-deployment. It now also passes `--exact` and `--disable-interactivity`.
+- The Office ODT configuration used `<Display Level="Full" />`, which installs interactively. Now `None`.
+- Windows Updates without a KB number (drivers, definitions) were skipped, because `Install-WindowsUpdate -KB $update.KB` cannot install them. Replaced with a single `Get-WindowsUpdate -Install` pass, which is also considerably faster.
 - Seven WinGet font error codes were typed as `-1979335xxx` instead of `-1978335xxx`, so they could never match a real exit code.
 - `Install-Drivers.ps1` matched HP with `-like "*hp*"`, which also matches manufacturers such as "Sharp". Now matched as a whole token.
-- `Install-Drivers.ps1` installed `HPCMSL` without bootstrapping the NuGet provider or trusting PSGallery, so it prompted (and stalled) or failed outright. It now does the same bootstrap `Install-WindowsUpdates.ps1` already did.
+- `Install-Drivers.ps1` installed `HPCMSL` without bootstrapping the NuGet provider or trusting PSGallery, so it prompted and stalled, or failed outright. It now does the same bootstrap `Install-WindowsUpdates.ps1` already did.
 - `Install-WindowsUpdates.ps1` threw under `Set-StrictMode` if `wuauserv` could not be found, instead of reporting it.
 - `Remove-Bloat.ps1` logged to `%TEMP%\WinDeploy\Logs` while every other script and the README use `C:\WinDeploy\Logs`.
-- `Remove-Bloat.ps1` used the `` `e `` escape (PowerShell 6+) in a script that declares `#requires -Version 5.1`, where it prints as literal garbage.
+- `Remove-Bloat.ps1` used the `` `e `` escape (PowerShell 6+) in a script that declares `#requires -Version 5.1`, where it prints as literal text.
 - The RMM step no longer wraps the installer in a background job that `Remove-Job -Force` could kill. `Install-RMMAgent.ps1` already launches the agent detached, so it runs inline like every other step.
-- "Press Enter to exit" prompts now time out after 120 seconds instead of blocking an unattended deployment forever.
+- "Press Enter to exit" prompts now time out after 120 seconds instead of blocking an unattended deployment.
 
 ### Changed
-- Deployment scripts log failures with `Write-Warning` instead of `Write-Error`. `Write-Error` printed a full error record with category and stack trace for every non-fatal skip, which is the console noise that made a normal run look broken. `Deploy.ps1` already did this.
+- Deployment scripts log failures with `Write-Warning` instead of `Write-Error`, which printed a full error record with category and stack trace for every non-fatal skip. `Deploy.ps1` already did this.
 - `Remove-Bloat.ps1` bloatware list extended with Windows 11 24H2/25H2 in-box apps: Dev Home, the new Outlook, Edge Game Assist, Cross Device (Phone Link), Start Experiences, Meet Now and the Copilot AI provider.
 
 ---
