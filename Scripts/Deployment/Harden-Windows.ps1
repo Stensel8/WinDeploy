@@ -351,7 +351,7 @@ switch ($BitLocker) {
         Write-Host "------------------------------------------------------------" -ForegroundColor Cyan
         Write-Host " BitLocker drive encryption" -ForegroundColor Yellow
         Write-Host "------------------------------------------------------------" -ForegroundColor Cyan
-        Write-Host " Encrypts C: with XTS-AES-256 using the TPM." -ForegroundColor Gray
+        Write-Host " Encrypts C: with XTS-AES-256 using the TPM." -ForegroundColor Gray  # DevSkim: ignore DS187371 - XTS is the recommended BitLocker mode, not a weak one
         Write-Host " A 48-digit recovery key will be generated and saved to your" -ForegroundColor Gray
         Write-Host " Documents folder. You MUST store that key somewhere safe -" -ForegroundColor Gray
         Write-Host " without it the drive cannot be recovered if the TPM, the" -ForegroundColor Gray
@@ -384,7 +384,7 @@ if (-not $enableBitLocker) {
         $bitLockerStatus = Get-BitLockerVolume -MountPoint "C:" -ErrorAction Stop
         if ($bitLockerStatus.ProtectionStatus -eq 'Off') {
             Enable-BitLocker -MountPoint "C:" -TpmProtector -EncryptionMethod XtsAes256 -UsedSpaceOnly -SkipHardwareTest -ErrorAction Stop | Out-Null
-            $appliedConfigs += "BitLocker encryption started (XTS-AES-256)"
+            $appliedConfigs += "BitLocker encryption started (XTS-AES-256)"  # DevSkim: ignore DS187371 - XTS is the recommended BitLocker mode, not a weak one
         } else {
             $appliedConfigs += "BitLocker already active"
         }
@@ -512,7 +512,7 @@ $hardeningLinks = @{
     "Memory integrity (HVCI) enabled" = "https://learn.microsoft.com/en-us/windows/security/hardware-security/enable-virtualization-based-protection-of-code-integrity"
     "BitLocker policy enabled" = "https://learn.microsoft.com/en-us/windows/security/operating-system-security/data-protection/bitlocker/"
     "BitLocker already active" = "https://learn.microsoft.com/en-us/windows/security/operating-system-security/data-protection/bitlocker/"
-    "BitLocker encryption started (XTS-AES-256)" = "https://learn.microsoft.com/en-us/windows/security/operating-system-security/data-protection/bitlocker/"
+    "BitLocker encryption started (XTS-AES-256)" = "https://learn.microsoft.com/en-us/windows/security/operating-system-security/data-protection/bitlocker/"  # DevSkim: ignore DS187371 - XTS is the recommended BitLocker mode, not a weak one
     "BitLocker recovery password created" = "https://learn.microsoft.com/en-us/windows/security/operating-system-security/data-protection/bitlocker/bitlocker-recovery-overview"
     "Power settings configured" = "https://learn.microsoft.com/en-us/windows/win32/power/power-management-portal"
 }
