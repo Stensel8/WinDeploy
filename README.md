@@ -6,10 +6,10 @@
 [![PowerShell 7.0+](https://img.shields.io/badge/PowerShell-7.0+-blue.svg)](https://github.com/PowerShell/PowerShell)
 [![Windows 11 25H2](https://img.shields.io/badge/Windows-11_25H2-0078D6.svg)](https://www.microsoft.com/windows)
 
-[![Security scanning](https://github.com/Thectic-NL/WinDeploy/actions/workflows/security.yml/badge.svg)](https://github.com/Thectic-NL/WinDeploy/actions/workflows/security.yml)
-[![Validate scripts](https://github.com/Thectic-NL/WinDeploy/actions/workflows/validate.yml/badge.svg)](https://github.com/Thectic-NL/WinDeploy/actions/workflows/validate.yml)
-[![CodeQL](https://github.com/Thectic-NL/WinDeploy/actions/workflows/codeql.yml/badge.svg)](https://github.com/Thectic-NL/WinDeploy/actions/workflows/codeql.yml)
-[![Dependabot Updates](https://github.com/Thectic-NL/WinDeploy/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/Thectic-NL/WinDeploy/actions/workflows/dependabot/dependabot-updates)
+[![Security scanning](https://github.com/THectic-NL/WinDeploy/actions/workflows/security.yml/badge.svg)](https://github.com/THectic-NL/WinDeploy/actions/workflows/security.yml)
+[![Validate scripts](https://github.com/THectic-NL/WinDeploy/actions/workflows/validate.yml/badge.svg)](https://github.com/THectic-NL/WinDeploy/actions/workflows/validate.yml)
+[![CodeQL](https://github.com/THectic-NL/WinDeploy/actions/workflows/codeql.yml/badge.svg)](https://github.com/THectic-NL/WinDeploy/actions/workflows/codeql.yml)
+[![Dependabot Updates](https://github.com/THectic-NL/WinDeploy/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/THectic-NL/WinDeploy/actions/workflows/dependabot/dependabot-updates)
 
 Zero-touch Windows deployment with automatic driver updates, application installation, bloatware removal, and system configuration. Deploy via USB, network, RMM agents, or AutoUnattend.xml.
 
@@ -47,7 +47,7 @@ Zero-touch Windows deployment with automatic driver updates, application install
 ### Option 2: Direct Execution
 ```powershell
 # Run as Administrator in PowerShell 7
-iex (irm "https://raw.githubusercontent.com/Thectic-NL/WinDeploy/$((irm https://api.github.com/repos/Thectic-NL/WinDeploy/releases/latest).tag_name)/Scripts/Start.ps1")
+iex (irm "https://raw.githubusercontent.com/THectic-NL/WinDeploy/$((irm https://api.github.com/repos/THectic-NL/WinDeploy/releases/latest).tag_name)/Scripts/Start.ps1")
 ```
 
 ### Option 3: One-liner
@@ -261,8 +261,8 @@ winget-install
 
 Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-- **Issues**: [GitHub Issues](https://github.com/Thectic-NL/WinDeploy/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Thectic-NL/WinDeploy/discussions)
+- **Issues**: [GitHub Issues](https://github.com/THectic-NL/WinDeploy/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/THectic-NL/WinDeploy/discussions)
 
 ## Disclaimer
 

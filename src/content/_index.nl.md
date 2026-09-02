@@ -16,11 +16,11 @@ toc: false
 </div>
 
 <div class="hx-mb-10" style="margin-top: 2.5rem !important;">
-{{< hextra/hero-badge link="https://github.com/Thectic-NL/WinDeploy#quick-start" >}}
+{{< hextra/hero-badge link="https://github.com/THectic-NL/WinDeploy#quick-start" >}}
   <span>Snel starten</span>
   {{< icon name="arrow-right" attributes="height=20" >}}
 {{< /hextra/hero-badge >}}
-{{< hextra/hero-badge link="https://github.com/Thectic-NL/WinDeploy" >}}
+{{< hextra/hero-badge link="https://github.com/THectic-NL/WinDeploy" >}}
   <span>Bekijk op GitHub</span>
   {{< icon name="github" attributes="height=20" >}}
 {{< /hextra/hero-badge >}}
@@ -33,7 +33,7 @@ toc: false
 Als Administrator, in PowerShell 7:
 
 ```powershell
-iex (irm "https://raw.githubusercontent.com/Thectic-NL/WinDeploy/$((irm https://api.github.com/repos/Thectic-NL/WinDeploy/releases/latest).tag_name)/Scripts/Start.ps1")
+iex (irm "https://raw.githubusercontent.com/THectic-NL/WinDeploy/$((irm https://api.github.com/repos/THectic-NL/WinDeploy/releases/latest).tag_name)/Scripts/Start.ps1")
 ```
 
 `Start.ps1` elevate't indien nodig, installeert PowerShell 7 en WinGet als die ontbreken, en geeft daarna door aan `Deploy.ps1`, dat elke deploymentstap van die release na elkaar downloadt en uitvoert.
@@ -41,7 +41,7 @@ iex (irm "https://raw.githubusercontent.com/Thectic-NL/WinDeploy/$((irm https://
 {{< callout type="info" >}}
 Elke run staat vast op één GitHub release tag, van begin tot eind. Een deployment die start tegen `v0.9.0` blijft de scripts van `v0.9.0` gebruiken, ook als `main` tijdens de run verandert.
 
-Voor USB/offline installaties via `autounattend.xml`, en de volledige configuratiereferentie, zie de [GitHub-repository](https://github.com/Thectic-NL/WinDeploy).
+Voor USB/offline installaties via `autounattend.xml`, en de volledige configuratiereferentie, zie de [GitHub-repository](https://github.com/THectic-NL/WinDeploy).
 {{< /callout >}}
 
 ## Wat het doet

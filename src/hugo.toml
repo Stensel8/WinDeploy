@@ -21,7 +21,7 @@ disableHugoGeneratorInject = true
   [[menu.main]]
     name = 'GitHub'
     weight = 1
-    url = 'https://github.com/Thectic-NL/WinDeploy'
+    url = 'https://github.com/THectic-NL/WinDeploy'
     [menu.main.params]
       icon = 'github'
   [[menu.main]]

@@ -2,7 +2,7 @@
 
 **Do not open a public GitHub issue for security vulnerabilities.**
 
-Report privately via [GitHub Security Advisories](https://github.com/Thectic-NL/WinDeploy/security/advisories/new).
+Report privately via [GitHub Security Advisories](https://github.com/THectic-NL/WinDeploy/security/advisories/new).
 
 Include:
 - Description of the vulnerability

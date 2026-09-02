@@ -13,7 +13,7 @@
 - [ ] `style` — formatting, whitespace, typos
 - [ ] `revert` — reverting a previous commit
 
-> [PR title and commit types must follow these standards — view the contributing guide](https://github.com/Thectic-NL/WinDeploy/blob/main/CONTRIBUTING.md#commit-messages)
+> [PR title and commit types must follow these standards — view the contributing guide](https://github.com/THectic-NL/WinDeploy/blob/main/CONTRIBUTING.md#commit-messages)
 
 ## Checklist
 
