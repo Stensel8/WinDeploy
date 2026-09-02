@@ -17,7 +17,7 @@ function Get-LatestRelease {
 
     for ($attempt = 1; $attempt -le $MaxRetries; $attempt++) {
         try {
-            $latestRelease = Invoke-RestMethod -Uri "https://api.github.com/repos/Stensel8/WinDeploy/releases/latest" -ErrorAction Stop
+            $latestRelease = Invoke-RestMethod -Uri "https://api.github.com/repos/Thectic-NL/WinDeploy/releases/latest" -ErrorAction Stop
             if ($latestRelease.tag_name) {
                 return $latestRelease.tag_name
             }
@@ -50,14 +50,14 @@ if (!$releaseTag) {
     Write-Host "Releases are required for deployment. Please check:" -ForegroundColor Yellow
     Write-Host "  1. Your internet connection" -ForegroundColor Yellow
     Write-Host "  2. GitHub API accessibility" -ForegroundColor Yellow
-    Write-Host "  3. Repository has published releases: github.com/Stensel8/WinDeploy/releases" -ForegroundColor Yellow
+    Write-Host "  3. Repository has published releases: github.com/Thectic-NL/WinDeploy/releases" -ForegroundColor Yellow
     exit 1
 }
 
 # Read version
 $version = $null
 try {
-    $version = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/VERSION" -ErrorAction SilentlyContinue
+    $version = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/Thectic-NL/WinDeploy/$releaseTag/VERSION" -ErrorAction SilentlyContinue
     $version = $version.Trim()
 } catch {
     Write-Warning "Failed to fetch version information."
@@ -227,7 +227,7 @@ if (-not $isAdmin) {
         # Script run via iex - download to temp
         $scriptPath = [System.IO.Path]::GetTempFileName() + ".ps1"
         try {
-            Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/Scripts/Start.ps1" -OutFile $scriptPath -UseBasicParsing -ErrorAction Stop
+            Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Thectic-NL/WinDeploy/$releaseTag/Scripts/Start.ps1" -OutFile $scriptPath -UseBasicParsing -ErrorAction Stop
         } catch {
             Write-Host "Failed to download Start.ps1: $_" -ForegroundColor Red
             exit 1
@@ -265,7 +265,7 @@ if (-not $isPwsh7) {
         # Script run via iex - download to temp
         $scriptPath = [System.IO.Path]::GetTempFileName() + ".ps1"
         try {
-            Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/Scripts/Start.ps1" -OutFile $scriptPath -UseBasicParsing -ErrorAction Stop
+            Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Thectic-NL/WinDeploy/$releaseTag/Scripts/Start.ps1" -OutFile $scriptPath -UseBasicParsing -ErrorAction Stop
         } catch {
             Write-Host "Failed to download Start.ps1: $_" -ForegroundColor Red
             exit 1
@@ -303,7 +303,7 @@ $downloadSuccess = $false
 for ($attempt = 1; $attempt -le $maxRetries; $attempt++) {
     try {
         Write-Host "Downloading Deploy.ps1 (Attempt $attempt of $maxRetries)..." -ForegroundColor Cyan
-        Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/Scripts/Deploy.ps1" -OutFile $deployPath -UseBasicParsing -ErrorAction Stop
+        Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Thectic-NL/WinDeploy/$releaseTag/Scripts/Deploy.ps1" -OutFile $deployPath -UseBasicParsing -ErrorAction Stop
         Write-Host "Downloaded Deploy.ps1 to $deployPath" -ForegroundColor Green
         $downloadSuccess = $true
         break

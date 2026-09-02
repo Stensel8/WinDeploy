@@ -1,3 +1,9 @@
+# Hugo
+/src/public/
+/src/resources/
+/src/_vendor/
+src/.hugo_build.lock
+
 # PowerShell
 *.ps1xml
 

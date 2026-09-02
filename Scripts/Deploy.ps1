@@ -62,7 +62,7 @@ function Get-LatestRelease {
 
     for ($attempt = 1; $attempt -le $MaxRetries; $attempt++) {
         try {
-            $latestRelease = Invoke-RestMethod -Uri "https://api.github.com/repos/Stensel8/WinDeploy/releases/latest" -ErrorAction Stop
+            $latestRelease = Invoke-RestMethod -Uri "https://api.github.com/repos/Thectic-NL/WinDeploy/releases/latest" -ErrorAction Stop
             if ($latestRelease.tag_name) {
                 return $latestRelease.tag_name
             }
@@ -92,7 +92,7 @@ if (!$releaseTag) {
     Write-Output "Please check:"
     Write-Output "  1. Your internet connection"
     Write-Output "  2. GitHub API accessibility"
-    Write-Output "  3. Repository has published releases: github.com/Stensel8/WinDeploy/releases"
+    Write-Output "  3. Repository has published releases: github.com/Thectic-NL/WinDeploy/releases"
     Wait-ForExit
     exit 1
 }
@@ -100,7 +100,7 @@ if (!$releaseTag) {
 # Read version
 $version = $null
 try {
-    $version = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/VERSION" -ErrorAction SilentlyContinue
+    $version = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/Thectic-NL/WinDeploy/$releaseTag/VERSION" -ErrorAction SilentlyContinue
     $version = $version.Trim()
     if ($version) {
         Write-Output "Version: $version"
@@ -203,7 +203,7 @@ function Get-DeploymentScript {
 
     for ($attempt = 1; $attempt -le $MaxRetries; $attempt++) {
         try {
-            Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/Scripts/Deployment/$ScriptName" -OutFile $LocalPath -UseBasicParsing -ErrorAction Stop
+            Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Thectic-NL/WinDeploy/$releaseTag/Scripts/Deployment/$ScriptName" -OutFile $LocalPath -UseBasicParsing -ErrorAction Stop
             Write-DeployLog "Downloaded $ScriptName to $LocalPath"
             return $true
         } catch {
@@ -301,7 +301,7 @@ try {
     $downloaded = $false
     for ($attempt = 1; $attempt -le 3; $attempt++) {
         try {
-            Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Stensel8/WinDeploy/$releaseTag/Scripts/Archived/Fix-Spotlight.ps1" -OutFile $fixScriptPath -UseBasicParsing -ErrorAction Stop
+            Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Thectic-NL/WinDeploy/$releaseTag/Scripts/Archived/Fix-Spotlight.ps1" -OutFile $fixScriptPath -UseBasicParsing -ErrorAction Stop
             Write-DeployLog "Downloaded Fix-Spotlight.ps1 to $fixScriptPath as an optional script to fix missing Spotlight options on the system. This can be run manually if needed."
             $downloaded = $true
             break

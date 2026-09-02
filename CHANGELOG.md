@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.0] - 2026-09-02
+
+Repository moved from `Stensel8/WinDeploy` to `Thectic-NL/WinDeploy`.
+
+### Added
+- `src/`. A Hugo landing page for windeploy.thectic.nl (English + Dutch), matching the site structure already in use for [BypassNRO](https://github.com/Thectic-NL/BypassNRO). It documents the project; it does not host the deployment scripts. `Scripts/` and `Docs/` are unchanged in location and behaviour, and GitHub Releases stays the distribution mechanism, so a run started against one release tag keeps using that tag's scripts throughout, even if `main` changes mid-run.
+- `.github/workflows/deploy-bunny.yml`, `pr-checks.yml`, `pr-title.yml`, `config-validation.yml`, `trivy-scan.yml`, `update-checksums.yml`, `.github/scripts/`. CI for the new site, matching the shared org convention.
+- `renovate.json`: `gomod` and `custom.regex` managers, for the site's Go module and the hand-pinned tool versions in the new workflows.
+
+### Changed
+- All `Stensel8/WinDeploy` references (README, SECURITY.md, `Docs/autounattend.xml`, `Scripts/Start.ps1`, `Scripts/Deploy.ps1`, old changelog release links) now point at `Thectic-NL/WinDeploy`.
+- `.github/workflows/validate.yml`: the syntax-check and helper-function-test jobs merged into one job (same runner, one less billed minute), path-scoped to `Scripts/**`, otherwise unchanged.
+- `CONTRIBUTING.md`, `.github/pull_request_template.md`: extended with the site's bilingual-content and Hugo-build checks, alongside the existing Windows-testing requirement, which stays required for anything under `Scripts/` or `Docs/`.
+
+### Removed
+- `.github/workflows/codeql.yml`, `dependency-review.yml`, `security.yml`, `stale.yml`, in favour of the leaner CI set above (PSScriptAnalyzer + Trivy + actionlint, no DevSkim/Semgrep/CodeQL-for-Actions/dependency-review/stale-bot). This mirrors what already happened to BypassNRO; flagging it here since it is a real reduction in automated security-scanning coverage, not just a rename.
+
+### Notes
+- `windeploy.stensel.nl` (the "Option 3" one-liner in the README) is an external redirect that pointed at the old repository. It is not part of this repository and needs to be repointed or retired separately.
+
+---
+
 ## [0.8.0] - 2026-08-29
 
 ### Added
@@ -162,7 +184,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Bitlocker enablement issue: Sometimes Bitlocker failed to enable due to the TPM not being ready.
-- Fixed an issue with RMM Agents not installing correctly. [#11](https://github.com/Stensel8/WinDeploy/issues/11)
+- Fixed an issue with RMM Agents not installing correctly. [#11](https://github.com/Thectic-NL/WinDeploy/issues/11)
 - Fixed a rare hang where deployment would stall after detecting the RMM installer on USB. The installer was being invoked via PowerShell incorrectly which could prevent it from receiving silent switches; changed to run the installer directly and wait for completion, added longer timeouts and improved logging.
 
 ## [0.5.6] - 2025-11-20
@@ -284,16 +306,18 @@ First open-source release of WinDeploy - Windows Deployment Automation Toolkit. 
 ---
 
 
-[0.7.3]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.7.3
-[0.7.2]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.7.2
-[0.7.1]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.7.1
-[0.7.0]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.7.0
-[0.6.1]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.6.1
-[0.6.0]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.6.0
-[0.5.5]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.5
-[0.5.4]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.4
-[0.5.3]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.3
-[0.5.2]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.2
-[0.5.0]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.0
-[0.1.2]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.1.2
-[0.1.1]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.1.1
+[0.9.0]: https://github.com/Thectic-NL/WinDeploy/releases/tag/v0.9.0
+[0.8.0]: https://github.com/Thectic-NL/WinDeploy/releases/tag/v0.8.0
+[0.7.3]: https://github.com/Thectic-NL/WinDeploy/releases/tag/v0.7.3
+[0.7.2]: https://github.com/Thectic-NL/WinDeploy/releases/tag/v0.7.2
+[0.7.1]: https://github.com/Thectic-NL/WinDeploy/releases/tag/v0.7.1
+[0.7.0]: https://github.com/Thectic-NL/WinDeploy/releases/tag/v0.7.0
+[0.6.1]: https://github.com/Thectic-NL/WinDeploy/releases/tag/v0.6.1
+[0.6.0]: https://github.com/Thectic-NL/WinDeploy/releases/tag/v0.6.0
+[0.5.5]: https://github.com/Thectic-NL/WinDeploy/releases/tag/v0.5.5
+[0.5.4]: https://github.com/Thectic-NL/WinDeploy/releases/tag/v0.5.4
+[0.5.3]: https://github.com/Thectic-NL/WinDeploy/releases/tag/v0.5.3
+[0.5.2]: https://github.com/Thectic-NL/WinDeploy/releases/tag/v0.5.2
+[0.5.0]: https://github.com/Thectic-NL/WinDeploy/releases/tag/v0.5.0
+[0.1.2]: https://github.com/Thectic-NL/WinDeploy/releases/tag/v0.1.2
+[0.1.1]: https://github.com/Thectic-NL/WinDeploy/releases/tag/v0.1.1
