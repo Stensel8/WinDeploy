@@ -253,10 +253,6 @@ Repository moved from `Stensel8/WinDeploy` to `Thectic-NL/WinDeploy`.
 
 ## [0.5.0] - 2025-11-14
 
-### Fixed
-- Fixed bloatware removal printing duplicate messages on screen by removing redundant Write-Output calls
-- Improved admin elevation handling in Start.ps1 and Deploy.ps1 to prevent script crashes when not run as administrator
-
 ### Added
 - Added documentation for Intune Autopilot device preparation setup (`Docs/Intune-Autopilot-Setup.md`)
 - Added RMM agent installation support with USB detection and download fallback
@@ -272,6 +268,8 @@ Repository moved from `Stensel8/WinDeploy` to `Thectic-NL/WinDeploy`.
 - Removed unused utility modules and scripts
 
 ### Fixed
+- Fixed bloatware removal printing duplicate messages on screen by removing redundant Write-Output calls
+- Improved admin elevation handling in Start.ps1 and Deploy.ps1 to prevent script crashes when not run as administrator
 - Improved error handling and logging across all scripts
 - Enhanced compatibility and reliability of deployment process
 
