@@ -6,9 +6,7 @@
 [![PowerShell 7.0+](https://img.shields.io/badge/PowerShell-7.0+-blue.svg)](https://github.com/PowerShell/PowerShell)
 [![Windows 11 25H2](https://img.shields.io/badge/Windows-11_25H2-0078D6.svg)](https://www.microsoft.com/windows)
 
-[![Security scanning](https://github.com/THectic-NL/WinDeploy/actions/workflows/security.yml/badge.svg)](https://github.com/THectic-NL/WinDeploy/actions/workflows/security.yml)
 [![Validate scripts](https://github.com/THectic-NL/WinDeploy/actions/workflows/validate.yml/badge.svg)](https://github.com/THectic-NL/WinDeploy/actions/workflows/validate.yml)
-[![CodeQL](https://github.com/THectic-NL/WinDeploy/actions/workflows/codeql.yml/badge.svg)](https://github.com/THectic-NL/WinDeploy/actions/workflows/codeql.yml)
 [![Dependabot Updates](https://github.com/THectic-NL/WinDeploy/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/THectic-NL/WinDeploy/actions/workflows/dependabot/dependabot-updates)
 
 Zero-touch Windows deployment with automatic driver updates, application installation, bloatware removal, and system configuration. Deploy via USB, network, RMM agents, or AutoUnattend.xml.
