@@ -1,0 +1,206 @@
+# Copyright (C) 2026 Sten Tijhuis
+# SPDX-License-Identifier: MIT
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - '*.md'
+      - '.github/workflows/pr-checks.yml'
+
+# Snel achter elkaar naar dezelfde pull request pushen startte evenveel volledige
+# runs, en de eerste zijn dan al achterhaald.
+concurrency:
+  group: pr-checks-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  # Alle controles op een pull request, in een job.
+  #
+  # GitHub rekent per job en rondt elke job naar boven af op een hele minuut.
+  # Losse jobs voor markdownlint, de Hugo-build en de linkcheck kostten drie
+  # gefactureerde minuten voor werk dat samen in een minuut klaar is, plus een
+  # artefact met upload en download om de gebouwde site naar de linkcheck te
+  # krijgen. In een job leest lychee gewoon de map die de build ernaast zet.
+  #
+  # Elke stap draait op !cancelled(), zodat een rode markdownlint de Hugo-build
+  # niet verbergt. De job faalt alsnog zodra er iets fout is.
+  #
+  # De job draagt `pull-requests: write` omdat de laatste stap de checklist in
+  # de omschrijving bijwerkt. Alle actions staan op een vastgezette SHA.
+  pr-checks:
+    name: PR checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      HUGO_VERSION: 0.165.0
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # fetch-depth: 0 voor Hugo's .GitInfo en .Lastmod.
+          fetch-depth: 0
+          persist-credentials: false
+
+      # ── 1. Markdown-opmaak ──────────────────────────────────────────────────
+      - name: Markdown lint
+        id: markdown
+        if: ${{ !cancelled() }}
+        uses: DavidAnson/markdownlint-cli2-action@21c1be1b93ad9ed58fa840aacc3f279cde2a72ff # v24.2.0
+        with:
+          globs: |
+            src/content/**/*.md
+            *.md
+
+      # ── 2. Elk Engels document heeft een Nederlandse tegenhanger ────────────
+      - name: Check every .md has a matching .nl.md
+        id: bilingual
+        if: ${{ !cancelled() }}
+        run: |
+          missing=""
+          while IFS= read -r en; do
+            base="${en%.md}"
+            nl="${base}.nl.md"
+            if [ ! -f "$nl" ]; then
+              missing="$missing\n  $en → $nl missing"
+            fi
+          done < <(find src/content -name '*.md' ! -name '*.nl.md')
+          if [ -n "$missing" ]; then
+            echo -e "::error::Missing Dutch translation(s):$missing"
+            exit 1
+          fi
+          echo "All content has EN + NL versions."
+
+      # ── 3. Hugo bouwt zonder fouten ─────────────────────────────────────────
+      #
+      # go-version-file houdt de Go van de runner gelijk aan wat src/go.mod
+      # vraagt; anders weigert `go` de hextra-module op te halen.
+      - name: Setup Go
+        if: ${{ !cancelled() }}
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: src/go.mod
+
+      - name: Install Hugo
+        if: ${{ !cancelled() }}
+        run: |
+          wget -O "${{ runner.temp }}/hugo.deb" \
+            "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb" \
+          && sudo dpkg -i "${{ runner.temp }}/hugo.deb"
+
+      - name: Build
+        id: hugo
+        if: ${{ !cancelled() }}
+        env:
+          HUGO_CACHEDIR: ${{ runner.temp }}/hugo_cache
+          HUGO_ENVIRONMENT: production
+          TZ: Europe/Amsterdam
+        run: cd src && hugo --gc --minify --baseURL "http://localhost/"
+
+      # ── 4. Kapotte interne links ────────────────────────────────────────────
+      #
+      # Met de hand geïnstalleerd in plaats van via lycheeverse/lychee-action,
+      # dat zijn binary met een kale `curl -sfLO` ophaalt: geen retry, en geen
+      # controle op wat er terugkomt. Vastgezette versie, geverifieerde
+      # checksum, retry. De checksum wordt op Renovate-PR's herberekend door
+      # .github/workflows/update-checksums.yml.
+      - name: Install lychee
+        if: ${{ !cancelled() }}
+        env:
+          # extractVersion: lychee tagt zijn releases als "lychee-v0.24.2" en
+          # niet als "v0.24.2", dus het standaardpatroon leest de versie er niet
+          # uit.
+          # renovate: datasource=github-releases depName=lycheeverse/lychee extractVersion=^lychee-v(?<version>.+)$
+          LYCHEE_VERSION: "0.24.2"
+          # Uit de lychee-x86_64-unknown-linux-gnu.tar.gz.sha256 van de release zelf
+          LYCHEE_SHA256: "1f4e0ef7f6554a6ed33dd7ac144fb2e1bbed98598e7af973042fc5cd43951c9a"
+        run: |
+          curl -sSL --fail-with-body -o lychee.tar.gz \
+            --retry 5 --retry-delay 3 --retry-all-errors \
+            "https://github.com/lycheeverse/lychee/releases/download/lychee-v${LYCHEE_VERSION}/lychee-x86_64-unknown-linux-gnu.tar.gz"
+          echo "${LYCHEE_SHA256}  lychee.tar.gz" | sha256sum -c -
+          tar -xzf lychee.tar.gz lychee-x86_64-unknown-linux-gnu/lychee
+          sudo install -m 0755 lychee-x86_64-unknown-linux-gnu/lychee /usr/local/bin/lychee
+          lychee --version
+
+      # lychee in offline modus: elke interne href en src moet uitkomen op een
+      # bestand dat de build daadwerkelijk heeft opgeleverd.
+      #
+      # --index-files: Hugo serveert elke pagina als <pagina>/index.html, en
+      # zonder dit stopt lychee bij de map en zijn #fragments naar een andere
+      # pagina niet te controleren.
+      #
+      # De glob staat bewust tussen quotes: zonder quotes vult bash hem eerst
+      # in, en zonder globstar valt ** terug op een mapniveau.
+      - name: Check internal links
+        id: links
+        if: ${{ !cancelled() }}
+        run: |
+          lychee --offline --include-fragments --index-files index.html \
+            --root-dir "${GITHUB_WORKSPACE}/src/public" "src/public/**/*.html"
+
+      # ── 5. Checklist in de omschrijving bijwerken ───────────────────────────
+      #
+      # Leest de uitkomst van de stappen hierboven in plaats van van losse jobs.
+      # Draait op !cancelled() en niet op success(), want juist bij een rode
+      # controle wil je de checklist bijgewerkt zien.
+      - name: Update PR checklist
+        if: ${{ !cancelled() }}
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          RESULT_BILINGUAL: ${{ steps.bilingual.outcome }}
+          RESULT_HUGO:      ${{ steps.hugo.outcome }}
+          RESULT_LINKS:     ${{ steps.links.outcome }}
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+
+            let body = pr.body || '';
+            if (!body.trim()) return;
+
+            const setCheck = (keyword, passed) => {
+              body = body.replace(
+                new RegExp(`- \\[[ xX]\\] (.*${keyword}.*)`, 'i'),
+                `- [${passed ? 'x' : ' '}] $1`
+              );
+            };
+
+            // Dezelfde typelijst als pr-title.yml en CONTRIBUTING.md. Een scope
+            // en een `!` voor een breaking change zijn toegestaan: feat(nav)!: ...
+            const TITLE_RE =
+              /^(feat|fix|content|docs|chore|refactor|style|revert)(\([^)]+\))?!?: .+/;
+
+            setCheck('PR title follows', TITLE_RE.test(pr.title));
+            setCheck('Both EN',          process.env.RESULT_BILINGUAL === 'success');
+            setCheck('No broken',        process.env.RESULT_LINKS     === 'success');
+            setCheck('Tested locally',   process.env.RESULT_HUGO      === 'success');
+
+            // De niet-gekozen types weghalen, maar alleen als er al een gekozen
+            // is. Zonder die voorwaarde stript de eerste run alle regels weg
+            // voordat de auteur er een heeft aangevinkt.
+            const TYPE_LINE = /^- \[([ xX])\] `\w+` —[^\n]*\n?/gm;
+            const ticked = [...body.matchAll(TYPE_LINE)]
+              .some(m => m[1].toLowerCase() === 'x');
+            if (ticked) {
+              body = body.replace(/^- \[ \] `\w+` —[^\n]*\n?/gm, '');
+            }
+
+            body = body.replace(/\n{3,}/g, '\n\n');
+
+            if (body !== pr.body) {
+              await github.rest.pulls.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number,
+                body,
+              });
+            }

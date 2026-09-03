@@ -1,0 +1,126 @@
+# Copyright (C) 2026 Sten Tijhuis
+# SPDX-License-Identifier: MIT
+name: Config validation
+
+# De bot-configs zijn het enige deel van CI dat verder nergens door wordt
+# geraakt: een kapotte renovate.json of dependabot.yml laat geen build falen,
+# die houdt gewoon stilletjes op met zijn werk. Deze workflow merkt dat op.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'renovate.json'
+      - '.github/renovate.json'
+      - '.github/dependabot.yml'
+      - '.github/dependabot.yaml'
+      - '.github/scripts/check-renovate-patterns.py'
+      # Broader than the other repos: the actionlint job below covers every
+      # workflow, so every workflow change is relevant here.
+      - '.github/workflows/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'renovate.json'
+      - '.github/renovate.json'
+      - '.github/dependabot.yml'
+      - '.github/dependabot.yaml'
+      - '.github/scripts/check-renovate-patterns.py'
+      # Broader than the other repos: the actionlint job below covers every
+      # workflow, so every workflow change is relevant here.
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  bot-configs:
+    name: Renovate and Dependabot config
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 'lts/*'
+
+      # Renovates eigen validator. --strict laat hem ook falen op warnings,
+      # bijvoorbeeld een optie die geldig maar verouderd is. Zonder argumenten
+      # zoekt hij de configbestanden zelf op en valideert hij ze als
+      # repository-config; geef je een pad mee, dan valideert hij ze als
+      # global config, en dat is een andere en zwakkere set regels.
+      #
+      # Bewust niet vastgezet. Dit is een linter op onze eigen config en geen
+      # onderdeel van wat we uitleveren, en juist de nieuwste release kent de
+      # nieuwste deprecations. Zijn eigen versie is geen pull request waard.
+      #
+      # NPM_CONFIG_LOGLEVEL: npm print "npm warn deprecated ..." voor packages
+      # diep in Renovates eigen dependency-boom. Die zeggen niets over de config
+      # die gevalideerd wordt, en ze lezen alsof dat wel zo is, is de fout die
+      # je vanzelf maakt als ze vlak boven de output van de validator staan.
+      - name: Validate Renovate config
+        env:
+          NPM_CONFIG_LOGLEVEL: error
+        run: npx --yes --package renovate -- renovate-config-validator --strict
+
+      # De validator hierboven accepteert een correct gevormd patroon dat
+      # nergens op matcht; dit dekt het gat dat hij daarmee laat.
+      - name: Check Renovate file patterns
+        run: python3 .github/scripts/check-renovate-patterns.py renovate.json .github/renovate.json
+
+      # GitHub valideert dependabot.yml pas als die op de default branch staat,
+      # en meldt het resultaat op een tabblad dat niemand opent. Dit haalt dat
+      # naar voren, naar de pull request.
+      - name: Validate Dependabot config
+        env:
+          # renovate: datasource=pypi depName=check-jsonschema
+          CHECK_JSONSCHEMA_VERSION: "0.38.0"
+        run: |
+          config=""
+          for candidate in .github/dependabot.yml .github/dependabot.yaml; do
+            if [ -f "$candidate" ]; then
+              config="$candidate"
+              break
+            fi
+          done
+          if [ -z "$config" ]; then
+            echo "No dependabot.yml in this repository; nothing to validate."
+            exit 0
+          fi
+          pipx install "check-jsonschema==${CHECK_JSONSCHEMA_VERSION}"
+          check-jsonschema --builtin-schema vendor.dependabot "$config"
+
+      # De workflowbestanden zijn ook config. De andere repositories draaien
+      # actionlint vanuit hun quality-workflow; deze had geen equivalent, dus
+      # het hoort hier.
+      #
+      # Als stap en niet als eigen job: GitHub rekent per job en rondt naar
+      # boven af op een hele minuut. actionlint is in vijf seconden klaar en
+      # heeft dezelfde checkout nodig als de stappen hierboven, dus een eigen
+      # job kostte een volle minuut extra voor niets.
+      #
+      # Vanaf hier draait elke stap op !cancelled(), zodat één rode controle de
+      # andere niet verbergt. De job faalt alsnog zodra er iets fout is.
+      - name: Install actionlint
+        if: ${{ !cancelled() }}
+        env:
+          # renovate: datasource=github-releases depName=rhysd/actionlint
+          ACTIONLINT_VERSION: "1.7.12"
+          ACTIONLINT_SHA256: "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8"
+        run: |
+          curl -sSL --fail-with-body -o actionlint.tar.gz \
+            --retry 5 --retry-delay 3 --retry-all-errors \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          echo "${ACTIONLINT_SHA256}  actionlint.tar.gz" | sha256sum -c -
+          tar -xzf actionlint.tar.gz actionlint
+          sudo install -m 0755 actionlint /usr/local/bin/actionlint
+
+      - name: Run actionlint
+        if: ${{ !cancelled() }}
+        run: actionlint -color

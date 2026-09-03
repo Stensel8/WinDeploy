@@ -1,34 +1,46 @@
+# Copyright (C) 2026 Sten Tijhuis
+# SPDX-License-Identifier: MIT
 name: Validate scripts
+
+# A full deployment cannot run on GitHub-hosted runners (it needs Windows 11
+# 25H2 and real hardware for drivers/BitLocker), but syntax errors, missing
+# functions and broken helper logic are caught here before they reach a
+# production machine. Windows-latest, not ubuntu: the syntax check wants
+# Windows PowerShell/PS7 parsing semantics, and the hostname/architecture
+# checks read real Win32_BIOS/PROCESSOR_ARCHITECTURE values.
+#
+# One job rather than two: GitHub bills per job, rounded up to a whole minute,
+# and both halves need the same windows-latest checkout.
 
 on:
   push:
-    branches: ["**"]
+    branches: [main]
+    paths:
+      - 'Scripts/**'
+      - '.github/workflows/validate.yml'
   pull_request:
-    branches: ["**"]
+    branches: [main]
+    paths:
+      - 'Scripts/**'
+      - '.github/workflows/validate.yml'
   workflow_dispatch:
 
-permissions: read-all
+permissions: {}
 
-# ============================================================
-# Validates that all PowerShell scripts parse and load without
-# errors. A full deployment cannot run on GitHub-hosted runners
-# (requires Windows 11 25H2 + real hardware for drivers/BitLocker),
-# but syntax and logic errors are caught here before they reach
-# a production machine.
-# ============================================================
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-
-  # ----------------------------------------------------------
-  # SYNTAX CHECK
-  # Parses every .ps1 file with PowerShell 7 without executing.
-  # Fails if any file contains a syntax error.
-  # ----------------------------------------------------------
-  syntax-check:
-    name: PowerShell syntax check
+  validate:
+    name: Syntax and helper function checks
     runs-on: windows-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Check PowerShell version
         shell: pwsh
@@ -63,17 +75,6 @@ jobs:
           }
 
           Write-Host "All scripts passed syntax check." -ForegroundColor Green
-
-  # ----------------------------------------------------------
-  # HELPER FUNCTION TESTS
-  # Dot-sources helper functions from Deploy.ps1 and Start.ps1
-  # and exercises non-destructive logic in a dry-run context.
-  # ----------------------------------------------------------
-  helper-tests:
-    name: PowerShell helper function tests
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Test Deploy.ps1 helper functions
         shell: pwsh

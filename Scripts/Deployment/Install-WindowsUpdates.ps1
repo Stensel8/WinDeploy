@@ -17,7 +17,7 @@ Function Write-DeployLog {
     $scriptName = [System.IO.Path]::GetFileNameWithoutExtension([System.IO.Path]::GetFileName($MyInvocation.ScriptName))
     $logFile = Join-Path $logDir "$scriptName.log"
     $Message | Out-File -FilePath $logFile -Append
-    if ($IsError) { Write-Error $Message } else { Write-Output $Message }
+    if ($IsError) { Write-Warning $Message } else { Write-Output $Message }
 }
 
 try {
@@ -49,6 +49,10 @@ try {
 
     Write-DeployLog "Verifying Windows Update service..."
     $wuService = Get-Service -Name wuauserv -ErrorAction SilentlyContinue
+    if (-not $wuService) {
+        Write-DeployLog "Windows Update service (wuauserv) not found on this system." -IsError
+        exit 1
+    }
     if ($wuService.Status -ne 'Running') {
         Write-DeployLog "Starting Windows Update service..."
         Start-Service -Name wuauserv -ErrorAction Stop
@@ -67,18 +71,26 @@ try {
         Write-DeployLog "  - $($update.Title)"
     }
 
-    Write-DeployLog "Installing updates..."
+    Write-DeployLog "Downloading and installing updates. This can take a while..."
     $installedCount = 0
     $failedCount = 0
 
-    foreach ($update in $updates) {
-        try {
-            Write-DeployLog "  - Installing: $($update.Title)"
-            Install-WindowsUpdate -KB $update.KB -AcceptAll -IgnoreReboot -Confirm:$false | Out-Null
-            Write-DeployLog "    Success"
+    try {
+        $results = @(Get-WindowsUpdate -MicrosoftUpdate -Install -AcceptAll -IgnoreReboot -Confirm:$false -ErrorAction Stop)
+    } catch {
+        Write-DeployLog "Update installation failed: $($_.Exception.Message)" -IsError
+        $results = @()
+        $failedCount = $updates.Count
+    }
+
+    foreach ($result in $results) {
+        $title  = if ($result.PSObject.Properties.Name -contains 'Title')  { $result.Title }  else { 'Unknown update' }
+        $status = if ($result.PSObject.Properties.Name -contains 'Result') { $result.Result } else { 'Unknown' }
+        if ($status -match 'Installed|Succeeded') {
+            Write-DeployLog "  - Installed: $title"
             $installedCount++
-        } catch {
-            Write-DeployLog "    Failed: $($_.Exception.Message)" -IsError
+        } else {
+            Write-DeployLog "  - $status`: $title" -IsError
             $failedCount++
         }
     }

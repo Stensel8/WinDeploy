@@ -1,0 +1,89 @@
+# Copyright (C) 2026 Sten Tijhuis
+# SPDX-License-Identifier: MIT
+name: Deploy to Bunny.net
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - 'src/**'
+      - '.github/workflows/deploy-bunny.yml'
+  workflow_dispatch:
+
+# Geen token nodig; jobs die dat wel zijn, vragen er expliciet om.
+permissions: {}
+
+concurrency:
+  group: "deploy"
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: Build and deploy to Bunny Storage
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      HUGO_VERSION: 0.165.0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # go-version-file houdt de Go van de runner gelijk aan wat src/go.mod
+      # vraagt. Zonder dit installeert setup-go een oudere Go met
+      # GOTOOLCHAIN=local, en dan weigert `go` de hextra-module op te halen
+      # omdat go.mod een nieuwere Go eist dan er staat.
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: src/go.mod
+
+      - name: Install Hugo
+        run: |
+          wget -O "${{ runner.temp }}/hugo.deb" \
+            "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb" \
+          && sudo dpkg -i "${{ runner.temp }}/hugo.deb"
+
+      - name: Build with Hugo
+        env:
+          HUGO_CACHEDIR: ${{ runner.temp }}/hugo_cache
+          HUGO_ENVIRONMENT: production
+          TZ: Europe/Amsterdam
+        run: |
+          cd src && hugo \
+            --gc \
+            --minify \
+            --baseURL "https://windeploy.thectic.nl/"
+
+      - name: Upload to Bunny Storage
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.BUNNY_STORAGE_ZONE }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.BUNNY_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: de
+          STORAGE_ZONE: ${{ secrets.BUNNY_STORAGE_ZONE }}
+          STORAGE_ENDPOINT: ${{ secrets.BUNNY_STORAGE_ENDPOINT }}
+        run: |
+          aws s3 sync src/public/ "s3://${STORAGE_ZONE}/" \
+            --endpoint-url "${STORAGE_ENDPOINT}" \
+            --delete \
+            --no-progress
+
+      - name: Wait for storage replication
+        run: sleep 15
+
+      - name: Purge Bunny Pull Zone cache
+        env:
+          PULL_ZONE_ID: ${{ secrets.BUNNY_PULL_ZONE_ID }}
+          API_KEY: ${{ secrets.BUNNY_API_KEY }}
+        run: |
+          curl -sS --fail-with-body -X POST \
+            "https://api.bunny.net/pullzone/${PULL_ZONE_ID}/purgeCache" \
+            -H "AccessKey: ${API_KEY}" \
+            -H "Content-Type: application/json"

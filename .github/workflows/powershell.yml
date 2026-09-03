@@ -1,0 +1,63 @@
+# Copyright (C) 2026 Sten Tijhuis
+# SPDX-License-Identifier: MIT
+name: PSScriptAnalyzer
+
+# The deployment scripts are the core of this repository, so the PowerShell
+# lint keeps its own workflow. Settings live in .github/PSScriptAnalyzerSettings.psd1.
+#
+# microsoft/psscriptanalyzer-action is not certified by GitHub and carries no
+# version tags, so it is pinned to a commit SHA.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**/*.ps1'
+      - '**/*.psm1'
+      - '**/*.psd1'
+      - '.github/workflows/powershell.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - '**/*.ps1'
+      - '**/*.psm1'
+      - '**/*.psd1'
+      - '.github/workflows/powershell.yml'
+  schedule:
+    - cron: '43 19 * * 3'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: powershell-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  psscriptanalyzer:
+    name: PSScriptAnalyzer
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # For the SARIF upload to the Security tab.
+      security-events: write
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run PSScriptAnalyzer
+        uses: microsoft/psscriptanalyzer-action@6b2948b1944407914a58661c49941824d149734f # v1.1
+        with:
+          path: .\
+          recurse: true
+          settings: .github/PSScriptAnalyzerSettings.psd1
+          output: results.sarif
+
+      - name: Upload SARIF results file
+        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        if: ${{ !cancelled() }}
+        with:
+          sarif_file: results.sarif
+          category: psscriptanalyzer

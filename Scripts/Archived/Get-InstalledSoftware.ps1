@@ -6,7 +6,7 @@
 
 .TAGS PowerShell Windows Software Inventory Registry AppX Reporting
 
-.PROJECTURI https://github.com/Stensel8/WinDeploy
+.PROJECTURI https://github.com/THectic-NL/WinDeploy
 
 #>
 
@@ -30,7 +30,7 @@
     Requires     : PowerShell 5.1+
 
 .LINK
-    Project Site: https://github.com/Stensel8/WinDeploy
+    Project Site: https://github.com/THectic-NL/WinDeploy
 #>
 
 Set-StrictMode -Version Latest

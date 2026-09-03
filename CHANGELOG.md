@@ -7,6 +7,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.0] - 2026-09-02
+
+Repository moved from `Stensel8/WinDeploy` to `THectic-NL/WinDeploy`.
+
+### Added
+- `src/`. A Hugo landing page for windeploy.thectic.nl (English + Dutch), matching the site structure already in use for [BypassNRO](https://github.com/THectic-NL/BypassNRO). It documents the project; it does not host the deployment scripts. `Scripts/` and `Docs/` are unchanged in location and behaviour, and GitHub Releases stays the distribution mechanism, so a run started against one release tag keeps using that tag's scripts throughout, even if `main` changes mid-run.
+- `.github/workflows/deploy-bunny.yml`, `pr-checks.yml`, `pr-title.yml`, `config-validation.yml`, `trivy-scan.yml`, `update-checksums.yml`, `.github/scripts/`. CI for the new site, matching the shared org convention.
+- `renovate.json`: `gomod` and `custom.regex` managers, for the site's Go module and the hand-pinned tool versions in the new workflows.
+
+### Changed
+- All `Stensel8/WinDeploy` references (README, SECURITY.md, `Docs/autounattend.xml`, `Scripts/Start.ps1`, `Scripts/Deploy.ps1`, old changelog release links) now point at `THectic-NL/WinDeploy`.
+- `.github/workflows/validate.yml`: the syntax-check and helper-function-test jobs merged into one job (same runner, one less billed minute), path-scoped to `Scripts/**`, otherwise unchanged.
+- `CONTRIBUTING.md`, `.github/pull_request_template.md`: extended with the site's bilingual-content and Hugo-build checks, alongside the existing Windows-testing requirement, which stays required for anything under `Scripts/` or `Docs/`.
+
+### Removed
+- `.github/workflows/codeql.yml`, `dependency-review.yml`, `security.yml`, `stale.yml`, in favour of the leaner CI set above (PSScriptAnalyzer + Trivy + actionlint, no DevSkim/Semgrep/CodeQL-for-Actions/dependency-review/stale-bot). This mirrors what already happened to BypassNRO; flagging it here since it is a real reduction in automated security-scanning coverage, not just a rename.
+
+### Notes
+- `windeploy.stensel.nl` (the "Option 3" one-liner in the README) is an external redirect that pointed at the old repository. It is not part of this repository and needs to be repointed or retired separately.
+
+---
+
+## [0.8.0] - 2026-08-29
+
+### Added
+- `Scripts/Deployment/Apply-Tweaks.ps1`. Optional step that applies a [WinUtil](https://github.com/ChrisTitusTech/winutil) preset (`Standard` by default) after a Y/N prompt, listing what the preset changes before you answer. Runs in its own process so a failure there cannot take down the deployment.
+- BitLocker now creates a recovery password protector, saves it to the operator's Documents folder and prints it on screen. Previously only a TPM protector was created, leaving the drive unrecoverable after a TPM clear, mainboard swap or firmware change — while the script told the operator to export a recovery key that never existed.
+- BitLocker is opt-in via a Y/N prompt (`-BitLocker Ask|Yes|No`). All other hardening still applies unconditionally.
+- `-NonInteractive` switch on `Deploy.ps1` and `Start.ps1`, forwarded from `autounattend.xml`, so the USB path stays zero-touch.
+- Hardening extended with LSA protection (RunAsPPL), WDigest plaintext caching disabled, anonymous SAM/share enumeration restricted, SMB client and server signing required, insecure SMB guest logons blocked, LLMNR disabled, memory integrity (HVCI) enabled, SMBv1 feature removed, and 9 Defender Attack Surface Reduction rules.
+- `Remove-Bloat.ps1` now implements the "prevents reinstall" its header promised, via `DisableWindowsConsumerFeatures` and related CloudContent/Store policies.
+
+### Fixed
+- `Docs/autounattend.xml` never launched WinDeploy. The first-logon script was generated as `unattend-02.cmd` but contained PowerShell, which `cmd.exe` cannot run. It is now a `.ps1`, and the generator URL in the header comment was corrected to `FirstLogonScriptType1=Ps1` so regenerating reproduces the fix.
+- `Harden-Windows.ps1` set `SMB2 = 0` under `LanmanServer\Parameters`, which disables SMB2 and SMB3 and breaks file and printer sharing. Microsoft advises against it. Removed and replaced with SMB signing and guest-logon hardening.
+- `Test-IntuneEnrollment` crashed under `Set-StrictMode` when the `Enrollments` key was absent: `Get-ChildItem -ErrorAction SilentlyContinue` returns `$null`, and `$null.Count` throws.
+- `Deploy.ps1` crashed under `Set-StrictMode` on the first step, because `$LASTEXITCODE` is undefined until something sets it. It also never reset between steps, so one failing step marked every later step as failed. Now reset to `0` before each step.
+- Screen lock settings were written to `HKCU`, which during deployment belongs to the deployment account rather than the end user. Now written to the machine-wide policy hive. `SCRNSAVE.EXE` was also empty, so Windows never started a screen saver and the secure lock never triggered; it now points at `scrnsave.scr`.
+- `winget install` was missing `--silent`, so applications could show installer UI mid-deployment. It now also passes `--exact` and `--disable-interactivity`.
+- The Office ODT configuration used `<Display Level="Full" />`, which installs interactively. Now `None`.
+- Windows Updates without a KB number (drivers, definitions) were skipped, because `Install-WindowsUpdate -KB $update.KB` cannot install them. Replaced with a single `Get-WindowsUpdate -Install` pass, which is also considerably faster.
+- Seven WinGet font error codes were typed as `-1979335xxx` instead of `-1978335xxx`, so they could never match a real exit code.
+- `Install-Drivers.ps1` matched HP with `-like "*hp*"`, which also matches manufacturers such as "Sharp". Now matched as a whole token.
+- `Install-Drivers.ps1` installed `HPCMSL` without bootstrapping the NuGet provider or trusting PSGallery, so it prompted and stalled, or failed outright. It now does the same bootstrap `Install-WindowsUpdates.ps1` already did.
+- `Install-WindowsUpdates.ps1` threw under `Set-StrictMode` if `wuauserv` could not be found, instead of reporting it.
+- `Remove-Bloat.ps1` logged to `%TEMP%\WinDeploy\Logs` while every other script and the README use `C:\WinDeploy\Logs`.
+- `Remove-Bloat.ps1` used the `` `e `` escape (PowerShell 6+) in a script that declares `#requires -Version 5.1`, where it prints as literal text.
+- The RMM step no longer wraps the installer in a background job that `Remove-Job -Force` could kill. `Install-RMMAgent.ps1` already launches the agent detached, so it runs inline like every other step.
+- "Press Enter to exit" prompts now time out after 120 seconds instead of blocking an unattended deployment.
+
+### Changed
+- Deployment scripts log failures with `Write-Warning` instead of `Write-Error`, which printed a full error record with category and stack trace for every non-fatal skip. `Deploy.ps1` already did this.
+- `Remove-Bloat.ps1` bloatware list extended with Windows 11 24H2/25H2 in-box apps: Dev Home, the new Outlook, Edge Game Assist, Cross Device (Phone Link), Start Experiences, Meet Now and the Copilot AI provider.
+
+---
+
 ## [0.7.3] - 2026-05-01
 
 ### Fixed
@@ -128,7 +184,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Bitlocker enablement issue: Sometimes Bitlocker failed to enable due to the TPM not being ready.
-- Fixed an issue with RMM Agents not installing correctly. [#11](https://github.com/Stensel8/WinDeploy/issues/11)
+- Fixed an issue with RMM Agents not installing correctly. [#11](https://github.com/THectic-NL/WinDeploy/issues/11)
 - Fixed a rare hang where deployment would stall after detecting the RMM installer on USB. The installer was being invoked via PowerShell incorrectly which could prevent it from receiving silent switches; changed to run the installer directly and wait for completion, added longer timeouts and improved logging.
 
 ## [0.5.6] - 2025-11-20
@@ -197,10 +253,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.5.0] - 2025-11-14
 
-### Fixed
-- Fixed bloatware removal printing duplicate messages on screen by removing redundant Write-Output calls
-- Improved admin elevation handling in Start.ps1 and Deploy.ps1 to prevent script crashes when not run as administrator
-
 ### Added
 - Added documentation for Intune Autopilot device preparation setup (`Docs/Intune-Autopilot-Setup.md`)
 - Added RMM agent installation support with USB detection and download fallback
@@ -216,6 +268,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed unused utility modules and scripts
 
 ### Fixed
+- Fixed bloatware removal printing duplicate messages on screen by removing redundant Write-Output calls
+- Improved admin elevation handling in Start.ps1 and Deploy.ps1 to prevent script crashes when not run as administrator
 - Improved error handling and logging across all scripts
 - Enhanced compatibility and reliability of deployment process
 
@@ -250,16 +304,18 @@ First open-source release of WinDeploy - Windows Deployment Automation Toolkit. 
 ---
 
 
-[0.7.3]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.7.3
-[0.7.2]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.7.2
-[0.7.1]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.7.1
-[0.7.0]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.7.0
-[0.6.1]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.6.1
-[0.6.0]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.6.0
-[0.5.5]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.5
-[0.5.4]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.4
-[0.5.3]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.3
-[0.5.2]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.2
-[0.5.0]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.5.0
-[0.1.2]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.1.2
-[0.1.1]: https://github.com/Stensel8/WinDeploy/releases/tag/v0.1.1
+[0.9.0]: https://github.com/THectic-NL/WinDeploy/releases/tag/v0.9.0
+[0.8.0]: https://github.com/THectic-NL/WinDeploy/releases/tag/v0.8.0
+[0.7.3]: https://github.com/THectic-NL/WinDeploy/releases/tag/v0.7.3
+[0.7.2]: https://github.com/THectic-NL/WinDeploy/releases/tag/v0.7.2
+[0.7.1]: https://github.com/THectic-NL/WinDeploy/releases/tag/v0.7.1
+[0.7.0]: https://github.com/THectic-NL/WinDeploy/releases/tag/v0.7.0
+[0.6.1]: https://github.com/THectic-NL/WinDeploy/releases/tag/v0.6.1
+[0.6.0]: https://github.com/THectic-NL/WinDeploy/releases/tag/v0.6.0
+[0.5.5]: https://github.com/THectic-NL/WinDeploy/releases/tag/v0.5.5
+[0.5.4]: https://github.com/THectic-NL/WinDeploy/releases/tag/v0.5.4
+[0.5.3]: https://github.com/THectic-NL/WinDeploy/releases/tag/v0.5.3
+[0.5.2]: https://github.com/THectic-NL/WinDeploy/releases/tag/v0.5.2
+[0.5.0]: https://github.com/THectic-NL/WinDeploy/releases/tag/v0.5.0
+[0.1.2]: https://github.com/THectic-NL/WinDeploy/releases/tag/v0.1.2
+[0.1.1]: https://github.com/THectic-NL/WinDeploy/releases/tag/v0.1.1

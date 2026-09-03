@@ -1,0 +1,73 @@
+baseURL = 'https://windeploy.thectic.nl/'
+title = 'WinDeploy'
+defaultContentLanguage = 'en'
+enableRobotsTXT = true
+disableKinds = ['taxonomy', 'term', 'RSS']
+disableHugoGeneratorInject = true
+
+[languages]
+  [languages.en]
+    label = 'English'
+    weight = 1
+    title = 'WinDeploy'
+    locale = 'en-US'
+  [languages.nl]
+    label = 'Nederlands'
+    weight = 2
+    title = 'WinDeploy'
+    locale = 'nl-NL'
+
+[menu]
+  [[menu.main]]
+    name = 'GitHub'
+    weight = 1
+    url = 'https://github.com/THectic-NL/WinDeploy'
+    [menu.main.params]
+      icon = 'github'
+  [[menu.main]]
+    name = 'Language'
+    weight = 2
+    [menu.main.params]
+      type = 'language-switch'
+  [[menu.main]]
+    name = 'Theme'
+    weight = 3
+    [menu.main.params]
+      type = 'theme-toggle'
+
+[params]
+  description = 'Zero-touch Windows 11 deployment: drivers, applications, bloatware removal, security hardening and BitLocker, orchestrated from PowerShell 7'
+  copyright = 'THectic'
+
+  [params.navbar]
+    displayTitle = true
+    displayLogo = false
+    width = 'wide'
+
+  [params.theme]
+    default = 'system'
+    displayToggle = false
+
+  [params.footer]
+    enable = true
+    displayCopyright = false
+    displayPoweredBy = false
+    width = 'normal'
+
+  displayUpdatedDate = true
+  dateFormat = 'January 2, 2006'
+
+  [params.editURL]
+    enable = false
+
+  [params.page]
+    width = 'wide'
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+
+[module]
+  [[module.imports]]
+    path = "github.com/imfing/hextra"

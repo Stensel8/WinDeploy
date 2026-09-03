@@ -6,10 +6,10 @@
 [![PowerShell 7.0+](https://img.shields.io/badge/PowerShell-7.0+-blue.svg)](https://github.com/PowerShell/PowerShell)
 [![Windows 11 25H2](https://img.shields.io/badge/Windows-11_25H2-0078D6.svg)](https://www.microsoft.com/windows)
 
-[![Security scanning](https://github.com/Stensel8/WinDeploy/actions/workflows/security.yml/badge.svg)](https://github.com/Stensel8/WinDeploy/actions/workflows/security.yml)
-[![Validate scripts](https://github.com/Stensel8/WinDeploy/actions/workflows/validate.yml/badge.svg)](https://github.com/Stensel8/WinDeploy/actions/workflows/validate.yml)
-[![CodeQL](https://github.com/Stensel8/WinDeploy/actions/workflows/codeql.yml/badge.svg)](https://github.com/Stensel8/WinDeploy/actions/workflows/codeql.yml)
-[![Dependabot Updates](https://github.com/Stensel8/WinDeploy/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/Stensel8/WinDeploy/actions/workflows/dependabot/dependabot-updates)
+[![Security scanning](https://github.com/THectic-NL/WinDeploy/actions/workflows/security.yml/badge.svg)](https://github.com/THectic-NL/WinDeploy/actions/workflows/security.yml)
+[![Validate scripts](https://github.com/THectic-NL/WinDeploy/actions/workflows/validate.yml/badge.svg)](https://github.com/THectic-NL/WinDeploy/actions/workflows/validate.yml)
+[![CodeQL](https://github.com/THectic-NL/WinDeploy/actions/workflows/codeql.yml/badge.svg)](https://github.com/THectic-NL/WinDeploy/actions/workflows/codeql.yml)
+[![Dependabot Updates](https://github.com/THectic-NL/WinDeploy/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/THectic-NL/WinDeploy/actions/workflows/dependabot/dependabot-updates)
 
 Zero-touch Windows deployment with automatic driver updates, application installation, bloatware removal, and system configuration. Deploy via USB, network, RMM agents, or AutoUnattend.xml.
 
@@ -47,10 +47,14 @@ Zero-touch Windows deployment with automatic driver updates, application install
 ### Option 2: Direct Execution
 ```powershell
 # Run as Administrator in PowerShell 7
-iex (irm "https://raw.githubusercontent.com/Stensel8/WinDeploy/$((irm https://api.github.com/repos/Stensel8/WinDeploy/releases/latest).tag_name)/Scripts/Start.ps1")
+iex (irm "https://raw.githubusercontent.com/THectic-NL/WinDeploy/$((irm https://api.github.com/repos/THectic-NL/WinDeploy/releases/latest).tag_name)/Scripts/Start.ps1")
 ```
 
 ### Option 3: One-liner
+
+> [!NOTE]
+> `windeploy.stensel.nl` pointed at Option 2 before this project moved to THectic-NL. That redirect needs to be repointed (or retired) separately — it isn't part of this repository.
+
 ```powershell
 # Run as Administrator in PowerShell 7
 iex (irm windeploy.stensel.nl)
@@ -74,15 +78,34 @@ graph TD
     H --> I[Install RMM Agent]
     I --> J[Update Drivers]
     J --> K[Windows Hardening]
-    K --> L[Install Applications]
+    K --> K2{Enable BitLocker?}
+    K2 -->|Y| K3[Encrypt C: + save recovery key]
+    K2 -->|N / timeout| L
+    K3 --> L
+    L[Install Applications]
     L --> M[Remove Bloatware]
-    M --> N[Apply Theme]
+    M --> M2{Run WinUtil tweaks?}
+    M2 -->|Y| M3[Apply WinUtil preset]
+    M2 -->|N / timeout| N
+    M3 --> N
+    N[Apply Theme]
     N --> O[Set Hostname]
     O --> P[Install Windows Updates]
     P --> Q[Complete]
 ```
 
 `Start.ps1` ensures PowerShell 7 and WinGet are available, handles elevation, and downloads `Deploy.ps1`. `Deploy.ps1` orchestrates the deployment by downloading and executing each script in sequence.
+
+### Interactive steps
+
+BitLocker (in `Harden-Windows.ps1`) and the WinUtil tweaks (`Apply-Tweaks.ps1`) each ask Y/N before running. Both time out after 90 seconds and default to **No**, so an unattended run never stalls. Everything else is applied automatically.
+
+```powershell
+.\Deploy.ps1 -NonInteractive              # no prompts, both skipped
+.\Deploy.ps1 -BitLocker Yes -Tweaks Yes   # no prompts, both applied
+```
+
+The `autounattend.xml` USB deployment passes `-NonInteractive` automatically.
 
 ---
 
@@ -118,11 +141,53 @@ Place your agent installer as `Agent.exe` (or any `*agent*.exe`) on the USB driv
 
 ---
 
+## Security hardening
+
+`Harden-Windows.ps1` applies these automatically:
+
+| Area | Setting |
+|---|---|
+| Removable media | AutoRun disabled, `autorun.inf` blocked |
+| SMB | SMBv1 feature removed, client + server signing required, insecure guest logons blocked |
+| Credentials | LSA protection (RunAsPPL), WDigest plaintext caching off, anonymous SAM/share enumeration restricted |
+| Network | LLMNR disabled |
+| Code integrity | Memory integrity (HVCI) enabled |
+| Defender | 9 Attack Surface Reduction rules enabled |
+| Other | Device co-installers disabled, Windows Script Host disabled |
+| Screen lock | Secure screen saver after 15 minutes, console lock on resume |
+
+Memory integrity, LSA protection and SMB signing require a restart. Windows Script Host is disabled; a few legacy MSI installers use VBScript custom actions and can fail because of it.
+
+### BitLocker
+
+Opt-in, asks Y/N. On yes: `C:` is encrypted with XTS-AES-256 (used space only, TPM-bound), a recovery password is created, written to your Documents folder and printed on screen.
+
+**Store that key elsewhere and delete the file.** Without it the drive cannot be recovered after a TPM clear, mainboard swap or firmware change.
+
+```powershell
+.\Harden-Windows.ps1 -BitLocker Yes   # encrypt without prompting
+.\Harden-Windows.ps1 -BitLocker No    # skip BitLocker, apply the rest
+```
+
+---
+
+## Optional tweaks (WinUtil)
+
+`Apply-Tweaks.ps1` runs a [WinUtil](https://github.com/ChrisTitusTech/winutil) preset after a Y/N prompt, in its own process. Standard creates a restore point, then disables activity history, location, telemetry, consumer features, Delivery Optimization and Explorer folder-type auto-discovery, sets non-essential services to manual, and cleans temp files.
+
+```powershell
+.\Apply-Tweaks.ps1 -Tweaks Yes                     # Standard preset
+.\Apply-Tweaks.ps1 -Tweaks Yes -Preset Minimal
+.\Apply-Tweaks.ps1 -Tweaks Yes -Preset Advanced    # also removes OneDrive, widgets, Windows AI
+```
+
+---
+
 ## Logging
 
 All operations are logged to `C:\WinDeploy\Logs\`:
 - `Start.log`. Main entry point log.
-- `Install-Drivers.log`, `Install-Applications.log`, etc. Per-script logs.
+- `Install-Drivers.log`, `Install-Applications.log`, `Harden-Windows.log`, `Apply-Tweaks.log`, etc. Per-script logs.
 
 View logs in real-time:
 ```powershell
@@ -196,8 +261,8 @@ winget-install
 
 Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-- **Issues**: [GitHub Issues](https://github.com/Stensel8/WinDeploy/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Stensel8/WinDeploy/discussions)
+- **Issues**: [GitHub Issues](https://github.com/THectic-NL/WinDeploy/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/THectic-NL/WinDeploy/discussions)
 
 ## Disclaimer
 
