@@ -50,16 +50,6 @@ Zero-touch Windows deployment with automatic driver updates, application install
 iex (irm "https://raw.githubusercontent.com/THectic-NL/WinDeploy/$((irm https://api.github.com/repos/THectic-NL/WinDeploy/releases/latest).tag_name)/Scripts/Start.ps1")
 ```
 
-### Option 3: One-liner
-
-> [!NOTE]
-> `windeploy.stensel.nl` pointed at Option 2 before this project moved to THectic-NL. That redirect needs to be repointed (or retired) separately — it isn't part of this repository.
-
-```powershell
-# Run as Administrator in PowerShell 7
-iex (irm windeploy.stensel.nl)
-```
-
 ---
 
 ## How It Works
@@ -84,11 +74,8 @@ graph TD
     K3 --> L
     L[Install Applications]
     L --> M[Remove Bloatware]
-    M --> M2{Run WinUtil tweaks?}
-    M2 -->|Y| M3[Apply WinUtil preset]
-    M2 -->|N / timeout| N
-    M3 --> N
-    N[Apply Theme]
+    M --> M3[Apply WinUtil Standard preset]
+    M3 --> N[Apply Theme]
     N --> O[Set Hostname]
     O --> P[Install Windows Updates]
     P --> Q[Complete]
@@ -98,14 +85,14 @@ graph TD
 
 ### Interactive steps
 
-BitLocker (in `Harden-Windows.ps1`) and the WinUtil tweaks (`Apply-Tweaks.ps1`) each ask Y/N before running. Both time out after 90 seconds and default to **No**, so an unattended run never stalls. Everything else is applied automatically.
+BitLocker (in `Harden-Windows.ps1`) asks Y/N before running; it times out after 90 seconds and defaults to **No**, so an unattended run never stalls. The WinUtil tweaks (`Apply-Tweaks.ps1`) run automatically with the `Standard` preset - pass `-Tweaks No` to skip them, or `-Tweaks Ask` to be prompted instead. Everything else is applied automatically.
 
 ```powershell
-.\Deploy.ps1 -NonInteractive              # no prompts, both skipped
-.\Deploy.ps1 -BitLocker Yes -Tweaks Yes   # no prompts, both applied
+.\Deploy.ps1 -NonInteractive              # no prompts; BitLocker skipped, WinUtil Standard preset still runs
+.\Deploy.ps1 -BitLocker Yes -Tweaks No    # no prompts; BitLocker applied, WinUtil skipped
 ```
 
-The `autounattend.xml` USB deployment passes `-NonInteractive` automatically.
+The `autounattend.xml` USB deployment passes `-NonInteractive` automatically, so it also gets the WinUtil `Standard` preset unattended.
 
 ---
 
@@ -171,14 +158,16 @@ Opt-in, asks Y/N. On yes: `C:` is encrypted with XTS-AES-256 (used space only, T
 
 ---
 
-## Optional tweaks (WinUtil)
+## WinUtil tweaks
 
-`Apply-Tweaks.ps1` runs a [WinUtil](https://github.com/ChrisTitusTech/winutil) preset after a Y/N prompt, in its own process. Standard creates a restore point, then disables activity history, location, telemetry, consumer features, Delivery Optimization and Explorer folder-type auto-discovery, sets non-essential services to manual, and cleans temp files.
+`Apply-Tweaks.ps1` runs a [WinUtil](https://github.com/ChrisTitusTech/winutil) preset in its own process, by default with no prompt. Standard creates a restore point, then disables activity history, location, telemetry, consumer features, Delivery Optimization and Explorer folder-type auto-discovery, sets non-essential services to manual, and cleans temp files.
 
 ```powershell
-.\Apply-Tweaks.ps1 -Tweaks Yes                     # Standard preset
-.\Apply-Tweaks.ps1 -Tweaks Yes -Preset Minimal
-.\Apply-Tweaks.ps1 -Tweaks Yes -Preset Advanced    # also removes OneDrive, widgets, Windows AI
+.\Apply-Tweaks.ps1                     # Standard preset, no prompt (default)
+.\Apply-Tweaks.ps1 -Tweaks No          # skip it
+.\Apply-Tweaks.ps1 -Tweaks Ask         # ask Y/N instead
+.\Apply-Tweaks.ps1 -Preset Minimal
+.\Apply-Tweaks.ps1 -Preset Advanced    # also removes OneDrive, widgets, Windows AI
 ```
 
 ---

@@ -3,8 +3,9 @@
 # Applies a WinUtil (ChrisTitusTech) tweak preset.
 # Standalone script - can be deployed via any management tool.
 #
-# This step downloads and runs a THIRD-PARTY script from christitus.com, so it
-# is opt-in: the operator has to confirm with Y before anything runs.
+# This step downloads and runs a THIRD-PARTY script from christitus.com. It
+# runs by default (-Tweaks Yes) since stock Windows' defaults are exactly what
+# it's meant to fix; pass -Tweaks No to skip it or -Tweaks Ask to be prompted.
 # ============================================================================
 
 #requires -Version 5.1
@@ -12,11 +13,11 @@
 
 [CmdletBinding()]
 param(
-    # Ask  = prompt the operator (default)
-    # Yes  = run without prompting
+    # Ask  = prompt the operator
+    # Yes  = run without prompting (default)
     # No   = skip this step
     [ValidateSet('Ask', 'Yes', 'No')]
-    [string]$Tweaks = 'Ask',
+    [string]$Tweaks = 'Yes',
 
     # WinUtil preset to apply. See Get-PresetSummary below for what each does.
     [ValidateSet('Standard', 'Minimal', 'Advanced')]

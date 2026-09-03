@@ -8,8 +8,12 @@ param(
     [ValidateSet('Ask', 'Yes', 'No')]
     [string]$BitLocker = 'Ask',
 
+    # Defaults to Yes: the WinUtil Standard preset's QoL tweaks (disables
+    # telemetry, consumer features, Delivery Optimization, etc.) are wanted on
+    # every deployment, not opt-in. Pass -Tweaks No to skip it, or -Tweaks Ask
+    # to be prompted instead.
     [ValidateSet('Ask', 'Yes', 'No')]
-    [string]$Tweaks = 'Ask'
+    [string]$Tweaks = 'Yes'
 )
 
 Set-StrictMode -Version Latest
@@ -17,7 +21,7 @@ $ErrorActionPreference = 'Continue'
 
 if ($NonInteractive) {
     if ($BitLocker -eq 'Ask') { $BitLocker = 'No' }
-    if ($Tweaks -eq 'Ask')    { $Tweaks = 'No' }
+    if ($Tweaks -eq 'Ask')    { $Tweaks = 'Yes' }
 }
 
 # Waits for Enter, but never longer than $TimeoutSeconds, so an unattended

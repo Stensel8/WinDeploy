@@ -53,11 +53,11 @@ Voor USB/offline installaties via `autounattend.xml`, en de volledige configurat
 | Hardening | SMB signing, LSA-protection, HVCI, Defender ASR-regels, schermvergrendeling — zie hieronder |
 | Applicaties | WinGet + Microsoft 365 via CDN/ODT |
 | Bloatware verwijderen | Verwijdert consumer-apps, blokkeert herinstallatie via policy |
-| Tweaks *(optioneel)* | Een [WinUtil](https://github.com/ChrisTitusTech/winutil)-preset, achter een Y/N-prompt |
+| Tweaks | Een [WinUtil](https://github.com/ChrisTitusTech/winutil) `Standard`-preset, automatisch toegepast |
 | Thema, hostnaam | Dark mode, `PC-<serienummer>`-naamgeving |
 | Windows Update | Installeert alles wat beschikbaar is |
 
-Twee stappen vragen eerst om bevestiging: **BitLocker** en de **WinUtil-tweaks**. Beide lopen na 90 seconden af en kiezen dan standaard nee, zodat een onbeheerde run nooit vastloopt. Geef `-NonInteractive` mee om beide direct over te slaan.
+**BitLocker** vraagt eerst om bevestiging, loopt na 90 seconden af en kiest dan standaard nee, zodat een onbeheerde run nooit vastloopt. Geef `-NonInteractive` mee om dit over te slaan. De **WinUtil-tweaks** worden automatisch toegepast, zonder prompt; geef `-Tweaks No` mee om ze over te slaan.
 
 ## Security hardening
 

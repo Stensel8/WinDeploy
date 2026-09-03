@@ -20,12 +20,15 @@ Repository moved from `Stensel8/WinDeploy` to `THectic-NL/WinDeploy`.
 - All `Stensel8/WinDeploy` references (README, SECURITY.md, `Docs/autounattend.xml`, `Scripts/Start.ps1`, `Scripts/Deploy.ps1`, old changelog release links) now point at `THectic-NL/WinDeploy`.
 - `.github/workflows/validate.yml`: the syntax-check and helper-function-test jobs merged into one job (same runner, one less billed minute), path-scoped to `Scripts/**`, otherwise unchanged.
 - `CONTRIBUTING.md`, `.github/pull_request_template.md`: extended with the site's bilingual-content and Hugo-build checks, alongside the existing Windows-testing requirement, which stays required for anything under `Scripts/` or `Docs/`.
+- `Apply-Tweaks.ps1` / `Deploy.ps1`: the WinUtil `Standard` preset now runs by default (`-Tweaks` defaults to `Yes`, including under `-NonInteractive`) instead of asking Y/N. Pass `-Tweaks No` to skip it, or `-Tweaks Ask` to get the old prompt back.
+- README's "Option 3" `windeploy.stensel.nl` one-liner removed. It pointed at the old repository and isn't part of this one; Option 2 (direct execution against the latest `THectic-NL/WinDeploy` release) is the only one-liner now.
+
+### Fixed
+- `Start.ps1`: installing PowerShell 7 via WinGet was checked only once, 5 seconds after the install command returned. On a slower box that check could run before the install had actually finished writing `pwsh.exe`, so the script treated a still-succeeding WinGet install as failed and ran the MSI installer as well - installing PowerShell 7 twice (two separate Start Menu entries). Now polls for up to 20 seconds and logs WinGet's own exit code before falling back.
+- `Set-HostName.ps1`: exited with code 1 when no valid BIOS serial number was found (e.g. on VMs, or hardware without a real factory serial) even though this is an expected, already-handled condition with the same "set it manually" guidance the other non-fatal branches in this script give. `Deploy.ps1` counted that exit code as a failed step, so a run with nothing else wrong still ended with "Some deployment steps failed." Now exits 0, matching every other branch in the script.
 
 ### Removed
 - `.github/workflows/codeql.yml`, `dependency-review.yml`, `security.yml`, `stale.yml`, in favour of the leaner CI set above (PSScriptAnalyzer + Trivy + actionlint, no DevSkim/Semgrep/CodeQL-for-Actions/dependency-review/stale-bot). This mirrors what already happened to BypassNRO; flagging it here since it is a real reduction in automated security-scanning coverage, not just a rename.
-
-### Notes
-- `windeploy.stensel.nl` (the "Option 3" one-liner in the README) is an external redirect that pointed at the old repository. It is not part of this repository and needs to be repointed or retired separately.
 
 ---
 
