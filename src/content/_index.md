@@ -53,11 +53,11 @@ For USB / offline installs via `autounattend.xml`, and the full configuration re
 | Hardening | SMB signing, LSA protection, HVCI, Defender ASR rules, screen lock — see below |
 | Applications | WinGet + Microsoft 365 via CDN/ODT |
 | Bloatware removal | Removes consumer apps, blocks their reinstall via policy |
-| Tweaks *(opt-in)* | A [WinUtil](https://github.com/ChrisTitusTech/winutil) preset, behind a Y/N prompt |
+| Tweaks | A [WinUtil](https://github.com/ChrisTitusTech/winutil) `Standard` preset, applied automatically |
 | Theme, hostname | Dark mode, `PC-<serial>` naming |
 | Windows Update | Installs everything available |
 
-Two steps ask before they run: **BitLocker** and the **WinUtil tweaks**. Both time out after 90 seconds and default to no, so an unattended run never stalls. Pass `-NonInteractive` to skip both outright.
+**BitLocker** asks before it runs, times out after 90 seconds and defaults to no, so an unattended run never stalls. Pass `-NonInteractive` to skip it outright. The **WinUtil tweaks** apply automatically with no prompt; pass `-Tweaks No` to skip them.
 
 ## Security hardening
 

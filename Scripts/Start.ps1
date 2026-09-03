@@ -108,13 +108,26 @@ function Install-Pwsh7 {
         Write-Host "Attempting installation via WinGet..." -ForegroundColor Cyan
         try {
             & winget install --id Microsoft.PowerShell --silent --accept-package-agreements --accept-source-agreements 2>&1
-            Start-Sleep -Seconds 5
-            Update-EnvironmentPath
-            $path = Get-Pwsh7Path
-            if ($path) {
-                Write-Host "PowerShell 7 installed successfully via WinGet" -ForegroundColor Green
-                return $true
+            $wingetExitCode = $LASTEXITCODE
+            if ($wingetExitCode -and $wingetExitCode -ne 0) {
+                Write-Warning "WinGet install returned exit code $wingetExitCode"
             }
+
+            # winget itself already waited for the installer to finish, but the
+            # file/registry write can lag a moment behind that. Poll instead of a
+            # single fixed sleep so a slow-to-appear pwsh.exe isn't mistaken for a
+            # failed install - that false negative used to trigger the MSI method
+            # too, installing PowerShell 7 twice.
+            for ($i = 0; $i -lt 10; $i++) {
+                Start-Sleep -Seconds 2
+                Update-EnvironmentPath
+                $path = Get-Pwsh7Path
+                if ($path) {
+                    Write-Host "PowerShell 7 installed successfully via WinGet" -ForegroundColor Green
+                    return $true
+                }
+            }
+            Write-Warning "WinGet did not report an error, but pwsh.exe was not found after installing"
         } catch {
             Write-Warning "WinGet installation failed: $_"
         }

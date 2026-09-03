@@ -28,7 +28,7 @@ try {
     if ([string]::IsNullOrWhiteSpace($Serial) -or $Serial.Length -lt 5) {
         Write-DeployLog "No valid serial number found. Unable to set hostname automatically. Please set the hostname manually." -IsError:$true
         Write-Output "No serial number found. Please set the computer name manually."
-        exit 1
+        exit 0
     }
     $LastFive = $Serial.Substring($Serial.Length - 5).ToUpper()
     $Hostname = "PC-$LastFive"
